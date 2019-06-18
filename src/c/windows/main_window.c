@@ -7,6 +7,7 @@ static void main_window_load(Window *window) {
     // Get information about the Window
     Layer *window_layer = window_get_root_layer(window);
     GRect bounds = layer_get_bounds(window_layer);
+    window_set_background_color(window, GColorBlack);
 
     // Create the TextLayer with specific bounds
     time_layer_create(window_layer,

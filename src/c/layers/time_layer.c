@@ -2,20 +2,6 @@
 
 static TextLayer *s_time_layer;
 
-void time_layer_refresh() {
-    // Get a tm structure
-    time_t temp = time(NULL);
-    struct tm *tick_time = localtime(&temp);
-
-    // Write the current hours and minutes into a buffer
-    static char s_buffer[8];
-    strftime(s_buffer, sizeof(s_buffer), clock_is_24h_style() ?
-            "%H:%M" : "%I:%M", tick_time);
-
-    // Display this time on the TextLayer
-    text_layer_set_text(s_time_layer, s_buffer);
-}
-
 void time_layer_create(Layer* parent_layer, GRect frame) {
     s_time_layer = text_layer_create(frame);
     // Improve the layout to be more like a watchface
@@ -28,6 +14,20 @@ void time_layer_create(Layer* parent_layer, GRect frame) {
     // Add it as a child layer to the Window's root layer
     layer_add_child(parent_layer, text_layer_get_layer(s_time_layer));
 
+}
+
+void time_layer_refresh() {
+    // Get a tm structure
+    time_t temp = time(NULL);
+    struct tm *tick_time = localtime(&temp);
+
+    // Write the current hours and minutes into a buffer
+    static char s_buffer[8];
+    strftime(s_buffer, sizeof(s_buffer), clock_is_24h_style() ?
+            "%H:%M" : "%I:%M", tick_time);
+
+    // Display this time on the TextLayer
+    text_layer_set_text(s_time_layer, s_buffer);
 }
 
 void time_layer_destroy() {

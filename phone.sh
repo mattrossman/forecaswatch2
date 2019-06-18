@@ -7,6 +7,4 @@ else
     exit 1
 fi
 
-pebble clean
-pebble build
-pebble install
+pebble clean && pebble build && pebble install

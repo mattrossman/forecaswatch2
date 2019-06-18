@@ -1,5 +1,5 @@
 #include "main_window.h"
-#include "../layers/time_layer.h"
+#include "c/layers/time_layer.h"
 
 static Window *s_main_window;
 

@@ -2,7 +2,7 @@
 
 static TextLayer *s_time_layer;
 
-static void update_time() {
+void time_layer_refresh() {
     // Get a tm structure
     time_t temp = time(NULL);
     struct tm *tick_time = localtime(&temp);
@@ -14,10 +14,6 @@ static void update_time() {
 
     // Display this time on the TextLayer
     text_layer_set_text(s_time_layer, s_buffer);
-}
-
-static void minute_handler(struct tm *tick_time, TimeUnits units_changed) {
-    update_time();
 }
 
 void time_layer_create(Layer* parent_layer, GRect frame) {
@@ -32,8 +28,6 @@ void time_layer_create(Layer* parent_layer, GRect frame) {
     // Add it as a child layer to the Window's root layer
     layer_add_child(parent_layer, text_layer_get_layer(s_time_layer));
 
-    // Register with TickTimerService
-    tick_timer_service_subscribe(MINUTE_UNIT, minute_handler);
 }
 
 void time_layer_destroy() {

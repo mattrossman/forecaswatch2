@@ -37,10 +37,6 @@ void bottom_axis_layer_create(Layer* parent_layer, GRect frame) {
         text_layer_set_text(text_layer, s_hour_buf[i]);
         layer_add_child(s_bottom_axis_layer, text_layer_get_layer(text_layer));
     }
-    
-    for (int i = 0; i < 6; ++i) {
-        APP_LOG(APP_LOG_LEVEL_DEBUG, "(%d) contents: %s", i, text_layer_get_text(s_axis_label_layers[i]));
-    }
     layer_add_child(parent_layer, s_bottom_axis_layer);
 }
 

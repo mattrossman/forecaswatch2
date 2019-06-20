@@ -6,7 +6,7 @@ static Layer *s_graph_layer;
 static TextLayer *s_hi_layer;
 static TextLayer *s_lo_layer;
 
-static void weather_layer_draw(Layer *layer, GContext *ctx) {
+static void weather_update_proc(Layer *layer, GContext *ctx) {
     // Weather section outline
     GRect bounds = layer_get_bounds(layer);
     graphics_context_set_stroke_color(ctx, GColorBlue);
@@ -27,7 +27,7 @@ void weather_layer_create(Layer *parent_layer, GRect frame) {
     layer_add_child(s_weather_layer, text_layer_get_layer(s_hi_layer));
 
     // Set up contents
-    layer_set_update_proc(s_weather_layer, weather_layer_draw);
+    layer_set_update_proc(s_weather_layer, weather_update_proc);
 
     bottom_axis_layer_create(s_weather_layer, GRect(20, bounds.size.h - 15, bounds.size.w-20, 15));
 

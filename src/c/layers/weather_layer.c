@@ -1,5 +1,5 @@
 #include "weather_layer.h"
-#include "graph_bottom_layer.h"
+#include "bottom_axis_layer.h"
 
 static Layer *s_weather_layer;
 static Layer *s_graph_layer;
@@ -29,7 +29,7 @@ void weather_layer_create(Layer *parent_layer, GRect frame) {
     // Set up contents
     layer_set_update_proc(s_weather_layer, weather_layer_draw);
 
-    graph_bottom_layer_create(s_weather_layer, GRect(20, bounds.size.h - 15, bounds.size.w-20, 15));
+    bottom_axis_layer_create(s_weather_layer, GRect(20, bounds.size.h - 15, bounds.size.w-20, 15));
 
     // Add it as a child layer to the Window's root layer
     layer_add_child(parent_layer, s_weather_layer);
@@ -41,6 +41,6 @@ void weather_layer_refresh() {
 
 void weather_layer_destroy() {
     text_layer_destroy(s_hi_layer);
-    graph_bottom_layer_destroy();
+    bottom_axis_layer_destroy();
     layer_destroy(s_weather_layer);
 }

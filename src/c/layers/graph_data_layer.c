@@ -1,19 +1,33 @@
 #include "graph_data_layer.h"
-#include "c/constants.h"
+#include "c/appendix/constants.h"
+#include "c/appendix/math.h"
 
 static Layer *s_graph_data_layer;
+const int margin_temp_v = 10;
 
 static void graph_data_update_proc(Layer *layer, GContext *ctx) {
-    // Weather section outline
     GRect bounds = layer_get_bounds(layer);
+    int w = bounds.size.w;
+    int h = bounds.size.h;
+
+    // Graph section outline
     graphics_context_set_stroke_color(ctx, GColorRed);
     graphics_draw_rect(ctx, bounds);
 
+    // Data setup
+    int *data = c_12h_test_data;
+    int lo, hi;
+    min_max(data, 12, &lo, &hi);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "max: %d, min: %d", lo, hi);
+    int range = hi - lo;
+
     // Draw a bounding box for each data entry
     float entry_w = (float) bounds.size.w / c_num_graph_hours;
-    graphics_context_set_stroke_color(ctx, GColorYellow);
+    graphics_context_set_fill_color(ctx, GColorYellow);
     for (int i = 0; i < c_num_graph_hours; ++i) {
-        graphics_draw_rect(ctx, GRect(i * entry_w, 0, entry_w, bounds.size.h));
+        int temp = data[i];
+        int temp_h = (float) (temp - lo) / range * (h - margin_temp_v * 2) + margin_temp_v;
+        graphics_fill_circle(ctx, GPoint(i * entry_w, h - temp_h), 2);
     }
 }
 

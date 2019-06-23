@@ -3,6 +3,8 @@
 #include "c/appendix/math.h"
 
 static Layer *s_graph_data_layer;
+
+const int bottom_axis_h = 15;
 const int margin_temp_w = 10;
 const int margin_temp_h = 10;
 
@@ -27,10 +29,14 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
     graphics_context_set_fill_color(ctx, GColorYellow);
     for (int i = 0; i < c_num_graph_hours; ++i) {
         int temp = data[i];
-        int temp_h = (float) (temp - lo) / range * (h - margin_temp_h * 2) + margin_temp_h;
+        int temp_h = (float) (temp - lo) / range * (h - margin_temp_h * 2 - bottom_axis_h);
         int temp_x = margin_temp_w + i * entry_w;
-        graphics_fill_circle(ctx, GPoint(temp_x, h - temp_h), 2);
+        graphics_fill_circle(ctx, GPoint(temp_x, h - temp_h - margin_temp_h - bottom_axis_h), 2);
     }
+
+    // Draw a line for the bottom axis
+    graphics_context_set_stroke_color(ctx, GColorWhite);
+    graphics_draw_line(ctx, GPoint(0, h - bottom_axis_h), GPoint(w, h - bottom_axis_h));
 }
 
 void graph_data_layer_create(Layer* parent_layer, GRect frame) {

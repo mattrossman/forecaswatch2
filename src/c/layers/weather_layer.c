@@ -29,9 +29,7 @@ void weather_layer_create(Layer *parent_layer, GRect frame) {
 
     // Set up contents
     layer_set_update_proc(s_weather_layer, weather_update_proc);
-    
-    bottom_axis_layer_create(s_weather_layer, GRect(20, bounds.size.h - 15, bounds.size.w-20, 15));
-    graph_data_layer_create(s_weather_layer, GRect(20, 0, bounds.size.w-20, bounds.size.h-15));
+    graph_data_layer_create(s_weather_layer, GRect(20, 0, bounds.size.w-20, bounds.size.h));
 
     // Add it as a child layer to the Window's root layer
     layer_add_child(parent_layer, s_weather_layer);

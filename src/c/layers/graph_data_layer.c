@@ -3,7 +3,8 @@
 #include "c/appendix/math.h"
 
 static Layer *s_graph_data_layer;
-const int margin_temp_v = 10;
+const int margin_temp_w = 10;
+const int margin_temp_h = 10;
 
 static void graph_data_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
@@ -22,12 +23,13 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
     int range = hi - lo;
 
     // Draw a bounding box for each data entry
-    float entry_w = (float) bounds.size.w / c_num_graph_hours;
+    float entry_w = (float) (bounds.size.w - 2 * margin_temp_w) / (c_num_graph_hours - 1);
     graphics_context_set_fill_color(ctx, GColorYellow);
     for (int i = 0; i < c_num_graph_hours; ++i) {
         int temp = data[i];
-        int temp_h = (float) (temp - lo) / range * (h - margin_temp_v * 2) + margin_temp_v;
-        graphics_fill_circle(ctx, GPoint(i * entry_w, h - temp_h), 2);
+        int temp_h = (float) (temp - lo) / range * (h - margin_temp_h * 2) + margin_temp_h;
+        int temp_x = margin_temp_w + i * entry_w;
+        graphics_fill_circle(ctx, GPoint(temp_x, h - temp_h), 2);
     }
 }
 

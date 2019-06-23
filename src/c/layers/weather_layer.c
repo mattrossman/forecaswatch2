@@ -1,5 +1,4 @@
 #include "weather_layer.h"
-#include "bottom_axis_layer.h"
 #include "graph_layer.h"
 
 static Layer *s_weather_layer;
@@ -41,6 +40,5 @@ void weather_layer_refresh() {
 
 void weather_layer_destroy() {
     text_layer_destroy(s_hi_layer);
-    bottom_axis_layer_destroy();
     layer_destroy(s_weather_layer);
 }

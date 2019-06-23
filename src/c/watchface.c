@@ -1,6 +1,6 @@
 #include <pebble.h>
 #include "windows/main_window.h"
-#include "appendix/define_constants.h"
+#include "appendix/define_globals.h"
 
 static void init() {
     main_window_create();

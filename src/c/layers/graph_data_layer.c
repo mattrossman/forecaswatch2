@@ -1,5 +1,5 @@
 #include "graph_data_layer.h"
-#include "c/appendix/constants.h"
+#include "c/appendix/globals.h"
 #include "c/appendix/math.h"
 
 static Layer *s_graph_data_layer;

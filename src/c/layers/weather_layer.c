@@ -1,10 +1,13 @@
 #include "weather_layer.h"
 #include "graph_layer.h"
+#include "c/appendix/globals.h"
 
 static Layer *s_weather_layer;
 static Layer *s_graph_layer;
 static TextLayer *s_hi_layer;
 static TextLayer *s_lo_layer;
+char buf_hi[4];
+char buf_lo[4];
 
 static void weather_update_proc(Layer *layer, GContext *ctx) {
     // Weather section outline
@@ -23,7 +26,8 @@ void weather_layer_create(Layer *parent_layer, GRect frame) {
     text_layer_set_text_alignment(s_hi_layer, GTextAlignmentCenter);
     text_layer_set_text_color(s_hi_layer, GColorWhite);
     text_layer_set_font(s_hi_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
-    text_layer_set_text(s_hi_layer, "12");
+    snprintf(buf_hi, sizeof(buf_hi), "%d", g_temp_hi);
+    text_layer_set_text(s_hi_layer, buf_hi);
     layer_add_child(s_weather_layer, text_layer_get_layer(s_hi_layer));
 
     // Temperature LOW
@@ -32,7 +36,8 @@ void weather_layer_create(Layer *parent_layer, GRect frame) {
     text_layer_set_text_alignment(s_lo_layer, GTextAlignmentCenter);
     text_layer_set_text_color(s_lo_layer, GColorWhite);
     text_layer_set_font(s_lo_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
-    text_layer_set_text(s_lo_layer, "9");
+    snprintf(buf_lo, sizeof(buf_lo), "%d", g_temp_lo);
+    text_layer_set_text(s_lo_layer, buf_lo);
     layer_add_child(s_weather_layer, text_layer_get_layer(s_lo_layer));
 
     // Set up contents

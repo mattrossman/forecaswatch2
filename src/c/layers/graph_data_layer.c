@@ -42,14 +42,14 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
     for (int i = 0; i < c_num_graph_hours; ++i) {
         int temp = data[i];
         int temp_h = (float) (temp - lo) / range * (h - margin_temp_h * 2 - bottom_axis_h);
-        int temp_x = margin_temp_w + i * entry_w;
-        graphics_fill_circle(ctx, GPoint(temp_x, h - temp_h - margin_temp_h - bottom_axis_h), 2);
+        int entry_x = margin_temp_w + i * entry_w;
+        graphics_fill_circle(ctx, GPoint(entry_x, h - temp_h - margin_temp_h - bottom_axis_h), 2);
         if (i % entries_per_label == 0) {
             graphics_draw_text(
                 ctx,
                 "4",
                 fonts_get_system_font(FONT_KEY_GOTHIC_14),
-                GRect(temp_x - 20, h - bottom_axis_h - font_offset_y, 40, bottom_axis_h),
+                GRect(entry_x - 20, h - bottom_axis_h - font_offset_y, 40, bottom_axis_h),
                 GTextOverflowModeWordWrap,
                 GTextAlignmentCenter,
                 NULL
@@ -57,8 +57,8 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
         }
         else {
             graphics_draw_line(ctx,
-                GPoint(temp_x, h - bottom_axis_h - 0),
-                GPoint(temp_x, h - bottom_axis_h + 4));
+                GPoint(entry_x, h - bottom_axis_h - 0),
+                GPoint(entry_x, h - bottom_axis_h + 4));
         }
     }
 }

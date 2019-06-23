@@ -1,8 +1,8 @@
-#include "graph_data_layer.h"
+#include "graph_layer.h"
 #include "c/appendix/globals.h"
 #include "c/appendix/math.h"
 
-static Layer *s_graph_data_layer;
+static Layer *s_graph_layer;
 
 const int bottom_axis_h = 15;
 const int margin_temp_w = 6;
@@ -66,17 +66,17 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
     }
 }
 
-void graph_data_layer_create(Layer* parent_layer, GRect frame) {
-    s_graph_data_layer = layer_create(frame);
-    GRect bounds = layer_get_bounds(s_graph_data_layer);
-    layer_set_update_proc(s_graph_data_layer, graph_data_update_proc);
-    layer_add_child(parent_layer, s_graph_data_layer);
+void graph_layer_create(Layer* parent_layer, GRect frame) {
+    s_graph_layer = layer_create(frame);
+    GRect bounds = layer_get_bounds(s_graph_layer);
+    layer_set_update_proc(s_graph_layer, graph_data_update_proc);
+    layer_add_child(parent_layer, s_graph_layer);
 }
 
-void graph_data_layer_refresh() {
+void graph_layer_refresh() {
 
 }
 
-void graph_data_layer_destroy() {
+void graph_layer_destroy() {
 
 }

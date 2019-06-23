@@ -5,7 +5,7 @@
 static Layer *s_graph_data_layer;
 
 const int bottom_axis_h = 15;
-const int margin_temp_w = 10;
+const int margin_temp_w = 6;
 const int margin_temp_h = 10;
 
 static void graph_data_update_proc(Layer *layer, GContext *ctx) {
@@ -45,9 +45,11 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
         graphics_fill_circle(ctx, GPoint(entry_x, h - temp_h - margin_temp_h - bottom_axis_h), 2);
         if (i % entries_per_label == 0) {
             // Draw a text hour label
+            char buf[4];
+            snprintf(buf, sizeof(buf), "%d", s_forecast_start_hour + i);
             graphics_draw_text(
                 ctx,
-                "4",
+                buf,
                 fonts_get_system_font(FONT_KEY_GOTHIC_14),
                 GRect(entry_x - 20, h - bottom_axis_h - font_offset_y, 40, bottom_axis_h),
                 GTextOverflowModeWordWrap,

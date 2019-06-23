@@ -26,7 +26,6 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
     const int s_forecast_start_hour = 6;
     int lo, hi;
     min_max(data, 12, &lo, &hi);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "max: %d, min: %d", lo, hi);
     int range = hi - lo;
 
     // Draw a bounding box for each data entry
@@ -45,6 +44,7 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
         int entry_x = margin_temp_w + i * entry_w;
         graphics_fill_circle(ctx, GPoint(entry_x, h - temp_h - margin_temp_h - bottom_axis_h), 2);
         if (i % entries_per_label == 0) {
+            // Draw a text hour label
             graphics_draw_text(
                 ctx,
                 "4",
@@ -56,6 +56,7 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
             );
         }
         else {
+            // Just draw a tick
             graphics_draw_line(ctx,
                 GPoint(entry_x, h - bottom_axis_h - 0),
                 GPoint(entry_x, h - bottom_axis_h + 4));

@@ -1,9 +1,21 @@
 #include <pebble.h>
 #include "windows/main_window.h"
+#include "appendix/globals.h"
 #include "appendix/define_globals.h"
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Message received!");
+    static char temp_lo[8];
+    static char temp_hi[8];
+    Tuple *temp_lo_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_LO);
+    Tuple *temp_hi_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_HI);
+
+    if(temp_lo_tuple && temp_hi_tuple) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "All tuples received!");
+        g_temp_lo = (int)temp_lo_tuple->value->int32;
+        g_temp_hi = (int)temp_hi_tuple->value->int32;
+        APP_LOG(APP_LOG_LEVEL_ERROR, "New lo: %d, New hi: %d", g_temp_lo, g_temp_hi);
+    }
 }
 
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {

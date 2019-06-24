@@ -21,6 +21,11 @@
     ],
     "resources": {
       "media": []
-    }
+    },
+    "capabilities": ["location"],
+    "messageKeys": [
+      "TEMP_LO",
+      "TEMP_HI"
+    ]
   }
 }

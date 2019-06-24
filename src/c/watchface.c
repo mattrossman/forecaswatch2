@@ -3,7 +3,7 @@
 #include "appendix/define_globals.h"
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
-
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Message received!");
 }
 
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {

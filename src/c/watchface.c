@@ -3,6 +3,7 @@
 #include "appendix/define_globals.h"
 #include "appendix/globals.h"
 #include "layers/weather_layer.h"
+#include "appendix/persist.h"
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Message received!");
@@ -11,10 +12,10 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
     if(temp_lo_tuple && temp_hi_tuple) {
         APP_LOG(APP_LOG_LEVEL_INFO, "All tuples received!");
-        g_temp_lo = (int)temp_lo_tuple->value->int32;
-        g_temp_hi = (int)temp_hi_tuple->value->int32;
+        persist_set_temp_lo((int)temp_lo_tuple->value->int32);
+        persist_set_temp_hi((int)temp_hi_tuple->value->int32);
         weather_layer_refresh();
-        APP_LOG(APP_LOG_LEVEL_INFO, "New lo: %d, New hi: %d", g_temp_lo, g_temp_hi);
+        APP_LOG(APP_LOG_LEVEL_INFO, "New lo: %d, New hi: %d", persist_get_temp_lo(), persist_get_temp_hi());
     }
 }
 
@@ -37,10 +38,13 @@ static void init() {
     app_message_register_outbox_failed(outbox_failed_callback);
     app_message_register_outbox_sent(outbox_sent_callback);
 
+    persist_init();
+
     // Open AppMessage
     const int inbox_size = 128;
     const int outbox_size = 128;
     app_message_open(inbox_size, outbox_size);
+    APP_LOG(APP_LOG_LEVEL_INFO, "Outbox opened!");
 
     main_window_create();
 }

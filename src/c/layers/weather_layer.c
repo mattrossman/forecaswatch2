@@ -1,6 +1,7 @@
 #include "weather_layer.h"
 #include "graph_layer.h"
 #include "c/appendix/globals.h"
+#include "c/appendix/persist.h"
 
 static Layer *s_weather_layer;
 static Layer *s_graph_layer;
@@ -17,10 +18,10 @@ static void weather_update_proc(Layer *layer, GContext *ctx) {
 }
 
 static void temp_lo_hi_draw() {
-    snprintf(buf_hi, sizeof(buf_hi), "%d", g_temp_hi);
+    snprintf(buf_hi, sizeof(buf_hi), "%d", persist_get_temp_hi());
     text_layer_set_text(s_hi_layer, buf_hi);
 
-    snprintf(buf_lo, sizeof(buf_lo), "%d", g_temp_lo);
+    snprintf(buf_lo, sizeof(buf_lo), "%d", persist_get_temp_lo());
     text_layer_set_text(s_lo_layer, buf_lo);
 }
 

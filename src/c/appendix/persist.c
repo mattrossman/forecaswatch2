@@ -1,6 +1,6 @@
 #include "persist.h"
 
-enum key {TEMP_LO,  TEMP_HI, TEMP_TREND};
+enum key {TEMP_LO,  TEMP_HI, TEMP_TREND, TEMP_START};
 
 void persist_init() {
     if (!persist_exists(TEMP_LO)) {
@@ -12,6 +12,9 @@ void persist_init() {
     if (!persist_exists(TEMP_TREND)) {
         int16_t data[] = {2, 2, 2, 4, 7, 9, 11, 12, 12, 12, 11, 9};
         persist_write_data(TEMP_TREND, (void*) data, 12*sizeof(int16_t));
+    }
+    if (!persist_exists(TEMP_START)) {
+        persist_write_int(TEMP_START, 6);
     }
 }
 
@@ -27,6 +30,10 @@ int persist_get_temp_trend(int16_t *buffer, const size_t buffer_size) {
     return persist_read_data(TEMP_TREND, (void*) buffer, buffer_size * sizeof(int16_t));
 }
 
+int persist_get_temp_start() {
+    return persist_read_int(TEMP_START);
+}
+
 void persist_set_temp_lo(int val) {
     persist_write_int(TEMP_LO, val);
 }
@@ -37,4 +44,8 @@ void persist_set_temp_hi(int val) {
 
 void persist_set_temp_trend(int16_t *data, const size_t size) {
     persist_write_data(TEMP_TREND, (void*) data, size * sizeof(int16_t));
+}
+
+void persist_set_temp_start(int val) {
+    persist_write_int(TEMP_START, val);
 }

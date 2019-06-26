@@ -72,11 +72,15 @@ function processDarkskyResponse(darkskyReponse) {
     var trendIntView = new Int16Array(temperatures)
     var trendByteArray = Array.prototype.slice.call(new Uint8Array(trendIntView.buffer))
 
+    // Calculate the starting time (hour) for the forecast
+    var tempStartHour = new Date(twelveHours[0].time * 1000).getHours()
+
     // Assemble the message keys
     var payload = {
         'TEMP_LO': lo,
         'TEMP_HI': hi,
-        'ARRAY': trendByteArray
+        'ARRAY': trendByteArray,
+        'TEMP_START': tempStartHour
     }
 
     // Send to Pebble

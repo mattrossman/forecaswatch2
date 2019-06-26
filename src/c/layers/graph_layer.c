@@ -23,7 +23,7 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
     // Allocate a data buffer and load the stored data into it
     int16_t data[12];
     persist_get_temp_trend(data, 12);
-    const int s_forecast_start_hour = 6;
+    const int s_forecast_start_hour = persist_get_temp_start();
     int lo, hi;
     min_max(data, 12, &lo, &hi);
     int range = hi - lo;
@@ -46,7 +46,7 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
         if (i % entries_per_label == 0) {
             // Draw a text hour label
             char buf[4];
-            snprintf(buf, sizeof(buf), "%d", s_forecast_start_hour + i);
+            snprintf(buf, sizeof(buf), "%d", (s_forecast_start_hour + i) % 24);
             graphics_draw_text(
                 ctx,
                 buf,

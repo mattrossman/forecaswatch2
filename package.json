@@ -26,7 +26,8 @@
     "messageKeys": [
       "TEMP_LO",
       "TEMP_HI",
-      "ARRAY"
+      "ARRAY",
+      "TEMP_START"
     ]
   }
 }

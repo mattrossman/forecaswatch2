@@ -10,21 +10,17 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *temp_lo_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_LO);
     Tuple *temp_hi_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_HI);
     Tuple *array_tuple = dict_find(iterator, MESSAGE_KEY_ARRAY);
+    Tuple *temp_start_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_START);
 
-    if(temp_lo_tuple && temp_hi_tuple) {
+    if(temp_lo_tuple && temp_hi_tuple && array_tuple && temp_start_tuple) {
         APP_LOG(APP_LOG_LEVEL_INFO, "All tuples received!");
         persist_set_temp_lo((int)temp_lo_tuple->value->int32);
         persist_set_temp_hi((int)temp_hi_tuple->value->int32);
-        weather_layer_refresh();
-        APP_LOG(APP_LOG_LEVEL_INFO, "New lo: %d, New hi: %d", persist_get_temp_lo(), persist_get_temp_hi());
-    }
-    if (array_tuple) {
-        APP_LOG(APP_LOG_LEVEL_INFO, "Array tuple received!");
+        persist_set_temp_start((int)temp_start_tuple->value->int32);
         int16_t *data = (int16_t*) array_tuple->value->data;
         persist_set_temp_trend(data, 12);
-        APP_LOG(APP_LOG_LEVEL_INFO, "First int: %i", data[0]);
-        APP_LOG(APP_LOG_LEVEL_INFO, "Second int: %i", data[1]);
-        APP_LOG(APP_LOG_LEVEL_INFO, "Third int: %i", data[2]);
+        weather_layer_refresh();
+        APP_LOG(APP_LOG_LEVEL_INFO, "New lo: %d, New hi: %d", persist_get_temp_lo(), persist_get_temp_hi());
     }
 }
 

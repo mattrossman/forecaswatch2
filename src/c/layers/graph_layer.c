@@ -1,6 +1,7 @@
 #include "graph_layer.h"
 #include "c/appendix/globals.h"
 #include "c/appendix/math.h"
+#include "c/appendix/persist.h"
 
 static Layer *s_graph_layer;
 
@@ -21,8 +22,9 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
     graphics_context_set_stroke_color(ctx, GColorOrange);
     graphics_draw_line(ctx, GPoint(0, h - bottom_axis_h), GPoint(w, h - bottom_axis_h));
 
-    // Data setup
-    int *data = c_12h_test_data;
+    // Allocate a data buffer and load the stored data into it
+    int16_t data[12];
+    persist_get_temp_trend(data, 12);
     const int s_forecast_start_hour = 6;
     int lo, hi;
     min_max(data, 12, &lo, &hi);
@@ -74,9 +76,9 @@ void graph_layer_create(Layer* parent_layer, GRect frame) {
 }
 
 void graph_layer_refresh() {
-
+    layer_mark_dirty(s_graph_layer);
 }
 
 void graph_layer_destroy() {
-
+    layer_destroy(s_graph_layer);
 }

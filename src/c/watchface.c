@@ -21,6 +21,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     if (array_tuple) {
         APP_LOG(APP_LOG_LEVEL_INFO, "Array tuple received!");
         int16_t *data = (int16_t*) array_tuple->value->data;
+        persist_set_temp_trend(data, 12);
         APP_LOG(APP_LOG_LEVEL_INFO, "First int: %i", data[0]);
         APP_LOG(APP_LOG_LEVEL_INFO, "Second int: %i", data[1]);
         APP_LOG(APP_LOG_LEVEL_INFO, "Third int: %i", data[2]);

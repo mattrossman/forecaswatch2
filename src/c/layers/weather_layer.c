@@ -64,5 +64,6 @@ void weather_layer_refresh() {
 void weather_layer_destroy() {
     text_layer_destroy(s_hi_layer);
     text_layer_destroy(s_lo_layer);
+    graph_layer_destroy();
     layer_destroy(s_weather_layer);
 }

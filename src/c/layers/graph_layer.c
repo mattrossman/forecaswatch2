@@ -5,7 +5,7 @@
 
 static Layer *s_graph_layer;
 
-const int bottom_axis_h = 15;
+const int bottom_axis_h = 9;
 const int margin_temp_w = 6;
 const int margin_temp_h = 10;
 
@@ -14,13 +14,11 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
     int w = bounds.size.w;
     int h = bounds.size.h;
 
-    // Graph section outline
-    graphics_context_set_stroke_color(ctx, GColorRed);
-    graphics_draw_rect(ctx, bounds);
-
     // Draw a line for the bottom axis
     graphics_context_set_stroke_color(ctx, GColorOrange);
     graphics_draw_line(ctx, GPoint(0, h - bottom_axis_h), GPoint(w, h - bottom_axis_h));
+    // And for the left side axis
+    graphics_draw_line(ctx, GPoint(0, 0), GPoint(0, h - bottom_axis_h));
 
     // Allocate a data buffer and load the stored data into it
     int16_t data[12];

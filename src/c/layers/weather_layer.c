@@ -31,7 +31,7 @@ void weather_layer_create(Layer *parent_layer, GRect frame) {
 
     // Temperature HIGH
     s_hi_layer = text_layer_create(GRect(0, 0, 20, 20));
-    text_layer_set_background_color(s_hi_layer, GColorBlue);
+    text_layer_set_background_color(s_hi_layer, GColorClear);
     text_layer_set_text_alignment(s_hi_layer, GTextAlignmentCenter);
     text_layer_set_text_color(s_hi_layer, GColorWhite);
     text_layer_set_font(s_hi_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
@@ -39,7 +39,7 @@ void weather_layer_create(Layer *parent_layer, GRect frame) {
 
     // Temperature LOW
     s_lo_layer = text_layer_create(GRect(0, 20, 20, 20));
-    text_layer_set_background_color(s_lo_layer, GColorBlue);
+    text_layer_set_background_color(s_lo_layer, GColorClear);
     text_layer_set_text_alignment(s_lo_layer, GTextAlignmentCenter);
     text_layer_set_text_color(s_lo_layer, GColorWhite);
     text_layer_set_font(s_lo_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
@@ -49,7 +49,6 @@ void weather_layer_create(Layer *parent_layer, GRect frame) {
     temp_lo_hi_draw();
 
     // Set up contents
-    layer_set_update_proc(s_weather_layer, weather_update_proc);
     graph_layer_create(s_weather_layer, GRect(20, 0, bounds.size.w-20, bounds.size.h));
 
     // Add it as a child layer to the Window's root layer

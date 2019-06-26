@@ -28,7 +28,7 @@ function tryWeatherUpdate() {
     }
     else {
         lastFetchTime = parseFloat(window.localStorage.getItem('fetchTime'), 10);
-        if (Date.now() - lastFetchTime >= 1000 * 60 * 15) { // 1000 ms * 60 sec * 60 min = 1 hour
+        if (Date.now() - lastFetchTime >= 1000 * 60 * 30) { // 1000 ms * 60 sec * 60 min = 1 hour
             console.log('Existing data is too old, refetching!');
             getWeather();
         }

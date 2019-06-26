@@ -25,7 +25,8 @@
     "capabilities": ["location"],
     "messageKeys": [
       "TEMP_LO",
-      "TEMP_HI"
+      "TEMP_HI",
+      "ARRAY"
     ]
   }
 }

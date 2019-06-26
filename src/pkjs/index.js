@@ -69,10 +69,14 @@ function processDarkskyResponse(darkskyReponse) {
     hi = Math.max.apply(Math, temperatures);
     console.log('Lo: ' + lo + ', Hi: ' + hi);
 
+    var trendIntView = new Int16Array(temperatures)
+    var trendByteArray = Array.prototype.slice.call(new Uint8Array(trendIntView.buffer))
+
     // Assemble the message keys
     var payload = {
         'TEMP_LO': lo,
-        'TEMP_HI': hi
+        'TEMP_HI': hi,
+        'ARRAY': trendByteArray
     }
 
     // Send to Pebble

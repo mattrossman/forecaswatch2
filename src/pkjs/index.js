@@ -4,7 +4,7 @@ var config = require('./config.js');
 Pebble.addEventListener('ready',
     function (e) {
         console.log('PebbleKit JS ready!');
-        getWeather();
+        tryWeatherUpdate();
     }
 );
 
@@ -15,6 +15,25 @@ Pebble.addEventListener('appmessage',
         getWeather();
     }                     
 );
+
+setInterval(function() {
+    console.log('Tick from PKJS!');
+    tryWeatherUpdate();
+}, 60 * 1000); // 60 * 1000 milsec
+
+function tryWeatherUpdate() {
+    if (!window.localStorage.getItem('fetchTime')) {
+        console.log('fetchTime not found, fetching weather!');
+        getWeather();
+    }
+    else {
+        lastFetchTime = parseFloat(window.localStorage.getItem('fetchTime'), 10);
+        if (Date.now() - lastFetchTime >= 1000 * 60 * 15) { // 1000 ms * 60 sec * 60 min = 1 hour
+            console.log('Existing data is too old, refetching!');
+            getWeather();
+        }
+    }
+}
 
 function request(url, type, callback) {
     var xhr = new XMLHttpRequest();
@@ -31,6 +50,8 @@ function getWeather() {
         var weatherData = JSON.parse(response);
         console.log('Found timezone: ' + weatherData.timezone);
         processDarkskyResponse(weatherData);
+        console.log('Setting fetchTime in local storage');
+        window.localStorage.setItem('fetchTime', Date.now());
     });
 }
 
@@ -46,7 +67,7 @@ function processDarkskyResponse(darkskyReponse) {
     // Extract the low and high temperatures
     lo = Math.min.apply(Math, temperatures);
     hi = Math.max.apply(Math, temperatures);
-    console.log('Min: ' + lo + ', Hi: ' + hi);
+    console.log('Lo: ' + lo + ', Hi: ' + hi);
 
     // Assemble the message keys
     var payload = {

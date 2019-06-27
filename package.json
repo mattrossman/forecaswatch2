@@ -27,7 +27,8 @@
       "TEMP_LO",
       "TEMP_HI",
       "ARRAY",
-      "TEMP_START"
+      "TEMP_START",
+      "CITY"
     ]
   }
 }

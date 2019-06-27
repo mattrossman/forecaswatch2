@@ -4,7 +4,19 @@ var config = require('./config.js');
 Pebble.addEventListener('ready',
     function (e) {
         console.log('PebbleKit JS ready!');
-        tryWeatherUpdate();
+        var options = {
+            enableHighAccuracy: true,
+            maximumAge: 10000,
+            timeout: 10000
+        };
+        function success(pos) {
+            console.log('FOUND LOCATION: lat= ' + pos.coords.latitude + ' lon= ' + pos.coords.longitude);
+            tryWeatherUpdate(pos.coords.latitude, pos.coords.longitude);
+        }
+        function error(err) {
+            console.log('location error (' + err.code + '): ' + err.message);
+        }
+        navigator.geolocation.getCurrentPosition(success, error, options);
     }
 );
 
@@ -21,16 +33,16 @@ setInterval(function() {
     tryWeatherUpdate();
 }, 60 * 1000); // 60 * 1000 milsec
 
-function tryWeatherUpdate() {
+function tryWeatherUpdate(lat, lon) {
     if (!window.localStorage.getItem('fetchTime')) {
         console.log('fetchTime not found, fetching weather!');
-        getWeather();
+        getWeather(lat, lon);
     }
     else {
         lastFetchTime = parseFloat(window.localStorage.getItem('fetchTime'), 10);
         if (Date.now() - lastFetchTime >= 1000 * 60 * 30) { // 1000 ms * 60 sec * 60 min = 1 hour
             console.log('Existing data is too old, refetching!');
-            getWeather();
+            getWeather(lat, lon);
         }
     }
 }
@@ -44,8 +56,8 @@ function request(url, type, callback) {
     xhr.send();
 }
 
-function getWeather() {
-    var url = 'https://api.darksky.net/forecast/' + config.apiKey + '/' + config.lat + ',' + config.lon + '?exclude=minutely,daily,alerts,flags';
+function getWeather(lat, lon) {
+    var url = 'https://api.darksky.net/forecast/' + config.apiKey + '/' + lat + ',' + lon + '?exclude=minutely,daily,alerts,flags';
     request(url, 'GET', function (response) {
         var weatherData = JSON.parse(response);
         console.log('Found timezone: ' + weatherData.timezone);
@@ -75,21 +87,30 @@ function processDarkskyResponse(darkskyReponse) {
     // Calculate the starting time (hour) for the forecast
     var tempStartHour = new Date(twelveHours[0].time * 1000).getHours()
 
-    // Assemble the message keys
-    var payload = {
-        'TEMP_LO': lo,
-        'TEMP_HI': hi,
-        'ARRAY': trendByteArray,
-        'TEMP_START': tempStartHour
-    }
+    locUrl = 'https://nominatim.openstreetmap.org/reverse?lat=' + darkskyReponse.latitude
+            + '&lon=' + darkskyReponse.longitude
+            + '&format=json';
+    request(locUrl, 'GET',  function(response) {
+        var location = JSON.parse(response);
+        console.log('Forecast was fetched for ' + location.address.city);
 
-    // Send to Pebble
-    Pebble.sendAppMessage(payload,
-        function (e) {
-            console.log('Weather info sent to Pebble successfully!');
-        },
-        function (e) {
-            console.log('Error sending weather info to Pebble!');
+        // Assemble the message keys
+        var payload = {
+            'TEMP_LO': lo,
+            'TEMP_HI': hi,
+            'ARRAY': trendByteArray,
+            'TEMP_START': tempStartHour,
+            'CITY': location.address.city
         }
-    );
+    
+        // Send to Pebble
+        Pebble.sendAppMessage(payload,
+            function (e) {
+                console.log('Weather info sent to Pebble successfully!');
+            },
+            function (e) {
+                console.log('Error sending weather info to Pebble!');
+            }
+        );
+    })
 }

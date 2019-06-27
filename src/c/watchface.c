@@ -3,6 +3,7 @@
 #include "appendix/define_globals.h"
 #include "appendix/globals.h"
 #include "layers/forecast_layer.h"
+#include "layers/weather_status_layer.h"
 #include "appendix/persist.h"
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
@@ -22,6 +23,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         persist_set_temp_trend(data, 12);
         persist_set_city((char*)city_tuple->value->cstring);
         forecast_layer_refresh();
+        weather_status_layer_refresh();
         APP_LOG(APP_LOG_LEVEL_INFO, "New lo: %d, New hi: %d, City: %s", persist_get_temp_lo(), persist_get_temp_hi(),(char*)city_tuple->value->cstring);
     }
 }

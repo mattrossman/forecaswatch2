@@ -1,6 +1,7 @@
 #include "main_window.h"
 #include "c/layers/time_layer.h"
 #include "c/layers/forecast_layer.h"
+#include "c/layers/weather_status_layer.h"
 
 static Window *s_main_window;
 
@@ -17,6 +18,8 @@ static void main_window_load(Window *window) {
             GRect(0, PBL_IF_ROUND_ELSE(58, 52), bounds.size.w, 50));
     forecast_layer_create(window_layer,
             GRect(0, 2*h/3, w, h/3));
+    weather_status_layer_create(window_layer,
+            GRect(0, 0, w, h/3));
 }
 
 static void main_window_unload(Window *window) {

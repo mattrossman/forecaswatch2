@@ -4,19 +4,9 @@ var config = require('./config.js');
 Pebble.addEventListener('ready',
     function (e) {
         console.log('PebbleKit JS ready!');
-        var options = {
-            enableHighAccuracy: true,
-            maximumAge: 10000,
-            timeout: 10000
-        };
-        function success(pos) {
-            console.log('FOUND LOCATION: lat= ' + pos.coords.latitude + ' lon= ' + pos.coords.longitude);
-            tryWeatherUpdate(pos.coords.latitude, pos.coords.longitude);
-        }
-        function error(err) {
-            console.log('location error (' + err.code + '): ' + err.message);
-        }
-        navigator.geolocation.getCurrentPosition(success, error, options);
+        ifDataIsOld(function() {
+            withCoordinates(getWeather);
+        });
     }
 );
 
@@ -30,19 +20,37 @@ Pebble.addEventListener('appmessage',
 
 setInterval(function() {
     console.log('Tick from PKJS!');
-    tryWeatherUpdate();
-}, 60 * 1000); // 60 * 1000 milsec
+    ifDataIsOld(function() {
+        withCoordinates(getWeather);
+    });
+}, 60 * 1000); // 60 * 1000 milsec = 1 minute
 
-function tryWeatherUpdate(lat, lon) {
+function withCoordinates(callback) {
+    var options = {
+        enableHighAccuracy: true,
+        maximumAge: 10000,
+        timeout: 10000
+    };
+    function success(pos) {
+        console.log('FOUND LOCATION: lat= ' + pos.coords.latitude + ' lon= ' + pos.coords.longitude);
+        callback(pos.coords.latitude, pos.coords.longitude);
+    }
+    function error(err) {
+        console.log('location error (' + err.code + '): ' + err.message);
+    }
+    navigator.geolocation.getCurrentPosition(success, error, options);
+}
+
+function ifDataIsOld(callback) {
     if (!window.localStorage.getItem('fetchTime')) {
         console.log('fetchTime not found, fetching weather!');
-        getWeather(lat, lon);
+        callback();
     }
     else {
         lastFetchTime = parseFloat(window.localStorage.getItem('fetchTime'), 10);
         if (Date.now() - lastFetchTime >= 1000 * 60 * 30) { // 1000 ms * 60 sec * 60 min = 1 hour
             console.log('Existing data is too old, refetching!');
-            getWeather(lat, lon);
+            callback();
         }
     }
 }

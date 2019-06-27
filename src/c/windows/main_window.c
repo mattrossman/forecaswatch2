@@ -1,6 +1,6 @@
 #include "main_window.h"
 #include "c/layers/time_layer.h"
-#include "c/layers/weather_layer.h"
+#include "c/layers/forecast_layer.h"
 
 static Window *s_main_window;
 
@@ -15,13 +15,13 @@ static void main_window_load(Window *window) {
     // Create the TextLayer with specific bounds
     time_layer_create(window_layer,
             GRect(0, PBL_IF_ROUND_ELSE(58, 52), bounds.size.w, 50));
-    weather_layer_create(window_layer,
+    forecast_layer_create(window_layer,
             GRect(0, 2*h/3, w, h/3));
 }
 
 static void main_window_unload(Window *window) {
     time_layer_destroy();
-    weather_layer_destroy();
+    forecast_layer_destroy();
 }
 
 static void minute_handler(struct tm *tick_time, TimeUnits units_changed) {

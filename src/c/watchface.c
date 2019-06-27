@@ -2,7 +2,7 @@
 #include "windows/main_window.h"
 #include "appendix/define_globals.h"
 #include "appendix/globals.h"
-#include "layers/weather_layer.h"
+#include "layers/forecast_layer.h"
 #include "appendix/persist.h"
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
@@ -21,7 +21,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         int16_t *data = (int16_t*) array_tuple->value->data;
         persist_set_temp_trend(data, 12);
         persist_set_city((char*)city_tuple->value->cstring);
-        weather_layer_refresh();
+        forecast_layer_refresh();
         APP_LOG(APP_LOG_LEVEL_INFO, "New lo: %d, New hi: %d, City: %s", persist_get_temp_lo(), persist_get_temp_hi(),(char*)city_tuple->value->cstring);
     }
 }

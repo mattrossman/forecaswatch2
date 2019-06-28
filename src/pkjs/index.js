@@ -15,7 +15,7 @@ Pebble.addEventListener('appmessage',
     function (e) {
         console.log('AppMessage received!');
         getWeather();
-    }                     
+    }
 );
 
 setInterval(function() {

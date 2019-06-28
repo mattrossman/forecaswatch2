@@ -21,16 +21,17 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
     graphics_draw_line(ctx, GPoint(0, 0), GPoint(0, h - bottom_axis_h));
 
     // Allocate a data buffer and load the stored data into it
-    int16_t data[12];
-    persist_get_temp_trend(data, 12);
+    int16_t temps[12];
+    uint8_t precips[12];
+    persist_get_temp_trend(temps, 12);
+    persist_get_precip_trend(precips, 12);
     const int s_forecast_start_hour = persist_get_temp_start();
     int lo, hi;
-    min_max(data, 12, &lo, &hi);
+    min_max(temps, 12, &lo, &hi);
     int range = hi - lo;
 
     // Draw a bounding box for each data entry
     float entry_w = (float) (bounds.size.w - 2 * margin_temp_w) / (c_num_graph_hours - 1);
-    graphics_context_set_fill_color(ctx, GColorYellow);
     graphics_context_set_text_color(ctx, GColorWhite);
     graphics_context_set_stroke_color(ctx, GColorLightGray);
     // Minimum width a label should cover
@@ -39,10 +40,20 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
     const int entries_per_label = ((float) label_padding + (entry_w - 1)) / entry_w;
     const int font_offset_y = 5; // Adjust for the top whitespace inherent to the font
     for (int i = 0; i < c_num_graph_hours; ++i) {
-        int temp = data[i];
-        int temp_h = (float) (temp - lo) / range * (h - margin_temp_h * 2 - bottom_axis_h);
         int entry_x = margin_temp_w + i * entry_w;
+
+        // Draw a bar for the precipitation probability
+        int precip = precips[i];
+        int precip_h = (float) precip / 100.0 * (h - bottom_axis_h);
+        graphics_context_set_fill_color(ctx, GColorBlue);
+        graphics_fill_rect(ctx, GRect(entry_x - 2, h - bottom_axis_h - precip_h, 5, precip_h), 0, GCornerNone);
+
+        // Draw a point for the temperature reading
+        int temp = temps[i];
+        int temp_h = (float) (temp - lo) / range * (h - margin_temp_h * 2 - bottom_axis_h);
+        graphics_context_set_fill_color(ctx, GColorYellow);
         graphics_fill_circle(ctx, GPoint(entry_x, h - temp_h - margin_temp_h - bottom_axis_h), 2);
+
         if (i % entries_per_label == 0) {
             // Draw a text hour label
             char buf[4];

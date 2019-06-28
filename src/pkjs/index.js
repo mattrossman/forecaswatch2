@@ -86,7 +86,6 @@ function processDarkskyResponse(darkskyReponse) {
     precips = twelveHours.map(function(entry){
         return Math.round(entry.precipProbability * 100);
     });
-    // precips = [0, 2, 5, 15, 30, 55, 70, 80, 85, 87, 80, 65];
 
     var tempsIntView = new Int16Array(temps)
     var tempsByteArray = Array.prototype.slice.call(new Uint8Array(tempsIntView.buffer))

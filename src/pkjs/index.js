@@ -80,12 +80,16 @@ function processDarkskyResponse(darkskyReponse) {
     twelveHours = darkskyReponse.hourly.data.slice(0,12);
 
     // Get the rounded (integer) temperatures for those hours
-    temperatures = twelveHours.map(function(entry){
+    temps = twelveHours.map(function(entry){
         return Math.round(entry.temperature);
     });
+    precips = twelveHours.map(function(entry){
+        return Math.round(entry.precipProbability * 100);
+    });
+    // precips = [0, 2, 5, 15, 30, 55, 70, 80, 85, 87, 80, 65];
 
-    var trendIntView = new Int16Array(temperatures)
-    var trendByteArray = Array.prototype.slice.call(new Uint8Array(trendIntView.buffer))
+    var tempsIntView = new Int16Array(temps)
+    var tempsByteArray = Array.prototype.slice.call(new Uint8Array(tempsIntView.buffer))
 
     // Calculate the starting time (hour) for the forecast
     var tempStartHour = new Date(twelveHours[0].time * 1000).getHours()
@@ -99,7 +103,8 @@ function processDarkskyResponse(darkskyReponse) {
 
         // Assemble the message keys
         var payload = {
-            'TEMP_TREND_INT16': trendByteArray,
+            'TEMP_TREND_INT16': tempsByteArray,
+            'PRECIP_TREND_UINT8': precips, // Holds values within [0,100]
             'TEMP_START': tempStartHour,
             'CITY': location.address.city
         }

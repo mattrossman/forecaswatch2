@@ -7,17 +7,21 @@
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Message received!");
     Tuple *temp_trend_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_TREND_INT16);
+    Tuple *precip_trend_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_TREND_UINT8);
     Tuple *temp_start_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_START);
     Tuple *city_tuple = dict_find(iterator, MESSAGE_KEY_CITY);
 
-    if(temp_trend_tuple && temp_start_tuple && city_tuple) {
+    if(temp_trend_tuple && temp_trend_tuple && temp_start_tuple && city_tuple) {
         APP_LOG(APP_LOG_LEVEL_INFO, "All tuples received!");
         persist_set_temp_start((int)temp_start_tuple->value->int32);
-        int16_t *data = (int16_t*) temp_trend_tuple->value->data;
-        persist_set_temp_trend(data, 12);
+        int16_t *temp_data = (int16_t*) temp_trend_tuple->value->data;
+        persist_set_temp_trend(temp_data, 12);
+        uint8_t *precip_data = (uint8_t*) precip_trend_tuple->value->data;
+        persist_set_precip_trend(precip_data, 12);
+        APP_LOG(APP_LOG_LEVEL_INFO, "Saving precip data: [%i, %i, %i, ...]", precip_data[0], precip_data[1], precip_data[2]);
         persist_set_city((char*)city_tuple->value->cstring);
         int lo, hi;
-        min_max(data, 12, &lo, &hi);
+        min_max(temp_data, 12, &lo, &hi);
         persist_set_temp_lo(lo);
         persist_set_temp_hi(hi);
         forecast_layer_refresh();

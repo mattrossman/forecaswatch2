@@ -13,7 +13,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
     if(temp_trend_tuple && temp_trend_tuple && temp_start_tuple && city_tuple) {
         APP_LOG(APP_LOG_LEVEL_INFO, "All tuples received!");
-        persist_set_temp_start((int)temp_start_tuple->value->int32);
+        persist_set_start_hour((int)temp_start_tuple->value->int32);
         int16_t *temp_data = (int16_t*) temp_trend_tuple->value->data;
         persist_set_temp_trend(temp_data, 12);
         uint8_t *precip_data = (uint8_t*) precip_trend_tuple->value->data;

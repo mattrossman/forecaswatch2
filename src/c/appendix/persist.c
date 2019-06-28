@@ -1,6 +1,6 @@
 #include "persist.h"
 
-enum key {TEMP_LO, TEMP_HI, TEMP_TREND, PRECIP_TREND, TEMP_START, CITY, NUM_ENTRIES};
+enum key {TEMP_LO, TEMP_HI, TEMP_TREND, PRECIP_TREND, START_HOUR, CITY, NUM_ENTRIES};
 
 void persist_init() {
     if (!persist_exists(TEMP_LO)) {
@@ -17,8 +17,8 @@ void persist_init() {
         uint8_t data[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         persist_write_data(TEMP_TREND, (void*) data, 12*sizeof(uint8_t));
     }
-    if (!persist_exists(TEMP_START)) {
-        persist_write_int(TEMP_START, 6);
+    if (!persist_exists(START_HOUR)) {
+        persist_write_int(START_HOUR, 6);
     }
     if (!persist_exists(NUM_ENTRIES)) {
         persist_write_int(NUM_ENTRIES, 12);
@@ -44,8 +44,8 @@ int persist_get_precip_trend(uint8_t *buffer, const size_t buffer_size) {
     return persist_read_data(PRECIP_TREND, (void*) buffer, buffer_size * sizeof(uint8_t));
 }
 
-int persist_get_temp_start() {
-    return persist_read_int(TEMP_START);
+int persist_get_start_hour() {
+    return persist_read_int(START_HOUR);
 }
 
 int persist_get_num_entries() {
@@ -72,8 +72,8 @@ void persist_set_precip_trend(uint8_t *data, const size_t size) {
     persist_write_data(PRECIP_TREND, (void*) data, size * sizeof(uint8_t));
 }
 
-void persist_set_temp_start(int val) {
-    persist_write_int(TEMP_START, val);
+void persist_set_start_hour(int val) {
+    persist_write_int(START_HOUR, val);
 }
 
 void persist_set_num_entries(int val) {

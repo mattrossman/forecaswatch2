@@ -41,14 +41,23 @@ function withCoordinates(callback) {
     navigator.geolocation.getCurrentPosition(success, error, options);
 }
 
+function roundDownMinutes(date, minuteMod) {
+    // E.g. with minuteMod=30, 3:52 would roll back to 3:30
+    out = new Date(date);
+    out.setMinutes(date.getMinutes() - (date.getMinutes() % minuteMod));
+    out.setSeconds(0);
+    out.setMilliseconds(0);
+    return out;
+}
+
 function ifDataIsOld(callback) {
     if (!window.localStorage.getItem('fetchTime')) {
         console.log('fetchTime not found, fetching weather!');
         callback();
     }
     else {
-        lastFetchTime = parseFloat(window.localStorage.getItem('fetchTime'), 10);
-        if (Date.now() - lastFetchTime >= 1000 * 60 * 30) { // 1000 ms * 60 sec * 60 min = 1 hour
+        lastFetchTimeVal = parseFloat(window.localStorage.getItem('fetchTime'), 10);
+        if (Date.now() - lastFetchTimeVal >= 1000 * 60 * 30) { // 1000 ms * 60 sec * 30 min
             console.log('Existing data is too old, refetching!');
             callback();
         }
@@ -71,7 +80,7 @@ function getWeather(lat, lon) {
         console.log('Found timezone: ' + weatherData.timezone);
         processDarkskyResponse(weatherData);
         console.log('Setting fetchTime in local storage');
-        window.localStorage.setItem('fetchTime', Date.now());
+        window.localStorage.setItem('fetchTime', roundDownMinutes(new Date(), 30));
     });
 }
 

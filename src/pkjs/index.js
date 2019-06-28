@@ -99,7 +99,7 @@ function processDarkskyResponse(darkskyReponse) {
 
         // Assemble the message keys
         var payload = {
-            'ARRAY': trendByteArray,
+            'TEMP_TREND_INT16': trendByteArray,
             'TEMP_START': tempStartHour,
             'CITY': location.address.city
         }

@@ -1,5 +1,4 @@
 #include "graph_layer.h"
-#include "c/appendix/globals.h"
 #include "c/appendix/math.h"
 #include "c/appendix/persist.h"
 
@@ -25,13 +24,16 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
     uint8_t precips[12];
     persist_get_temp_trend(temps, 12);
     persist_get_precip_trend(precips, 12);
-    const int s_forecast_start_hour = persist_get_temp_start();
+    const int forecast_start_hour = persist_get_temp_start();
+    const int num_entries = persist_get_num_entries();
+
+    // Calculate the temperature range
     int lo, hi;
     min_max(temps, 12, &lo, &hi);
     int range = hi - lo;
 
     // Draw a bounding box for each data entry
-    float entry_w = (float) (bounds.size.w - 2 * margin_temp_w) / (c_num_graph_hours - 1);
+    float entry_w = (float) (bounds.size.w - 2 * margin_temp_w) / (num_entries - 1);
     graphics_context_set_text_color(ctx, GColorWhite);
     graphics_context_set_stroke_color(ctx, GColorLightGray);
     // Minimum width a label should cover
@@ -39,7 +41,7 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
     // Round this division up by adding (divisor - 1) to the dividend
     const int entries_per_label = ((float) label_padding + (entry_w - 1)) / entry_w;
     const int font_offset_y = 5; // Adjust for the top whitespace inherent to the font
-    for (int i = 0; i < c_num_graph_hours; ++i) {
+    for (int i = 0; i < num_entries; ++i) {
         int entry_x = margin_temp_w + i * entry_w;
 
         // Draw a bar for the precipitation probability
@@ -57,7 +59,7 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
         if (i % entries_per_label == 0) {
             // Draw a text hour label
             char buf[4];
-            snprintf(buf, sizeof(buf), "%d", (s_forecast_start_hour + i) % 24);
+            snprintf(buf, sizeof(buf), "%d", (forecast_start_hour + i) % 24);
             graphics_draw_text(
                 ctx,
                 buf,

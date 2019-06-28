@@ -1,7 +1,5 @@
 #include <pebble.h>
 #include "windows/main_window.h"
-#include "appendix/define_globals.h"
-#include "appendix/globals.h"
 #include "appendix/app_message.h"
 #include "appendix/persist.h"
 

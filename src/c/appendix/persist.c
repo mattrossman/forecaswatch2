@@ -1,6 +1,6 @@
 #include "persist.h"
 
-enum key {TEMP_LO, TEMP_HI, TEMP_TREND, PRECIP_TREND, TEMP_START, CITY};
+enum key {TEMP_LO, TEMP_HI, TEMP_TREND, PRECIP_TREND, TEMP_START, CITY, NUM_ENTRIES};
 
 void persist_init() {
     if (!persist_exists(TEMP_LO)) {
@@ -19,6 +19,9 @@ void persist_init() {
     }
     if (!persist_exists(TEMP_START)) {
         persist_write_int(TEMP_START, 6);
+    }
+    if (!persist_exists(NUM_ENTRIES)) {
+        persist_write_int(NUM_ENTRIES, 12);
     }
     if (!persist_exists(CITY)) {
         persist_write_string(CITY, "Koji");
@@ -45,6 +48,10 @@ int persist_get_temp_start() {
     return persist_read_int(TEMP_START);
 }
 
+int persist_get_num_entries() {
+    return persist_read_int(NUM_ENTRIES);
+}
+
 int persist_get_city(char *buffer, const size_t buffer_size) {
     return persist_read_string(CITY, buffer, buffer_size);
 }
@@ -67,6 +74,10 @@ void persist_set_precip_trend(uint8_t *data, const size_t size) {
 
 void persist_set_temp_start(int val) {
     persist_write_int(TEMP_START, val);
+}
+
+void persist_set_num_entries(int val) {
+    persist_write_int(NUM_ENTRIES, val);
 }
 
 void persist_set_city(char *val) {

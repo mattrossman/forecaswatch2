@@ -1,6 +1,5 @@
 #include "forecast_layer.h"
 #include "graph_layer.h"
-#include "c/appendix/globals.h"
 #include "c/appendix/persist.h"
 
 static Layer *s_forecast_layer;

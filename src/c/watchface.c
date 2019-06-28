@@ -5,26 +5,26 @@
 #include "layers/forecast_layer.h"
 #include "layers/weather_status_layer.h"
 #include "appendix/persist.h"
+#include "appendix/math.h"
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Message received!");
-    Tuple *temp_lo_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_LO);
-    Tuple *temp_hi_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_HI);
     Tuple *array_tuple = dict_find(iterator, MESSAGE_KEY_ARRAY);
     Tuple *temp_start_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_START);
     Tuple *city_tuple = dict_find(iterator, MESSAGE_KEY_CITY);
 
-    if(temp_lo_tuple && temp_hi_tuple && array_tuple && temp_start_tuple && city_tuple) {
+    if(array_tuple && temp_start_tuple && city_tuple) {
         APP_LOG(APP_LOG_LEVEL_INFO, "All tuples received!");
-        persist_set_temp_lo((int)temp_lo_tuple->value->int32);
-        persist_set_temp_hi((int)temp_hi_tuple->value->int32);
         persist_set_temp_start((int)temp_start_tuple->value->int32);
         int16_t *data = (int16_t*) array_tuple->value->data;
         persist_set_temp_trend(data, 12);
         persist_set_city((char*)city_tuple->value->cstring);
+        int lo, hi;
+        min_max(data, 12, &lo, &hi);
+        persist_set_temp_lo(lo);
+        persist_set_temp_hi(hi);
         forecast_layer_refresh();
         weather_status_layer_refresh();
-        APP_LOG(APP_LOG_LEVEL_INFO, "New lo: %d, New hi: %d, City: %s", persist_get_temp_lo(), persist_get_temp_hi(),(char*)city_tuple->value->cstring);
     }
 }
 

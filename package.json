@@ -24,8 +24,6 @@
     },
     "capabilities": ["location"],
     "messageKeys": [
-      "TEMP_LO",
-      "TEMP_HI",
       "ARRAY",
       "TEMP_START",
       "CITY"

@@ -84,11 +84,6 @@ function processDarkskyResponse(darkskyReponse) {
         return Math.round(entry.temperature);
     });
 
-    // Extract the low and high temperatures
-    lo = Math.min.apply(Math, temperatures);
-    hi = Math.max.apply(Math, temperatures);
-    console.log('Lo: ' + lo + ', Hi: ' + hi);
-
     var trendIntView = new Int16Array(temperatures)
     var trendByteArray = Array.prototype.slice.call(new Uint8Array(trendIntView.buffer))
 
@@ -104,8 +99,6 @@ function processDarkskyResponse(darkskyReponse) {
 
         // Assemble the message keys
         var payload = {
-            'TEMP_LO': lo,
-            'TEMP_HI': hi,
             'ARRAY': trendByteArray,
             'TEMP_START': tempStartHour,
             'CITY': location.address.city

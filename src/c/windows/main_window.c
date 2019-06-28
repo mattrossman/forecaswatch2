@@ -17,7 +17,7 @@ static void main_window_load(Window *window) {
     time_layer_create(window_layer,
             GRect(0, PBL_IF_ROUND_ELSE(58, 52), bounds.size.w, 50));
     forecast_layer_create(window_layer,
-            GRect(0, 2*h/3, w, h/3));
+            GRect(0, h - 51, w, 51));
     weather_status_layer_create(window_layer,
             GRect(0, 0, w, h/3));
 }

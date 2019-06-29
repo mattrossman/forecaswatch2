@@ -57,7 +57,7 @@ function ifDataIsOld(callback) {
     }
     else {
         lastFetchTime = new Date(window.localStorage.getItem('fetchTime'))
-        if (Date.now() - lastFetchTime >= 1000 * 60 * 30) { // 1000 ms * 60 sec * 30 min
+        if (Date.now() - roundDownMinutes(lastFetchTime, 30) > 1000 * 60 * 30) { // 1000 ms * 60 sec * 30 min
             console.log('Existing data is too old, refetching!');
             callback();
         }
@@ -80,7 +80,7 @@ function getWeather(lat, lon) {
         console.log('Found timezone: ' + weatherData.timezone);
         processDarkskyResponse(weatherData);
         console.log('Setting fetchTime in local storage');
-        window.localStorage.setItem('fetchTime', roundDownMinutes(new Date(), 30));
+        window.localStorage.setItem('fetchTime', new Date());
         console.log('Saved the time as: ' + window.localStorage.getItem('fetchTime'))
     });
 }

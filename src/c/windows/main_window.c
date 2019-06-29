@@ -3,6 +3,11 @@
 #include "c/layers/forecast_layer.h"
 #include "c/layers/weather_status_layer.h"
 
+#define FORECAST_HEIGHT 51
+#define WEATHER_STATUS_HEIGHT 14
+#define TIME_HEIGHT 50
+#define TIME_MARGIN_BOTTOM 5
+
 static Window *s_main_window;
 
 static void main_window_load(Window *window) {
@@ -13,13 +18,13 @@ static void main_window_load(Window *window) {
     int h = bounds.size.h;
     window_set_background_color(window, GColorBlack);
 
-    // Create the TextLayer with specific bounds
-    time_layer_create(window_layer,
-            GRect(0, PBL_IF_ROUND_ELSE(58, 52), bounds.size.w, 50));
     forecast_layer_create(window_layer,
-            GRect(0, h - 51, w, 51));
+            GRect(0, h - FORECAST_HEIGHT, w, FORECAST_HEIGHT));
     weather_status_layer_create(window_layer,
-            GRect(0, 0, w, h/3));
+            GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, w, WEATHER_STATUS_HEIGHT));
+    time_layer_create(window_layer,
+            GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT - TIME_HEIGHT - TIME_MARGIN_BOTTOM,
+            bounds.size.w, TIME_HEIGHT));
 }
 
 static void main_window_unload(Window *window) {

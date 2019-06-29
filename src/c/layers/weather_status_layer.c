@@ -27,6 +27,12 @@ static void city_layer_init(GRect bounds) {
     city_layer_refresh();
 }
 
+static void weather_status_update_proc(Layer *layer, GContext *ctx) {
+    GRect bounds = layer_get_bounds(layer);
+    graphics_context_set_stroke_color(ctx, GColorRed);
+    graphics_draw_rect(ctx, bounds);
+}
+
 void weather_status_layer_create(Layer* parent_layer, GRect frame) {
     s_weather_status_layer = layer_create(frame);
     GRect bounds = layer_get_bounds(s_weather_status_layer);
@@ -34,12 +40,14 @@ void weather_status_layer_create(Layer* parent_layer, GRect frame) {
     // Set up the city name text layer
     city_layer_init(bounds);
     layer_add_child(s_weather_status_layer, text_layer_get_layer(s_city_layer));
+    layer_set_update_proc(s_weather_status_layer, weather_status_update_proc);
 
     // Add the weather status bar to its parent
     layer_add_child(parent_layer, s_weather_status_layer);
 }
 
 void weather_status_layer_refresh() {
+    layer_mark_dirty(s_weather_status_layer);
     city_layer_refresh();
 }
 

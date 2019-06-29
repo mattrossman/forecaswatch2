@@ -10,6 +10,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *precip_trend_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_TREND_UINT8);
     Tuple *start_hour_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_START);
     Tuple *num_entries_tuple = dict_find(iterator, MESSAGE_KEY_NUM_ENTRIES);
+    Tuple *current_temp_tuple = dict_find(iterator, MESSAGE_KEY_CURRENT_TEMP);
     Tuple *city_tuple = dict_find(iterator, MESSAGE_KEY_CITY);
 
     if(temp_trend_tuple && temp_trend_tuple && start_hour_tuple && num_entries_tuple && city_tuple) {
@@ -26,6 +27,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         min_max(temp_data, num_entries, &lo, &hi);
         persist_set_temp_lo(lo);
         persist_set_temp_hi(hi);
+        persist_set_current_temp((int)current_temp_tuple->value->int32);
         forecast_layer_refresh();
         weather_status_layer_refresh();
     }

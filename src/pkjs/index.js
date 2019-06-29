@@ -57,7 +57,7 @@ function ifDataIsOld(callback) {
     }
     else {
         lastFetchTime = new Date(window.localStorage.getItem('fetchTime'))
-        if (Date.now() - lastFetchTime >= 1000 * 60 * 30) { // 1000 ms * 60 sec * 30 min
+        if (Date.now() - roundDownMinutes(lastFetchTime, 30) > 1000 * 60 * 30) { // 1000 ms * 60 sec * 30 min
             console.log('Existing data is too old, refetching!');
             callback();
         }
@@ -80,20 +80,21 @@ function getWeather(lat, lon) {
         console.log('Found timezone: ' + weatherData.timezone);
         processDarkskyResponse(weatherData);
         console.log('Setting fetchTime in local storage');
-        window.localStorage.setItem('fetchTime', roundDownMinutes(new Date(), 30));
+        window.localStorage.setItem('fetchTime', new Date());
         console.log('Saved the time as: ' + window.localStorage.getItem('fetchTime'))
     });
 }
 
 function processDarkskyResponse(darkskyReponse) {
+    var currentTemp = Math.round(darkskyReponse.currently.temperature);
     // Get the first N hours of the hourly forecast
-    head = darkskyReponse.hourly.data.slice(0, config.numEntries);
+    var head = darkskyReponse.hourly.data.slice(0, config.numEntries);
 
     // Get the rounded (integer) temperatures for those hours
-    temps = head.map(function(entry){
+    var temps = head.map(function(entry){
         return Math.round(entry.temperature);
     });
-    precips = head.map(function(entry){
+    var precips = head.map(function(entry){
         return Math.round(entry.precipProbability * 100);
     });
 
@@ -116,6 +117,7 @@ function processDarkskyResponse(darkskyReponse) {
             'PRECIP_TREND_UINT8': precips, // Holds values within [0,100]
             'TEMP_START': tempStartHour,
             'NUM_ENTRIES': config.numEntries,
+            'CURRENT_TEMP': currentTemp,
             'CITY': location.address.city
         }
     

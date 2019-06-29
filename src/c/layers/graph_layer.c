@@ -47,7 +47,7 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
         // Draw a bar for the precipitation probability
         int precip = precips[i];
         int precip_h = (float) precip / 100.0 * (h - bottom_axis_h);
-        graphics_context_set_fill_color(ctx, GColorBlue);
+        graphics_context_set_fill_color(ctx, GColorCyan);
         graphics_fill_rect(ctx, GRect(entry_x - entry_w/2, h - bottom_axis_h - precip_h, entry_w, precip_h), 0, GCornerNone);
 
         // Draw a point for the temperature reading

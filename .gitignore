@@ -2,4 +2,6 @@
 !.gitignore
 build
 src/pkjs/config.js
-screenshot
+screenshot/*
+!screenshot/snowy-red.png
+!screenshot/composite.sh

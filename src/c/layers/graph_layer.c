@@ -25,6 +25,7 @@ static void graph_update_proc(Layer *layer, GContext *ctx) {
 
     // Allocate point arrays for plots
     GPoint points_temp[num_entries];
+    GPoint points_precip[num_entries];
 
     // Calculate the temperature range
     int lo, hi;
@@ -47,11 +48,10 @@ static void graph_update_proc(Layer *layer, GContext *ctx) {
     for (int i = 0; i < num_entries; ++i) {
         int entry_x = MARGIN_GRAPH_W + i * entry_w;
 
-        // Draw a bar for the precipitation probability
+        // Save a point for the precipitation probability
         int precip = precips[i];
         int precip_h = (float) precip / 100.0 * (h - BOTTOM_AXIS_H);
-        graphics_context_set_fill_color(ctx, GColorCyan);
-        graphics_fill_rect(ctx, GRect(entry_x - entry_w/2, h - BOTTOM_AXIS_H - precip_h, entry_w, precip_h), 0, GCornerNone);
+        points_precip[i] = GPoint(entry_x, h - BOTTOM_AXIS_H - precip_h);
 
         // Save a point for the temperature reading
         int temp = temps[i];
@@ -79,6 +79,16 @@ static void graph_update_proc(Layer *layer, GContext *ctx) {
                 GPoint(entry_x, h - BOTTOM_AXIS_H + 4));
         }
     }
+
+    // Draw the precipitation line
+    GPathInfo path_info_precip = {
+        .num_points = num_entries,
+        .points = points_precip
+    };
+    GPath *path_precip = gpath_create(&path_info_precip);
+    graphics_context_set_stroke_color(ctx, GColorCyan);
+    graphics_context_set_stroke_width(ctx, 1);
+    gpath_draw_outline_open(ctx, path_precip);
 
     // Draw the temperature line
     GPathInfo path_info_temp = {

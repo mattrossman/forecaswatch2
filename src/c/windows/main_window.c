@@ -8,7 +8,7 @@
 #define WEATHER_STATUS_HEIGHT 14
 #define TIME_HEIGHT 50
 #define TIME_MARGIN_BOTTOM 5
-#define CALENDAR_HEIGHT 40
+#define CALENDAR_HEIGHT 45
 
 static Window *s_main_window;
 

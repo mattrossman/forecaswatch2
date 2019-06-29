@@ -3,7 +3,7 @@
 
 #define NUM_WEEKS 3
 #define DAYS_PER_WEEK 7
-#define FONT_OFFSET 3
+#define FONT_OFFSET 2
 
 static Layer *s_calendar_layer;
 static TextLayer *s_calendar_text_layers[NUM_WEEKS * DAYS_PER_WEEK];
@@ -24,7 +24,7 @@ static void calendar_update_proc(Layer *layer, GContext *ctx) {
     graphics_context_set_fill_color(ctx, GColorBlue);
     graphics_fill_rect(ctx,
         GRect((i_today % DAYS_PER_WEEK) * box_w, (i_today / DAYS_PER_WEEK) * box_h,
-        box_w, box_h), 0, GCornerNone);
+        box_w, box_h), 1, GCornersAll);
 }
 
 void calendar_layer_create(Layer* parent_layer, GRect frame) {

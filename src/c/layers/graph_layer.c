@@ -2,9 +2,9 @@
 #include "c/appendix/math.h"
 #include "c/appendix/persist.h"
 
-#define FONT_14_OFFSET 5  // Adjustment for whitespace at top of font
+#define BOTTOM_AXIS_FONT_OFFSET 4  // Adjustment for whitespace at top of font
 #define LABEL_PADDING 17  // Minimum width a label should cover
-#define BOTTOM_AXIS_H 9  // Height of the bottom axis (hour labels)
+#define BOTTOM_AXIS_H 10  // Height of the bottom axis (hour labels)
 #define MARGIN_GRAPH_W 7  // Width of side margins for graph entries
 #define MARGIN_TEMP_H 7  // Height of margins for the temperature plot
 
@@ -32,12 +32,6 @@ static void graph_update_proc(Layer *layer, GContext *ctx) {
     min_max(temps, num_entries, &lo, &hi);
     int range = hi - lo;
 
-    // Draw a line for the bottom axis
-    graphics_context_set_stroke_color(ctx, GColorOrange);
-    graphics_draw_line(ctx, GPoint(0, h - BOTTOM_AXIS_H), GPoint(w, h - BOTTOM_AXIS_H));
-    // And for the left side axis
-    graphics_draw_line(ctx, GPoint(0, 0), GPoint(0, h - BOTTOM_AXIS_H));
-
     // Draw a bounding box for each data entry
     float entry_w = (float) (bounds.size.w - 2 * MARGIN_GRAPH_W) / (num_entries - 1);
     graphics_context_set_text_color(ctx, GColorWhite);
@@ -64,7 +58,7 @@ static void graph_update_proc(Layer *layer, GContext *ctx) {
             snprintf(buf, sizeof(buf), "%d", (forecast_start_hour + i) % 24);
             graphics_draw_text(ctx, buf,
                 fonts_get_system_font(FONT_KEY_GOTHIC_14),
-                GRect(entry_x - 20, h - BOTTOM_AXIS_H - FONT_14_OFFSET, 40, BOTTOM_AXIS_H),
+                GRect(entry_x - 20, h - BOTTOM_AXIS_H - BOTTOM_AXIS_FONT_OFFSET, 40, BOTTOM_AXIS_H),
                 GTextOverflowModeWordWrap,
                 GTextAlignmentCenter,
                 NULL
@@ -107,6 +101,13 @@ static void graph_update_proc(Layer *layer, GContext *ctx) {
     graphics_context_set_stroke_color(ctx, GColorRed);
     graphics_context_set_stroke_width(ctx, 3);  // Only odd stroke width values supported
     gpath_draw_outline_open(ctx, path_temp);
+
+    // Draw a line for the bottom axis
+    graphics_context_set_stroke_color(ctx, GColorOrange);
+    graphics_context_set_stroke_width(ctx, 1);
+    graphics_draw_line(ctx, GPoint(0, h - BOTTOM_AXIS_H), GPoint(w, h - BOTTOM_AXIS_H));
+    // And for the left side axis
+    graphics_draw_line(ctx, GPoint(0, 0), GPoint(0, h - BOTTOM_AXIS_H));
 }
 
 void graph_layer_create(Layer* parent_layer, GRect frame) {

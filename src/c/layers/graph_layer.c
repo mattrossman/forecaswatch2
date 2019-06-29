@@ -15,12 +15,6 @@ static void graph_update_proc(Layer *layer, GContext *ctx) {
     int w = bounds.size.w;
     int h = bounds.size.h;
 
-    // Draw a line for the bottom axis
-    graphics_context_set_stroke_color(ctx, GColorOrange);
-    graphics_draw_line(ctx, GPoint(0, h - BOTTOM_AXIS_H), GPoint(w, h - BOTTOM_AXIS_H));
-    // And for the left side axis
-    graphics_draw_line(ctx, GPoint(0, 0), GPoint(0, h - BOTTOM_AXIS_H));
-
     // Load data from storage
     const int num_entries = persist_get_num_entries();
     const int forecast_start_hour = persist_get_start_hour();
@@ -29,10 +23,19 @@ static void graph_update_proc(Layer *layer, GContext *ctx) {
     persist_get_temp_trend(temps, num_entries);
     persist_get_precip_trend(precips, num_entries);
 
+    // Allocate point arrays for plots
+    GPoint points_temp[num_entries];
+
     // Calculate the temperature range
     int lo, hi;
     min_max(temps, num_entries, &lo, &hi);
     int range = hi - lo;
+
+    // Draw a line for the bottom axis
+    graphics_context_set_stroke_color(ctx, GColorOrange);
+    graphics_draw_line(ctx, GPoint(0, h - BOTTOM_AXIS_H), GPoint(w, h - BOTTOM_AXIS_H));
+    // And for the left side axis
+    graphics_draw_line(ctx, GPoint(0, 0), GPoint(0, h - BOTTOM_AXIS_H));
 
     // Draw a bounding box for each data entry
     float entry_w = (float) (bounds.size.w - 2 * MARGIN_GRAPH_W) / (num_entries - 1);
@@ -50,11 +53,10 @@ static void graph_update_proc(Layer *layer, GContext *ctx) {
         graphics_context_set_fill_color(ctx, GColorCyan);
         graphics_fill_rect(ctx, GRect(entry_x - entry_w/2, h - BOTTOM_AXIS_H - precip_h, entry_w, precip_h), 0, GCornerNone);
 
-        // Draw a point for the temperature reading
+        // Save a point for the temperature reading
         int temp = temps[i];
         int temp_h = (float) (temp - lo) / range * (h - MARGIN_TEMP_H * 2 - BOTTOM_AXIS_H);
-        graphics_context_set_fill_color(ctx, GColorYellow);
-        graphics_fill_circle(ctx, GPoint(entry_x, h - temp_h - MARGIN_TEMP_H - BOTTOM_AXIS_H), 1);
+        points_temp[i] = GPoint(entry_x, h - temp_h - MARGIN_TEMP_H - BOTTOM_AXIS_H);
 
         if (i % entries_per_label == 0) {
             // Draw a text hour label at the appropriate interval
@@ -77,6 +79,16 @@ static void graph_update_proc(Layer *layer, GContext *ctx) {
                 GPoint(entry_x, h - BOTTOM_AXIS_H + 4));
         }
     }
+
+    // Draw the temperature line
+    GPathInfo path_info_temp = {
+        .num_points = num_entries,
+        .points = points_temp
+    };
+    GPath *path_temp = gpath_create(&path_info_temp);
+    graphics_context_set_stroke_color(ctx, GColorRed);
+    graphics_context_set_stroke_width(ctx, 3);  // Only odd stroke width values supported
+    gpath_draw_outline_open(ctx, path_temp);
 }
 
 void graph_layer_create(Layer* parent_layer, GRect frame) {

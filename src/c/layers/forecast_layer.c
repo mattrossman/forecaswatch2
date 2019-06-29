@@ -9,7 +9,7 @@ static TextLayer *s_lo_layer;
 char buf_hi[4];
 char buf_lo[4];
 
-static void weather_update_proc(Layer *layer, GContext *ctx) {
+static void forecast_update_proc(Layer *layer, GContext *ctx) {
     // Weather section outline
     GRect bounds = layer_get_bounds(layer);
     graphics_context_set_stroke_color(ctx, GColorBlue);

@@ -41,6 +41,10 @@ static void minute_handler(struct tm *tick_time, TimeUnits units_changed) {
     time_layer_refresh();
 }
 
+static void day_handler(struct tm *tick_time, TimeUnits units_changed) {
+    calendar_layer_refresh();
+}
+
 /*----------------------------
 -------- EXTERNAL ------------
 ----------------------------*/
@@ -57,6 +61,7 @@ void main_window_create() {
 
     // Register with TickTimerService
     tick_timer_service_subscribe(MINUTE_UNIT, minute_handler);
+    tick_timer_service_subscribe(DAY_UNIT, day_handler);
 
     // Show the window on the watch with animated=true
     window_stack_push(s_main_window, true);

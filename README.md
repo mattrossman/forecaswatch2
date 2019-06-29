@@ -6,11 +6,13 @@ The developer, RCY, is nowhere to be found in the Rebble era. I plan to continue
 
 ## Progress
 
-![screenshot](https://i.imgur.com/kwITVRi.png)
+![screenshot](https://i.imgur.com/QdYmCpb.png)
 
 * Current time
-* Temperature plot (dots)
-* Precipitation probability (bars)
+* Weather powered by DarkSky
+* Current temperature
+* Temperature forecast (red line)
+* Precipitation probability forecast (blue area)
 * City where forecast was fetched
 * Updates every 30 minutes
 * Data persistence

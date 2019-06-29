@@ -1,5 +1,4 @@
 #include "forecast_layer.h"
-#include "graph_layer.h"
 #include "c/appendix/persist.h"
 #include "c/appendix/math.h"
 
@@ -118,7 +117,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
     graphics_draw_line(ctx, GPoint(graph_bounds.origin.x, 0), GPoint(graph_bounds.origin.x, h - BOTTOM_AXIS_H));
 }
 
-static void temp_lo_hi_draw() {
+static void text_layers_refresh() {
     snprintf(buf_hi, sizeof(buf_hi), "%d", persist_get_temp_hi());
     text_layer_set_text(s_hi_layer, buf_hi);
 
@@ -147,11 +146,9 @@ void forecast_layer_create(Layer *parent_layer, GRect frame) {
     layer_add_child(s_forecast_layer, text_layer_get_layer(s_lo_layer));
 
     // Fill the contents with values
-    temp_lo_hi_draw();
 
-    // Set up contents
-    // graph_layer_create(s_forecast_layer, GRect(LEFT_AXIS_MARGIN_W, 0, bounds.size.w-LEFT_AXIS_MARGIN_W, bounds.size.h));
     layer_set_update_proc(s_forecast_layer, forecast_update_proc);
+    text_layers_refresh();
 
     // Add it as a child layer to the Window's root layer
     layer_add_child(parent_layer, s_forecast_layer);
@@ -159,13 +156,11 @@ void forecast_layer_create(Layer *parent_layer, GRect frame) {
 
 void forecast_layer_refresh() {
     layer_mark_dirty(s_forecast_layer);
-    temp_lo_hi_draw();
-    graph_layer_refresh();
+    text_layers_refresh();
 }
 
 void forecast_layer_destroy() {
     text_layer_destroy(s_hi_layer);
     text_layer_destroy(s_lo_layer);
-    graph_layer_destroy();
     layer_destroy(s_forecast_layer);
 }

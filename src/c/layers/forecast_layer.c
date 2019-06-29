@@ -29,7 +29,7 @@ void forecast_layer_create(Layer *parent_layer, GRect frame) {
     GRect bounds = layer_get_bounds(s_forecast_layer);
 
     // Temperature HIGH
-    s_hi_layer = text_layer_create(GRect(0, -5, 15, 20));
+    s_hi_layer = text_layer_create(GRect(0, -3, 15, 20));
     text_layer_set_background_color(s_hi_layer, GColorClear);
     text_layer_set_text_alignment(s_hi_layer, GTextAlignmentRight);
     text_layer_set_text_color(s_hi_layer, GColorWhite);
@@ -37,7 +37,7 @@ void forecast_layer_create(Layer *parent_layer, GRect frame) {
     layer_add_child(s_forecast_layer, text_layer_get_layer(s_hi_layer));
 
     // Temperature LOW
-    s_lo_layer = text_layer_create(GRect(0, 25, 15, 20));
+    s_lo_layer = text_layer_create(GRect(0, 22, 15, 20));
     text_layer_set_background_color(s_lo_layer, GColorClear);
     text_layer_set_text_alignment(s_lo_layer, GTextAlignmentRight);
     text_layer_set_text_color(s_lo_layer, GColorWhite);

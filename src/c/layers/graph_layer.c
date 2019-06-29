@@ -5,8 +5,8 @@
 static Layer *s_graph_layer;
 
 const int bottom_axis_h = 9;
-const int margin_temp_w = 6;
-const int margin_temp_h = 10;
+const int margin_temp_w = 7;
+const int margin_temp_h = 7;
 
 static void graph_data_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
@@ -37,7 +37,7 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
     graphics_context_set_text_color(ctx, GColorWhite);
     graphics_context_set_stroke_color(ctx, GColorLightGray);
     // Minimum width a label should cover
-    const int label_padding = 15;
+    const int label_padding = 17;
     // Round this division up by adding (divisor - 1) to the dividend
     const int entries_per_label = ((float) label_padding + (entry_w - 1)) / entry_w;
     const int font_offset_y = 5; // Adjust for the top whitespace inherent to the font
@@ -48,16 +48,16 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
         int precip = precips[i];
         int precip_h = (float) precip / 100.0 * (h - bottom_axis_h);
         graphics_context_set_fill_color(ctx, GColorBlue);
-        graphics_fill_rect(ctx, GRect(entry_x - 2, h - bottom_axis_h - precip_h, 5, precip_h), 0, GCornerNone);
+        graphics_fill_rect(ctx, GRect(entry_x - entry_w/2, h - bottom_axis_h - precip_h, entry_w, precip_h), 0, GCornerNone);
 
         // Draw a point for the temperature reading
         int temp = temps[i];
         int temp_h = (float) (temp - lo) / range * (h - margin_temp_h * 2 - bottom_axis_h);
         graphics_context_set_fill_color(ctx, GColorYellow);
-        graphics_fill_circle(ctx, GPoint(entry_x, h - temp_h - margin_temp_h - bottom_axis_h), 2);
+        graphics_fill_circle(ctx, GPoint(entry_x, h - temp_h - margin_temp_h - bottom_axis_h), 1);
 
         if (i % entries_per_label == 0) {
-            // Draw a text hour label
+            // Draw a text hour label at the appropriate interval
             char buf[4];
             snprintf(buf, sizeof(buf), "%d", (forecast_start_hour + i) % 24);
             graphics_draw_text(
@@ -70,8 +70,8 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
                 NULL
             );
         }
-        else {
-            // Just draw a tick
+        else if ((i + entries_per_label/2) % entries_per_label == 0) {
+            // Just draw a tick between hour labels
             graphics_draw_line(ctx,
                 GPoint(entry_x, h - bottom_axis_h - 0),
                 GPoint(entry_x, h - bottom_axis_h + 4));

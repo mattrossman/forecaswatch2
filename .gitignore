@@ -1,3 +1,4 @@
 .*
 !.gitignore
 build
+src/pkjs/config.js

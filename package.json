@@ -1,6 +1,6 @@
 {
   "name": "watchface",
-  "author": "MakeAwesomeHappen",
+  "author": "mattrossman",
   "version": "1.0.0",
   "keywords": ["pebble-app"],
   "private": true,
@@ -11,10 +11,7 @@
     "sdkVersion": "3",
     "enableMultiJS": true,
     "targetPlatforms": [
-      "aplite",
-      "basalt",
-      "chalk",
-      "diorite"
+      "basalt"
     ],
     "watchapp": {
       "watchface": true
@@ -24,6 +21,14 @@
     ],
     "resources": {
       "media": []
-    }
+    },
+    "capabilities": ["location"],
+    "messageKeys": [
+      "TEMP_TREND_INT16",
+      "PRECIP_TREND_UINT8",
+      "TEMP_START",
+      "NUM_ENTRIES",
+      "CITY"
+    ]
   }
 }

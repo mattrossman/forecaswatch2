@@ -36,11 +36,11 @@ static void city_layer_init(GRect bounds) {
     text_layer_set_font(s_current_temp_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
 
     // City where weather was fetched
-    s_city_layer = text_layer_create(GRect(w/2 - CITY_MAX_WIDTH/2, -FONT_18_OFFSET, CITY_MAX_WIDTH,25));
+    s_city_layer = text_layer_create(GRect(w/2 - CITY_MAX_WIDTH/2, 4 - FONT_18_OFFSET, CITY_MAX_WIDTH, 25));
     text_layer_set_background_color(s_city_layer, GColorClear);
     text_layer_set_text_alignment(s_city_layer, GTextAlignmentCenter);
     text_layer_set_text_color(s_city_layer, GColorWhite);
-    text_layer_set_font(s_city_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+    text_layer_set_font(s_city_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
 
     city_layer_refresh();
     current_temp_layer_refresh();

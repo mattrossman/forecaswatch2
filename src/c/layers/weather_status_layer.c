@@ -1,6 +1,7 @@
 #include "weather_status_layer.h"
 #include "c/appendix/persist.h"
 
+#define FONT_18_OFFSET 7
 #define CITY_BUFFER_SIZE 20
 #define CITY_MAX_WIDTH 100
 
@@ -18,7 +19,7 @@ static void city_layer_init(GRect bounds) {
     // Set up the city text layer properties
     int w = bounds.size.w;
     int h = bounds.size.h;
-    s_city_layer = text_layer_create(GRect(w/2 - CITY_MAX_WIDTH/2, 0, CITY_MAX_WIDTH,20));
+    s_city_layer = text_layer_create(GRect(w/2 - CITY_MAX_WIDTH/2, -FONT_18_OFFSET, CITY_MAX_WIDTH,25));
     text_layer_set_background_color(s_city_layer, GColorClear);
     text_layer_set_text_alignment(s_city_layer, GTextAlignmentCenter);
     text_layer_set_text_color(s_city_layer, GColorWhite);

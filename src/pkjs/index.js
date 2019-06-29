@@ -86,14 +86,15 @@ function getWeather(lat, lon) {
 }
 
 function processDarkskyResponse(darkskyReponse) {
+    var currentTemp = Math.round(darkskyReponse.currently.temperature);
     // Get the first N hours of the hourly forecast
-    head = darkskyReponse.hourly.data.slice(0, config.numEntries);
+    var head = darkskyReponse.hourly.data.slice(0, config.numEntries);
 
     // Get the rounded (integer) temperatures for those hours
-    temps = head.map(function(entry){
+    var temps = head.map(function(entry){
         return Math.round(entry.temperature);
     });
-    precips = head.map(function(entry){
+    var precips = head.map(function(entry){
         return Math.round(entry.precipProbability * 100);
     });
 
@@ -116,6 +117,7 @@ function processDarkskyResponse(darkskyReponse) {
             'PRECIP_TREND_UINT8': precips, // Holds values within [0,100]
             'TEMP_START': tempStartHour,
             'NUM_ENTRIES': config.numEntries,
+            'CURRENT_TEMP': currentTemp,
             'CITY': location.address.city
         }
     

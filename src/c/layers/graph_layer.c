@@ -20,16 +20,16 @@ static void graph_data_update_proc(Layer *layer, GContext *ctx) {
     graphics_draw_line(ctx, GPoint(0, 0), GPoint(0, h - bottom_axis_h));
 
     // Allocate a data buffer and load the stored data into it
-    int16_t temps[12];
-    uint8_t precips[12];
-    persist_get_temp_trend(temps, 12);
-    persist_get_precip_trend(precips, 12);
-    const int forecast_start_hour = persist_get_start_hour();
     const int num_entries = persist_get_num_entries();
+    const int forecast_start_hour = persist_get_start_hour();
+    int16_t temps[num_entries];
+    uint8_t precips[num_entries];
+    persist_get_temp_trend(temps, num_entries);
+    persist_get_precip_trend(precips, num_entries);
 
     // Calculate the temperature range
     int lo, hi;
-    min_max(temps, 12, &lo, &hi);
+    min_max(temps, num_entries, &lo, &hi);
     int range = hi - lo;
 
     // Draw a bounding box for each data entry

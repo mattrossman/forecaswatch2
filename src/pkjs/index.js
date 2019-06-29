@@ -86,14 +86,14 @@ function getWeather(lat, lon) {
 }
 
 function processDarkskyResponse(darkskyReponse) {
-    // Get the first twelve hours of the hourly forecast
-    twelveHours = darkskyReponse.hourly.data.slice(0,12);
+    // Get the first N hours of the hourly forecast
+    head = darkskyReponse.hourly.data.slice(0, config.numEntries);
 
     // Get the rounded (integer) temperatures for those hours
-    temps = twelveHours.map(function(entry){
+    temps = head.map(function(entry){
         return Math.round(entry.temperature);
     });
-    precips = twelveHours.map(function(entry){
+    precips = head.map(function(entry){
         return Math.round(entry.precipProbability * 100);
     });
 
@@ -101,7 +101,7 @@ function processDarkskyResponse(darkskyReponse) {
     var tempsByteArray = Array.prototype.slice.call(new Uint8Array(tempsIntView.buffer))
 
     // Calculate the starting time (hour) for the forecast
-    var tempStartHour = new Date(twelveHours[0].time * 1000).getHours()
+    var tempStartHour = new Date(head[0].time * 1000).getHours()
 
     locUrl = 'https://nominatim.openstreetmap.org/reverse?lat=' + darkskyReponse.latitude
             + '&lon=' + darkskyReponse.longitude
@@ -115,6 +115,7 @@ function processDarkskyResponse(darkskyReponse) {
             'TEMP_TREND_INT16': tempsByteArray,
             'PRECIP_TREND_UINT8': precips, // Holds values within [0,100]
             'TEMP_START': tempStartHour,
+            'NUM_ENTRIES': config.numEntries,
             'CITY': location.address.city
         }
     

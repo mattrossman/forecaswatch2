@@ -25,7 +25,7 @@ static void graph_update_proc(Layer *layer, GContext *ctx) {
 
     // Allocate point arrays for plots
     GPoint points_temp[num_entries];
-    GPoint points_precip[num_entries];
+    GPoint points_precip[num_entries + 2];  // We need 2 more to complete the area
 
     // Calculate the temperature range
     int lo, hi;
@@ -62,9 +62,7 @@ static void graph_update_proc(Layer *layer, GContext *ctx) {
             // Draw a text hour label at the appropriate interval
             char buf[4];
             snprintf(buf, sizeof(buf), "%d", (forecast_start_hour + i) % 24);
-            graphics_draw_text(
-                ctx,
-                buf,
+            graphics_draw_text(ctx, buf,
                 fonts_get_system_font(FONT_KEY_GOTHIC_14),
                 GRect(entry_x - 20, h - BOTTOM_AXIS_H - FONT_14_OFFSET, 40, BOTTOM_AXIS_H),
                 GTextOverflowModeWordWrap,
@@ -80,15 +78,25 @@ static void graph_update_proc(Layer *layer, GContext *ctx) {
         }
     }
 
-    // Draw the precipitation line
+    // Complete the area under the precipitation
+    points_precip[num_entries] = GPoint(w - MARGIN_GRAPH_W, h - BOTTOM_AXIS_H);
+    points_precip[num_entries + 1] = GPoint(MARGIN_GRAPH_W, h - BOTTOM_AXIS_H);
+
+    // Fill the precipitation area
     GPathInfo path_info_precip = {
-        .num_points = num_entries,
+        .num_points = num_entries + 2,
         .points = points_precip
     };
-    GPath *path_precip = gpath_create(&path_info_precip);
-    graphics_context_set_stroke_color(ctx, GColorCyan);
+    GPath *path_precip_area_under = gpath_create(&path_info_precip);
+    graphics_context_set_fill_color(ctx, GColorCobaltBlue);
+    gpath_draw_filled(ctx, path_precip_area_under);
+
+    // Draw the precipitation line
+    path_info_precip.num_points = num_entries;
+    GPath *path_precip_top = gpath_create(&path_info_precip);
+    graphics_context_set_stroke_color(ctx, GColorPictonBlue);
     graphics_context_set_stroke_width(ctx, 1);
-    gpath_draw_outline_open(ctx, path_precip);
+    gpath_draw_outline_open(ctx, path_precip_top);
 
     // Draw the temperature line
     GPathInfo path_info_temp = {

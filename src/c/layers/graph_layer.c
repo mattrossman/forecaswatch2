@@ -3,9 +3,8 @@
 #include "c/appendix/persist.h"
 
 #define BOTTOM_AXIS_FONT_OFFSET 4  // Adjustment for whitespace at top of font
-#define LABEL_PADDING 17  // Minimum width a label should cover
+#define LABEL_PADDING 20  // Minimum width a label should cover
 #define BOTTOM_AXIS_H 10  // Height of the bottom axis (hour labels)
-#define MARGIN_GRAPH_W 7  // Width of side margins for graph entries
 #define MARGIN_TEMP_H 7  // Height of margins for the temperature plot
 
 static Layer *s_graph_layer;
@@ -32,15 +31,15 @@ static void graph_update_proc(Layer *layer, GContext *ctx) {
     min_max(temps, num_entries, &lo, &hi);
     int range = hi - lo;
 
-    // Draw a bounding box for each data entry
-    float entry_w = (float) (bounds.size.w - 2 * MARGIN_GRAPH_W) / (num_entries - 1);
+    // Draw a bounding box for each data entry (the -1 is since we don't want a gap on either side)
+    float entry_w = (float) bounds.size.w / (num_entries - 1);
     graphics_context_set_text_color(ctx, GColorWhite);
     graphics_context_set_stroke_color(ctx, GColorLightGray);
 
     // Round this division up by adding (divisor - 1) to the dividend
     const int entries_per_label = ((float) LABEL_PADDING + (entry_w - 1)) / entry_w;
     for (int i = 0; i < num_entries; ++i) {
-        int entry_x = MARGIN_GRAPH_W + i * entry_w;
+        int entry_x = i * entry_w;
 
         // Save a point for the precipitation probability
         int precip = precips[i];
@@ -73,8 +72,8 @@ static void graph_update_proc(Layer *layer, GContext *ctx) {
     }
 
     // Complete the area under the precipitation
-    points_precip[num_entries] = GPoint(w - MARGIN_GRAPH_W, h - BOTTOM_AXIS_H);
-    points_precip[num_entries + 1] = GPoint(MARGIN_GRAPH_W, h - BOTTOM_AXIS_H);
+    points_precip[num_entries] = GPoint(w, h - BOTTOM_AXIS_H);
+    points_precip[num_entries + 1] = GPoint(0, h - BOTTOM_AXIS_H);
 
     // Fill the precipitation area
     GPathInfo path_info_precip = {

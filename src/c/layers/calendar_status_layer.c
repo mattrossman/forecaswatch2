@@ -1,4 +1,5 @@
 #include "calendar_status_layer.h"
+#include "battery_layer.h"
 
 #define BUFFER_MONTH_SIZE 10
 #define MONTH_FONT_OFFSET 7
@@ -22,6 +23,7 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
 
     calendar_status_layer_refresh();
     layer_add_child(s_calendar_status_layer, text_layer_get_layer(s_calendar_month_layer));
+    battery_layer_create(s_calendar_status_layer, GRect(w - 20, 0, 20, h));
     layer_add_child(parent_layer, s_calendar_status_layer);
 }
 

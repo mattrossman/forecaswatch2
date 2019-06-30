@@ -6,9 +6,10 @@ The developer, RCY, is nowhere to be found in the Rebble era. I plan to continue
 
 ## Progress
 
-![screenshot](https://i.imgur.com/lJvyOOc.png)
+![screenshot](https://i.imgur.com/luVL5iI.png)
 
 * Current time
+* Color-coded battery indicator
 * 3 week calendar
 * 24 hour forecast powered by DarkSky
 * Current temperature

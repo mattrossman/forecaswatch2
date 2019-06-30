@@ -30,7 +30,8 @@ void persist_init() {
         persist_write_string(CITY, "Koji");
     }
     if (!persist_exists(BATTERY_LEVEL)) {
-        persist_write_int(BATTERY_LEVEL, 0);
+        BatteryChargeState charge = battery_state_service_peek();
+        persist_write_int(BATTERY_LEVEL, charge.charge_percent);
     }
 }
 

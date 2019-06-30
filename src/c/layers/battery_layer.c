@@ -1,8 +1,8 @@
 #include "battery_layer.h"
 #include "c/appendix/persist.h"
 
-#define BATTERY_HEIGHT 10
-#define BATTERY_NUB_SIZE 2  // Size of the nub on the right side of the battery
+#define BATTERY_NUB_W 1
+#define BATTERY_NUB_H 4
 
 
 static Layer *s_battery_layer;
@@ -16,12 +16,21 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
     int w = bounds.size.w;
     int h = bounds.size.h;
+    int battery_w = w - BATTERY_NUB_W;
 
-    float battery_w = w * (float) persist_get_battery_level() / 100.0;
+    // Fill the battery level
+    float battery_level_w = battery_w * (float) persist_get_battery_level() / 100.0;
     graphics_context_set_fill_color(ctx, GColorGreen);
-    graphics_fill_rect(ctx, GRect(0, 0, battery_w, BATTERY_HEIGHT), 0, GCornerNone);
+    graphics_fill_rect(ctx, GRect(0, 0, battery_level_w, h), 0, GCornerNone);
+
+    // Draw the white battery outline
     graphics_context_set_stroke_color(ctx, GColorWhite);
-    graphics_draw_rect(ctx, GRect(0, 0, w, BATTERY_HEIGHT));
+    graphics_draw_rect(ctx, GRect(0, 0, battery_w, h));
+
+    // Draw the battery nub on the right
+    graphics_context_set_fill_color(ctx, GColorWhite);
+    graphics_fill_rect(ctx, GRect(battery_w, h / 2 - BATTERY_NUB_H / 2, BATTERY_NUB_W, BATTERY_NUB_H),
+                       0, GCornerNone);
 }
 
 void battery_layer_create(Layer* parent_layer, GRect frame) {

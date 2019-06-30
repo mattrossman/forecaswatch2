@@ -12,15 +12,25 @@ static void battery_state_handler(BatteryChargeState charge) {
     battery_layer_refresh();
 }
 
+static GColor get_battery_color(int level) {
+    if (level > 50)
+        return GColorGreen;
+    else if (level > 30)
+        return GColorYellow;
+    else
+        return GColorRed;
+}
+
 static void battery_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
     int w = bounds.size.w;
     int h = bounds.size.h;
     int battery_w = w - BATTERY_NUB_W;
+    int battery_level = persist_get_battery_level();
 
     // Fill the battery level
-    float battery_level_w = battery_w * (float) persist_get_battery_level() / 100.0;
-    graphics_context_set_fill_color(ctx, GColorGreen);
+    float battery_level_w = battery_w * (float) battery_level / 100.0;
+    graphics_context_set_fill_color(ctx, get_battery_color(battery_level));
     graphics_fill_rect(ctx, GRect(0, 0, battery_level_w, h), 0, GCornerNone);
 
     // Draw the white battery outline

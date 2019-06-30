@@ -20,11 +20,14 @@ void time_layer_refresh() {
     // Get a tm structure
     time_t temp = time(NULL);
     struct tm *tick_time = localtime(&temp);
+    int hour = tick_time->tm_hour;
+    if (hour > 12)
+        hour %= 12;
+    int minute = tick_time->tm_min;
 
     // Write the current hours and minutes into a buffer
     static char s_buffer[8];
-    strftime(s_buffer, sizeof(s_buffer), clock_is_24h_style() ?
-            "%k:%M" : "%l:%M", tick_time);
+    snprintf(s_buffer, 8, "%d:%.2d", hour, minute);
 
     // Display this time on the TextLayer
     text_layer_set_text(s_time_layer, s_buffer);

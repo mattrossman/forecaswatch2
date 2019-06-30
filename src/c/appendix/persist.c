@@ -1,6 +1,6 @@
 #include "persist.h"
 
-enum key {TEMP_LO, TEMP_HI, TEMP_TREND, PRECIP_TREND, START_HOUR, CITY, NUM_ENTRIES, CURRENT_TEMP};
+enum key {TEMP_LO, TEMP_HI, TEMP_TREND, PRECIP_TREND, START_HOUR, CITY, NUM_ENTRIES, CURRENT_TEMP, BATTERY_LEVEL};
 
 void persist_init() {
     if (!persist_exists(TEMP_LO)) {
@@ -28,6 +28,10 @@ void persist_init() {
     }
     if (!persist_exists(CITY)) {
         persist_write_string(CITY, "Koji");
+    }
+    if (!persist_exists(BATTERY_LEVEL)) {
+        BatteryChargeState charge = battery_state_service_peek();
+        persist_write_int(BATTERY_LEVEL, charge.charge_percent);
     }
 }
 
@@ -63,6 +67,10 @@ int persist_get_city(char *buffer, const size_t buffer_size) {
     return persist_read_string(CITY, buffer, buffer_size);
 }
 
+int persist_get_battery_level() {
+    return persist_read_int(BATTERY_LEVEL);
+}
+
 void persist_set_temp_lo(int val) {
     persist_write_int(TEMP_LO, val);
 }
@@ -93,4 +101,8 @@ void persist_set_current_temp(int val) {
 
 void persist_set_city(char *val) {
     persist_write_string(CITY, val);
+}
+
+void persist_set_battery_level(int val) {
+    persist_write_int(BATTERY_LEVEL, val);
 }

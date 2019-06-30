@@ -3,12 +3,14 @@
 #include "c/layers/forecast_layer.h"
 #include "c/layers/weather_status_layer.h"
 #include "c/layers/calendar_layer.h"
+#include "c/layers/calendar_status_layer.h"
 
 #define FORECAST_HEIGHT 51
 #define WEATHER_STATUS_HEIGHT 14
 #define TIME_HEIGHT 50
 #define TIME_MARGIN_BOTTOM 5
 #define CALENDAR_HEIGHT 45
+#define CALENDAR_STATUS_HEIGHT 13
 
 static Window *s_main_window;
 
@@ -28,19 +30,23 @@ static void main_window_load(Window *window) {
             GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT - TIME_HEIGHT - TIME_MARGIN_BOTTOM,
             bounds.size.w, TIME_HEIGHT));
     calendar_layer_create(window_layer,
-            GRect(0, 0, bounds.size.w, CALENDAR_HEIGHT));
+            GRect(0, CALENDAR_STATUS_HEIGHT, bounds.size.w, CALENDAR_HEIGHT));
+    calendar_status_layer_create(window_layer,
+            GRect(0, 0, bounds.size.w, CALENDAR_STATUS_HEIGHT));
 }
 
 static void main_window_unload(Window *window) {
     time_layer_destroy();
     forecast_layer_destroy();
     calendar_layer_destroy();
+    calendar_status_layer_destroy();
 }
 
 static void minute_handler(struct tm *tick_time, TimeUnits units_changed) {
     time_layer_refresh();
     if (tick_time->tm_hour == 0) {
         calendar_layer_refresh();
+        calendar_status_layer_refresh();
     }
 }
 

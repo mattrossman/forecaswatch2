@@ -3,8 +3,8 @@
 
 #define BUFFER_MONTH_SIZE 10
 #define MONTH_FONT_OFFSET 7
-#define BATTERY_W 15
-#define BATTERY_H 8
+#define BATTERY_W 18
+#define BATTERY_H 10
 
 
 static Layer *s_calendar_status_layer;

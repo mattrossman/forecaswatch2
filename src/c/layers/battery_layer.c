@@ -1,8 +1,8 @@
 #include "battery_layer.h"
 #include "c/appendix/persist.h"
 
-#define BATTERY_NUB_W 1
-#define BATTERY_NUB_H 4
+#define BATTERY_NUB_W 2
+#define BATTERY_NUB_H 6
 
 
 static Layer *s_battery_layer;
@@ -29,8 +29,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
 
     // Draw the battery nub on the right
     graphics_context_set_fill_color(ctx, GColorWhite);
-    graphics_fill_rect(ctx, GRect(battery_w, h / 2 - BATTERY_NUB_H / 2, BATTERY_NUB_W, BATTERY_NUB_H),
-                       0, GCornerNone);
+    graphics_draw_rect(ctx, GRect(battery_w - 1, h / 2 - BATTERY_NUB_H / 2, BATTERY_NUB_W + 1, BATTERY_NUB_H));
 }
 
 void battery_layer_create(Layer* parent_layer, GRect frame) {

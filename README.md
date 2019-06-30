@@ -6,7 +6,7 @@ The developer, RCY, is nowhere to be found in the Rebble era. I plan to continue
 
 ## Progress
 
-![screenshot](https://i.imgur.com/xFekBiT.png)
+![screenshot](https://i.imgur.com/lJvyOOc.png)
 
 * Current time
 * 3 week calendar

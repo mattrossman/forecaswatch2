@@ -17,7 +17,7 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     int w = bounds.size.w;
     int h = bounds.size.h;
 
-    s_calendar_month_layer = text_layer_create(GRect(0, -MONTH_FONT_OFFSET, w, 18));
+    s_calendar_month_layer = text_layer_create(GRect(0, -MONTH_FONT_OFFSET, w, 25));
     text_layer_set_background_color(s_calendar_month_layer, GColorClear);
     text_layer_set_text_alignment(s_calendar_month_layer, GTextAlignmentCenter);
     text_layer_set_text_color(s_calendar_month_layer, GColorWhite);
@@ -25,7 +25,7 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
 
     calendar_status_layer_refresh();
     layer_add_child(s_calendar_status_layer, text_layer_get_layer(s_calendar_month_layer));
-    battery_layer_create(s_calendar_status_layer, GRect(w - BATTERY_W - 4, h / 2 - BATTERY_H / 2, BATTERY_W, BATTERY_H));
+    battery_layer_create(s_calendar_status_layer, GRect(w - BATTERY_W - 4, 1, BATTERY_W, BATTERY_H));
     layer_add_child(parent_layer, s_calendar_status_layer);
 }
 

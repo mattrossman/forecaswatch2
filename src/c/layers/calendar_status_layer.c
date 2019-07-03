@@ -1,7 +1,6 @@
 #include "calendar_status_layer.h"
 #include "battery_layer.h"
 
-#define BUFFER_MONTH_SIZE 10
 #define MONTH_FONT_OFFSET 7
 #define BATTERY_W 18
 #define BATTERY_H 10
@@ -9,7 +8,6 @@
 
 static Layer *s_calendar_status_layer;
 static TextLayer *s_calendar_month_layer;
-char buffer_month[BUFFER_MONTH_SIZE];
 
 void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     s_calendar_status_layer = layer_create(frame);
@@ -30,11 +28,12 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
 }
 
 void calendar_status_layer_refresh() {
+    static char s_buffer_month[10];
     time_t now = time(NULL);
     struct tm *tm_now = localtime(&now);
 
-    strftime(buffer_month, BUFFER_MONTH_SIZE, "%B %Y", tm_now);
-    text_layer_set_text(s_calendar_month_layer, buffer_month);
+    strftime(s_buffer_month, sizeof(s_buffer_month), "%B %Y", tm_now);
+    text_layer_set_text(s_calendar_month_layer, s_buffer_month);
 }
 
 void calendar_status_layer_destroy() {

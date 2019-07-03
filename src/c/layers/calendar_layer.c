@@ -7,7 +7,6 @@
 
 static Layer *s_calendar_layer;
 static TextLayer *s_calendar_text_layers[NUM_WEEKS * DAYS_PER_WEEK];
-static char calendar_box_buffers[NUM_WEEKS * DAYS_PER_WEEK][4];
 
 static void calendar_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
@@ -63,6 +62,7 @@ static int relative_day_of_month(int days_from_today) {
 }
 
 void calendar_layer_refresh() {
+    static char s_calendar_box_buffers[NUM_WEEKS * DAYS_PER_WEEK][4];
     // Request redraw (of today's highlight)
     layer_mark_dirty(s_calendar_layer);
 
@@ -73,7 +73,7 @@ void calendar_layer_refresh() {
 
     // Fill each box with an appropriate relative day number
     for (int i = 0; i < NUM_WEEKS * DAYS_PER_WEEK; ++i) {
-        char *buffer = calendar_box_buffers[i];
+        char *buffer = s_calendar_box_buffers[i];
         snprintf(buffer, 4, "%d", relative_day_of_month(i - i_today));  
         text_layer_set_text(s_calendar_text_layers[i], buffer);
     }

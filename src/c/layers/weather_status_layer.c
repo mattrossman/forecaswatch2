@@ -2,25 +2,23 @@
 #include "c/appendix/persist.h"
 
 #define FONT_18_OFFSET 7
-#define CITY_BUFFER_SIZE 20
 #define CITY_MAX_WIDTH 100
-#define TEMP_BUFFER_SIZE 10
 
 static Layer *s_weather_status_layer;
 static TextLayer *s_city_layer;
 static TextLayer *s_current_temp_layer;
-char city_buffer[CITY_BUFFER_SIZE];
-char current_temp_buffer[TEMP_BUFFER_SIZE];
 
 static void city_layer_refresh() {
     // Set the city text layer contents from storage
-    persist_get_city(city_buffer, CITY_BUFFER_SIZE);
-    text_layer_set_text(s_city_layer, city_buffer);
+    static char s_city_buffer[20];
+    persist_get_city(s_city_buffer, sizeof(s_city_buffer));
+    text_layer_set_text(s_city_layer, s_city_buffer);
 }
 
 static void current_temp_layer_refresh() {
-    snprintf(current_temp_buffer, TEMP_BUFFER_SIZE, "• %d", persist_get_current_temp());
-    text_layer_set_text(s_current_temp_layer, current_temp_buffer);
+    static char s_temp_buffer[8];
+    snprintf(s_temp_buffer, sizeof(s_temp_buffer), "• %d", persist_get_current_temp());
+    text_layer_set_text(s_current_temp_layer, s_temp_buffer);
 }
 
 static void city_layer_init(GRect bounds) {

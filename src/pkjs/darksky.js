@@ -31,9 +31,6 @@ DarkSkyProvider.prototype.withDarkSkyResponse = function(lat, lon, callback) {
 DarkSkyProvider.prototype.withProviderData = function(lat, lon, callback) {
     // callBack expects that this.hasValidData() will be true
     console.log('This is the overriden implementation of withProviderData')
-    this.tempTrend = [2, 2, 2, 4, 7, 9, 11, 12, 12, 12, 11, 9];
-    this.precipTrend = [2, 2, 2, 4, 7, 9, 11, 12, 12, 12, 11, 9];
-    this.startHour = 6;
     this.withDarkSkyResponse(lat, lon, (function(darkSkyResponse) {
         this.tempTrend = darkSkyResponse.hourly.data.map(function(entry) {
             return entry.temperature;
@@ -42,6 +39,7 @@ DarkSkyProvider.prototype.withProviderData = function(lat, lon, callback) {
             return entry.precipProbability;
         })
         this.startHour = new Date(darkSkyResponse.hourly.data[0].time * 1000).getHours()
+        this.currentTemp = darkSkyResponse.currently.temperature;
         callback();
     }).bind(this));
 }

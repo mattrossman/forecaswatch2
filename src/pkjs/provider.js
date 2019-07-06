@@ -54,6 +54,17 @@ WeatherProvider.prototype.fetch = function(callback) {
                 if (this.hasValidData()) {
                     console.log('Lets get the payload for ' + cityName);
                     console.log('Forecast start time: ' + this.startHour);
+                    // Send to Pebble
+                    this.cityName = cityName;
+                    payload = this.getPayload();
+                    Pebble.sendAppMessage(payload,
+                        function (e) {
+                            console.log('Weather info sent to Pebble successfully!');
+                        },
+                        function (e) {
+                            console.log('Error sending weather info to Pebble!');
+                        }
+                    );
                 }
                 else {
                     console.log('Fetch cancelled.')
@@ -65,7 +76,7 @@ WeatherProvider.prototype.fetch = function(callback) {
 
 WeatherProvider.prototype.hasValidData = function() {
     // all fields are set
-    if (this.tempTrend && this.precipTrend && this.startHour) {
+    if (this.tempTrend && this.precipTrend && this.startHour && this.currentTemp) {
         // trends are filled with enough data
         if (this.tempTrend.length >= this.numEntries && this.precipTrend.length >= this.numEntries) {
             console.log('Data is good, ready to fetch.');
@@ -77,13 +88,12 @@ WeatherProvider.prototype.hasValidData = function() {
 }
 
 WeatherProvider.prototype.getPayload = function() {
-    var head = darkskyReponse.hourly.data.slice(0, config.numEntries);
     // Get the rounded (integer) temperatures for those hours
     var temps = this.tempTrend.slice(0, this.numEntries).map(function(temperature) {
         return Math.round(temperature);
     });
     var precips = this.precipTrend.slice(0, this.numEntries).map(function(probability) {
-        return Math.round(probility * 100);
+        return Math.round(probability * 100);
     });
     var tempsIntView = new Int16Array(temps);
     var tempsByteArray = Array.prototype.slice.call(new Uint8Array(tempsIntView.buffer))
@@ -91,9 +101,9 @@ WeatherProvider.prototype.getPayload = function() {
         'TEMP_TREND_INT16': tempsByteArray,
         'PRECIP_TREND_UINT8': precips, // Holds values within [0,100]
         'TEMP_START': this.startHour,
-        'NUM_ENTRIES': config.numEntries,
-        'CURRENT_TEMP': currentTemp,
-        'CITY': location.address.city
+        'NUM_ENTRIES': this.numEntries,
+        'CURRENT_TEMP': Math.round(this.currentTemp),
+        'CITY': this.cityName
     }
     return payload;
 }

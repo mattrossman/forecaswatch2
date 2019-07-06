@@ -2,15 +2,16 @@ var config = require('./config.js');
 var darksky = require('./darksky.js');
 
 var provider = new darksky.constructor(config.apiKey);
-provider.fetch();
 
 // Listen for when the watchface is opened
 Pebble.addEventListener('ready',
     function (e) {
         console.log('PebbleKit JS ready!');
-        ifDataIsOld(function() {
-            withCoordinates(getWeather);
-        });
+
+        provider.fetch();
+        // ifDataIsOld(function() {
+        //     withCoordinates(getWeather);
+        // });
     }
 );
 
@@ -24,9 +25,9 @@ Pebble.addEventListener('appmessage',
 
 setInterval(function() {
     console.log('Tick from PKJS!');
-    ifDataIsOld(function() {
-        withCoordinates(getWeather);
-    });
+    // ifDataIsOld(function() {
+    //     withCoordinates(getWeather);
+    // });
 }, 60 * 1000); // 60 * 1000 milsec = 1 minute
 
 function withCoordinates(callback) {

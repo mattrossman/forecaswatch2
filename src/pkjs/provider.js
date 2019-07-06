@@ -108,4 +108,4 @@ WeatherProvider.prototype.getPayload = function() {
     return payload;
 }
 
-module.exports.constructor = WeatherProvider;
+module.exports = WeatherProvider;

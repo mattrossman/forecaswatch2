@@ -1,4 +1,4 @@
-var provider = require('./provider.js');
+var WeatherProvider = require('./provider.js');
 
 function request(url, type, callback) {
     var xhr = new XMLHttpRequest();
@@ -14,9 +14,9 @@ var DarkSkyProvider = function(apiKey) {
     this.apiKey = apiKey;
 }
 
-DarkSkyProvider.prototype = Object.create(provider.constructor.prototype);
+DarkSkyProvider.prototype = Object.create(WeatherProvider.prototype);
 DarkSkyProvider.prototype.constructor = DarkSkyProvider;
-DarkSkyProvider.prototype._super = provider.constructor;
+DarkSkyProvider.prototype._super = WeatherProvider;
 
 DarkSkyProvider.prototype.withDarkSkyResponse = function(lat, lon, callback) {
     // callback(darkSkyResponse)
@@ -44,4 +44,4 @@ DarkSkyProvider.prototype.withProviderData = function(lat, lon, callback) {
     }).bind(this));
 }
 
-module.exports.constructor = DarkSkyProvider;
+module.exports = DarkSkyProvider;

@@ -11,18 +11,22 @@ Pebble.addEventListener('ready',
     }
 );
 
+function fetch() {
+    provider.fetch(function() {
+        // Sucess, update recent fetch time
+        window.localStorage.setItem('fetchTime', new Date());
+        console.log('Successfully fetched weather!')
+    },
+    function() {
+        // Failure
+        console.log('[!] Provider failed to update weather')
+    })
+}
+
 function tryFetch() {
-    ifDataIsOld(function() {
-        provider.fetch(function() {
-            // Sucess, update recent fetch time
-            window.localStorage.setItem('fetchTime', new Date());
-            console.log('Successfully fetched weather!')
-        },
-        function() {
-            // Failure
-            console.log('[!] Provider failed to update weather')
-        })
-    });
+    if (needRefresh()) {
+        fetch();
+    };
 }
 
 setInterval(function() {
@@ -39,16 +43,12 @@ function roundDownMinutes(date, minuteMod) {
     return out;
 }
 
-function ifDataIsOld(callback) {
+function needRefresh() {
+    // Has the weather ever been fetched?
     if (!window.localStorage.getItem('fetchTime')) {
-        console.log('fetchTime not found!');
-        callback();
+        return true;
     }
-    else {
-        lastFetchTime = new Date(window.localStorage.getItem('fetchTime'))
-        if (Date.now() - roundDownMinutes(lastFetchTime, 30) > 1000 * 60 * 30) { // 1000 ms -> 60 sec -> 30 min
-            console.log('Last fetch is is too old!');
-            callback();
-        }
-    }
+    // Is the most recent fetch more than 30 minutes old?
+    lastFetchTime = new Date(window.localStorage.getItem('fetchTime'))
+    return (Date.now() - roundDownMinutes(lastFetchTime, 30) > 1000 * 60 * 30);
 }

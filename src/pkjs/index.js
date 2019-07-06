@@ -1,5 +1,5 @@
 var config = require('./config.js');
-var DarkSkyProvider = require('./darksky.js');
+var DarkSkyProvider = require('./weather/darksky.js');
 
 var provider = new DarkSkyProvider(config.apiKey);
 

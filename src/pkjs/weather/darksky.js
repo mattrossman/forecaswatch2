@@ -28,6 +28,8 @@ DarkSkyProvider.prototype.withDarkSkyResponse = function(lat, lon, callback) {
     });
 }
 
+// ============== IMPORTANT OVERRIDE ================
+
 DarkSkyProvider.prototype.withProviderData = function(lat, lon, callback) {
     // callBack expects that this.hasValidData() will be true
     console.log('This is the overriden implementation of withProviderData')

@@ -8,7 +8,7 @@ function request(url, type, callback) {
 }
 
 var WeatherProvider = function() {
-    this.numEntries = 12;
+    this.numEntries = 24;
 }
 
 WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
@@ -45,7 +45,7 @@ WeatherProvider.prototype.withProviderData = function(lat, lon, callback) {
     callback();
 }
 
-WeatherProvider.prototype.fetch = function(callback) {
+WeatherProvider.prototype.fetch = function(onSuccess, onFailure) {
     this.withCoordinates((function(lat, lon) {
         this.withCityName(lat, lon, (function(cityName) {
             this.withProviderData(lat, lon, (function() {
@@ -60,14 +60,17 @@ WeatherProvider.prototype.fetch = function(callback) {
                     Pebble.sendAppMessage(payload,
                         function (e) {
                             console.log('Weather info sent to Pebble successfully!');
+                            onSuccess();
                         },
                         function (e) {
                             console.log('Error sending weather info to Pebble!');
+                            onFailure();
                         }
                     );
                 }
                 else {
-                    console.log('Fetch cancelled.')
+                    console.log('Fetch cancelled: insufficient data.')
+                    onFailure();
                 }
             }).bind(this));
         }).bind(this));

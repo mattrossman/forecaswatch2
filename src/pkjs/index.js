@@ -1,4 +1,8 @@
 var config = require('./config.js');
+var darksky = require('./darksky.js');
+
+var provider = new darksky.constructor(config.apiKey);
+provider.fetch();
 
 // Listen for when the watchface is opened
 Pebble.addEventListener('ready',

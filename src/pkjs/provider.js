@@ -1,6 +1,6 @@
 function request(url, type, callback) {
     var xhr = new XMLHttpRequest();
-    xhr.onload = function () {
+    xhr.onload = function() {
         callback(this.responseText);
     };
     xhr.open(type, url);
@@ -11,7 +11,7 @@ var WeatherProvider = function() {
     this.numEntries = 12;
 }
 
-WeatherProvider.prototype.withCityName = function (lat, lon, callback) {
+WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
     // callback(cityName)
     var url = 'https://nominatim.openstreetmap.org/reverse?lat=' + lat
         + '&lon=' + lon
@@ -23,7 +23,7 @@ WeatherProvider.prototype.withCityName = function (lat, lon, callback) {
     });
 }
 
-WeatherProvider.prototype.withCoordinates = function (callback) {
+WeatherProvider.prototype.withCoordinates = function(callback) {
     // callback(lattitude, longtitude)
     var options = {
         enableHighAccuracy: true,
@@ -40,15 +40,15 @@ WeatherProvider.prototype.withCoordinates = function (callback) {
     navigator.geolocation.getCurrentPosition(success, error, options);
 }
 
-WeatherProvider.prototype.withProviderData = function (lat, lon, callback) {
+WeatherProvider.prototype.withProviderData = function(lat, lon, callback) {
     console.log('This is the fallback implementation of withProviderData')
     callback();
 }
 
-WeatherProvider.prototype.fetch = function (callback) {
-    this.withCoordinates((function (lat, lon) {
-        this.withCityName(lat, lon, (function (cityName) {
-            this.withProviderData(lat, lon, (function () {
+WeatherProvider.prototype.fetch = function(callback) {
+    this.withCoordinates((function(lat, lon) {
+        this.withCityName(lat, lon, (function(cityName) {
+            this.withProviderData(lat, lon, (function() {
                 // if this. contains valid weather details:
                 // payload = this.getPayload()
                 if (this.hasValidData()) {
@@ -63,7 +63,7 @@ WeatherProvider.prototype.fetch = function (callback) {
     }).bind(this));
 }
 
-WeatherProvider.prototype.hasValidData = function () {
+WeatherProvider.prototype.hasValidData = function() {
     // all fields are set
     if (this.tempTrend && this.precipTrend && this.startHour) {
         // trends are filled with enough data
@@ -76,13 +76,13 @@ WeatherProvider.prototype.hasValidData = function () {
     return false;
 }
 
-WeatherProvider.prototype.getPayload = function () {
+WeatherProvider.prototype.getPayload = function() {
     var head = darkskyReponse.hourly.data.slice(0, config.numEntries);
     // Get the rounded (integer) temperatures for those hours
-    var temps = this.tempTrend.slice(0, this.numEntries).map(function (temperature) {
+    var temps = this.tempTrend.slice(0, this.numEntries).map(function(temperature) {
         return Math.round(temperature);
     });
-    var precips = this.precipTrend.slice(0, this.numEntries).map(function (probability) {
+    var precips = this.precipTrend.slice(0, this.numEntries).map(function(probability) {
         return Math.round(probility * 100);
     });
     var tempsIntView = new Int16Array(temps);
@@ -98,41 +98,4 @@ WeatherProvider.prototype.getPayload = function () {
     return payload;
 }
 
-var DarkSkyProvider = function (apiKey) {
-    this._super.call(this);
-    this.apiKey = apiKey;
-}
-
-DarkSkyProvider.prototype = Object.create(WeatherProvider.prototype);
-DarkSkyProvider.prototype.constructor = DarkSkyProvider;
-DarkSkyProvider.prototype._super = WeatherProvider;
-
-DarkSkyProvider.prototype.withDarkSkyResponse = function (lat, lon, callback) {
-    // callback(darkSkyResponse)
-    var url = 'https://api.darksky.net/forecast/' + this.apiKey + '/' + lat + ',' + lon + '?exclude=minutely,daily,alerts,flags';
-    request(url, 'GET', function (response) {
-        var weatherData = JSON.parse(response);
-        console.log('Found timezone: ' + weatherData.timezone);
-        callback(weatherData);
-    });
-}
-
-DarkSkyProvider.prototype.withProviderData = function (lat, lon, callback) {
-    // callBack expects that this.hasValidData() will be true
-    console.log('This is the overriden implementation of withProviderData')
-    this.tempTrend = [2, 2, 2, 4, 7, 9, 11, 12, 12, 12, 11, 9];
-    this.precipTrend = [2, 2, 2, 4, 7, 9, 11, 12, 12, 12, 11, 9];
-    this.startHour = 6;
-    this.withDarkSkyResponse(lat, lon, (function (darkSkyResponse) {
-        this.tempTrend = darkskyReponse.hourly.data.map(function (entry) {
-            return entry.temperature;
-        })
-        this.precipTrend = darkskyReponse.hourly.data.map(function (entry) {
-            return entry.precipProbability;
-        })
-        this.startHour = new Date(darkskyReponse.hourly.data[0].time * 1000).getHours()
-        callback();
-    }).bind(this));
-}
-
-module.exports.DarkSkyProvider = DarkSkyProvider;
+module.exports.constructor = WeatherProvider;

@@ -1,7 +1,9 @@
 var config = require('./config.js');
-var DarkSkyProvider = require('./weather/darksky.js');
+// var DarkSkyProvider = require('./weather/darksky.js');
+var WundergroundProvider = require('./weather/wunderground.js');
 
-var provider = new DarkSkyProvider(config.apiKey);
+// var provider = new DarkSkyProvider(config.darkSkyApiKey);
+var provider = new WundergroundProvider(config.wundergroundApiKey);
 
 // Listen for when the watchface is opened
 Pebble.addEventListener('ready',

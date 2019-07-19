@@ -16,13 +16,13 @@
     "watchapp": {
       "watchface": true
     },
-    "messageKeys": [
-      "dummy"
-    ],
     "resources": {
       "media": []
     },
-    "capabilities": ["location"],
+    "capabilities": [
+      "location",
+      "configurable"
+    ],
     "messageKeys": [
       "TEMP_TREND_INT16",
       "PRECIP_TREND_UINT8",

@@ -1,0 +1,38 @@
+[
+    {
+        "type": "heading",
+        "defaultValue": "ForecasWatch2"
+    },
+    { 
+      "type": "text", 
+      "defaultValue": "Missing a feature? Submit an issue or PR on the Github repo!" 
+    },
+    {
+        "type": "section",
+        "items": [
+            {
+              "type": "heading",
+              "defaultValue": "Weather"
+            },
+            {
+                "type": "radio",
+                "label": "Provider",
+                "defaultValue": "wunderground",
+                "options": [
+                    {
+                        "label": "Dark Sky",
+                        "value": "darksky"
+                    },
+                    {
+                        "label": "Weather Underground",
+                        "value": "wunderground"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "type": "submit",
+        "defaultValue": "Save Settings"
+    }
+]

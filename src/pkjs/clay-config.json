@@ -15,7 +15,7 @@
               "defaultValue": "Weather"
             },
             {
-                "type": "radio",
+                "type": "radiogroup",
                 "label": "Provider",
                 "defaultValue": "wunderground",
                 "options": [

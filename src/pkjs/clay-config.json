@@ -20,14 +20,25 @@
                 "defaultValue": "wunderground",
                 "options": [
                     {
-                        "label": "Dark Sky",
-                        "value": "darksky"
-                    },
-                    {
                         "label": "Weather Underground",
                         "value": "wunderground"
+                    },
+                    {
+                        "label": "Dark Sky",
+                        "value": "darksky"
                     }
                 ]
+            },
+            {
+                "type": "input",
+                "label": "Dark Sky API key",
+                "description": "<a href='https://darksky.net/dev/register'>Register a Dark Sky developer account</a> and paste your secret key here"
+            },
+            {
+                "type": "button",
+                "defaultValue": "Update Now",
+                "id": "btnUpdateWeather",
+                "description": "Last update: <span id='lastFetchSpan'>Never :(</span>"
             }
         ]
     },

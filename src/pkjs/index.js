@@ -1,9 +1,9 @@
 var config = require('./config.js');
 // var DarkSkyProvider = require('./weather/darksky.js');
 var WundergroundProvider = require('./weather/wunderground.js');
-var Clay = require('./clay-modded.js');
-var clayConfig = require('./clay-config.json');
-var customClay = require('./custom-clay');
+var Clay = require('./clay/_source.js');
+var clayConfig = require('./clay/config.json');
+var customClay = require('./clay/inject.js');
 var clay = new Clay(clayConfig, customClay);
 
 // var provider = new DarkSkyProvider(config.darkSkyApiKey);

@@ -7,6 +7,8 @@ var customClay = require('./clay/inject.js');
 var clay = new Clay(clayConfig, customClay, { autoHandleEvents: false });
 
 Pebble.addEventListener('showConfiguration', function(e) {
+    // Set the userData here rather than in the Clay() constructor so it's actually up to date
+    clay.meta.userData.lastFetchTime = localStorage.getItem('fetchTime');
     Pebble.openURL(clay.generateUrl());
 });
 
@@ -16,7 +18,9 @@ Pebble.addEventListener('webviewclosed', function(e) {
     }
 
     var settings = clay.getSettings(e.response, false);
-    console.log(settings.provider.value);
+    if (settings.fetch.value === true) {
+        console.log('Force fetch!');
+    }
 });
 
 // Listen for when the watchface is opened

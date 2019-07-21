@@ -37,10 +37,10 @@
                 "description": "<a href='https://darksky.net/dev/register'>Register a Dark Sky developer account</a> and paste your secret key here"
             },
             {
-                "type": "button",
-                "defaultValue": "Update Now",
-                "id": "btnUpdateWeather",
-                "description": "Last update: <span id='lastFetchSpan'>Never :(</span>"
+                "type": "toggle",
+                "label": "Force weather fetch",
+                "messageKey": "fetch",
+                "description": "Last fetched: <span id='lastFetchSpan'>Never :(</span>"
             }
         ]
     },

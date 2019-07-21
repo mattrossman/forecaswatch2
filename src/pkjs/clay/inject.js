@@ -1,12 +1,17 @@
 module.exports = function (minified) {
-    var clayConfig = this;
+    clayConfig = this;
     var $ = minified.$;
 
     clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function() {
-        var btnUpdateWeather = clayConfig.getItemById('btnUpdateWeather');
-        btnUpdateWeather.on('click', function() {
-            $('#lastFetchSpan').ht('Now!');
-        })
+        clayConfig.getItemByMessageKey('fetch').set(false);
+
+        // Show last weather fetch status
+        var lastFetchTime = clayConfig.meta.userData.lastFetchTime;
+        if (lastFetchTime !== null) {
+            var date = new Date(lastFetchTime);
+            $('#lastFetchSpan').ht(date.toLocaleDateString() + ' ' + date.toLocaleTimeString());
+        }
+
         var clayDarkSkyApiKey = clayConfig.getItemByMessageKey('darkSkyApiKey');
         var clayProvider = clayConfig.getItemByMessageKey('provider');
         var oldProviderValue = clayProvider.get();

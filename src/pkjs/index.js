@@ -22,8 +22,10 @@ Pebble.addEventListener('webviewclosed', function(e) {
 // Listen for when the watchface is opened
 Pebble.addEventListener('ready',
     function (e) {
+        clayTryDefaults();
         console.log('PebbleKit JS ready!');
-        startTick(initProvider());
+        var provider = initProvider()
+        startTick(provider);
     }
 );
 
@@ -47,6 +49,19 @@ function initProvider() {
     }
     console.log('Initialized provider: ' + provider.name);
     return provider;
+}
+
+function clayTryDefaults() {
+    /* Clay only considers `defaultValue` upon first startup, but we need
+     * defaults set even if the user has not made a custom config
+     */
+    var persistClay = localStorage.getItem('clay-settings');
+    if (persistClay === null) {
+        persistClay = {
+            provider: 'wunderground'
+        }
+    }
+    localStorage.setItem('clay-settings', JSON.stringify(persistClay));
 }
 
 function fetch(provider) {

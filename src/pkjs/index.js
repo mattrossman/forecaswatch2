@@ -1,4 +1,4 @@
-var config = require('./config.js');
+var devConfig = require('./dev-config.js');
 var DarkSkyProvider = require('./weather/darksky.js');
 var WundergroundProvider = require('./weather/wunderground.js');
 var Clay = require('./clay/_source.js');
@@ -39,10 +39,10 @@ function initProvider() {
     console.log("Settings: " + JSON.stringify(settings));
     switch (settings.provider) {
         case 'wunderground':
-            provider = new WundergroundProvider(config.wundergroundApiKey);
+            provider = new WundergroundProvider(devConfig.wundergroundApiKey);
             break;
         case 'darksky':
-            provider = new DarkSkyProvider(config.darkSkyApiKey);
+            provider = new DarkSkyProvider(devConfig.darkSkyApiKey);
             break;
     }
     console.log('Initialized provider: ' + provider.name);

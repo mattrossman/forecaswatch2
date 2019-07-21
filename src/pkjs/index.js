@@ -24,13 +24,15 @@ Pebble.addEventListener('ready',
     function (e) {
         console.log('PebbleKit JS ready!');
         var provider = initProvider();
-        setInterval(function() {
-            console.log('Tick from PKJS!');
-            tryFetch(provider);
-        }, 60 * 1000); // 60 * 1000 milsec = 1 minute
-        tryFetch(provider);
+        startTick(provider);
     }
 );
+
+function startTick(provider) {
+    console.log('Tick from PKJS!');
+    tryFetch(provider);
+    setTimeout(startTick, 60 * 1000); // 60 * 1000 milsec = 1 minute
+}
 
 function initProvider() {
     if (!localStorage.getItem('clay-settings')) {

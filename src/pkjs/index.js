@@ -66,6 +66,7 @@ function clayTryDefaults() {
         persistClay = {
             provider: 'wunderground'
         }
+        localStorage.setItem('clay-settings', JSON.stringify(persistClay));
     }
     localStorage.setItem('clay-settings', JSON.stringify(persistClay));
 }

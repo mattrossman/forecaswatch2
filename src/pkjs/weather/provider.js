@@ -10,6 +10,7 @@ function request(url, type, callback) {
 var WeatherProvider = function() {
     this.numEntries = 24;
     this.name = 'Template';
+    this.id = 'interface';
 }
 
 WeatherProvider.prototype.withCityName = function(lat, lon, callback) {

@@ -5,7 +5,6 @@ var Clay = require('./clay/_source.js');
 var clayConfig = require('./clay/config.json');
 var customClay = require('./clay/inject.js');
 var clay = new Clay(clayConfig, customClay, { autoHandleEvents: false });
-var provider;
 
 Pebble.addEventListener('showConfiguration', function(e) {
     Pebble.openURL(clay.generateUrl());
@@ -24,25 +23,31 @@ Pebble.addEventListener('webviewclosed', function(e) {
 Pebble.addEventListener('ready',
     function (e) {
         console.log('PebbleKit JS ready!');
-        initProvider();
-        tryFetch();
+        var provider = initProvider();
+        setInterval(function() {
+            console.log('Tick from PKJS!');
+            tryFetch(provider);
+        }, 60 * 1000); // 60 * 1000 milsec = 1 minute
+        tryFetch(provider);
     }
 );
 
 function initProvider() {
-    if (!('clay-settings' in localStorage)) {
+    if (!localStorage.getItem('clay-settings')) {
+        console.log('No Clay settings found, setting defaults');
         claySetDefaults();
     }
     var settings = JSON.parse(localStorage.getItem('clay-settings'));
     switch (settings.provider) {
         case 'wunderground':
-            provider = new WundergroundProvider(config.wundergroundApiKey);
+            var provider = new WundergroundProvider(config.wundergroundApiKey);
             break;
         case 'darksky':
-            provider = new DarkSkyProvider(config.darkSkyApiKey);
+            var provider = new DarkSkyProvider(config.darkSkyApiKey);
             break;
     }
     console.log('Using provider: ' + settings.provider);
+    return provider;
 }
 
 function claySetDefaults() {
@@ -52,7 +57,7 @@ function claySetDefaults() {
     localStorage.setItem('clay-settings', JSON.stringify(settings));
 }
 
-function fetch() {
+function fetch(provider) {
     provider.fetch(function() {
         // Sucess, update recent fetch time
         window.localStorage.setItem('fetchTime', new Date());
@@ -64,16 +69,11 @@ function fetch() {
     })
 }
 
-function tryFetch() {
+function tryFetch(provider) {
     if (needRefresh()) {
-        fetch();
+        fetch(provider);
     };
 }
-
-setInterval(function() {
-    console.log('Tick from PKJS!');
-    tryFetch();
-}, 60 * 1000); // 60 * 1000 milsec = 1 minute
 
 function roundDownMinutes(date, minuteMod) {
     // E.g. with minuteMod=30, 3:52 would roll back to 3:30

@@ -5,6 +5,7 @@ var Clay = require('./clay/_source.js');
 var clayConfig = require('./clay/config.json');
 var customClay = require('./clay/inject.js');
 var clay = new Clay(clayConfig, customClay, { autoHandleEvents: false });
+var app = {};  // Namespace for global app variables
 
 Pebble.addEventListener('showConfiguration', function(e) {
     // Set the userData here rather than in the Clay() constructor so it's actually up to date
@@ -28,31 +29,31 @@ Pebble.addEventListener('ready',
     function (e) {
         clayTryDefaults();
         console.log('PebbleKit JS ready!');
-        var provider = initProvider()
-        startTick(provider);
+        initProvider()
+        startTick();
     }
 );
 
-function startTick(provider) {
+function startTick() {
     console.log('Tick from PKJS!');
-    tryFetch(provider);
+    tryFetch(app.provider);
     setTimeout(startTick, 60 * 1000); // 60 * 1000 milsec = 1 minute
 }
 
 function initProvider() {
     var settings = JSON.parse(localStorage.getItem('clay-settings'));
-    var provider;
     console.log("Settings: " + JSON.stringify(settings));
     switch (settings.provider) {
         case 'wunderground':
-            provider = new WundergroundProvider(devConfig.wundergroundApiKey);
+            app.provider = new WundergroundProvider(devConfig.wundergroundApiKey);
             break;
         case 'darksky':
-            provider = new DarkSkyProvider(devConfig.darkSkyApiKey);
+            app.provider = new DarkSkyProvider(devConfig.darkSkyApiKey);
             break;
+        default:
+            console.log('Error assigning provider in initProvider');
     }
-    console.log('Initialized provider: ' + provider.name);
-    return provider;
+    console.log('Initialized provider: ' + app.provider.name);
 }
 
 function clayTryDefaults() {
@@ -61,6 +62,7 @@ function clayTryDefaults() {
      */
     var persistClay = localStorage.getItem('clay-settings');
     if (persistClay === null) {
+        console.log('No clay settings found, setting defaults');
         persistClay = {
             provider: 'wunderground'
         }

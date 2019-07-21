@@ -34,10 +34,6 @@ function startTick(provider) {
 }
 
 function initProvider() {
-    if (!(localStorage.getItem('clay-settings'))) {
-        console.log('No Clay settings found, setting defaults');
-        claySetDefaults();
-    }
     var settings = JSON.parse(localStorage.getItem('clay-settings'));
     var provider;
     console.log("Settings: " + JSON.stringify(settings));
@@ -51,13 +47,6 @@ function initProvider() {
     }
     console.log('Initialized provider: ' + provider.name);
     return provider;
-}
-
-function claySetDefaults() {
-    var settings = {
-        provider: 'wunderground'
-    }
-    localStorage.setItem('clay-settings', JSON.stringify(settings));
 }
 
 function fetch(provider) {

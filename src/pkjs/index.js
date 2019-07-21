@@ -5,9 +5,7 @@ var Clay = require('./clay/_source.js');
 var clayConfig = require('./clay/config.json');
 var customClay = require('./clay/inject.js');
 var clay = new Clay(clayConfig, customClay, { autoHandleEvents: false });
-
-// var provider = new DarkSkyProvider(config.darkSkyApiKey);
-var provider = new WundergroundProvider(config.wundergroundApiKey);
+var provider;
 
 Pebble.addEventListener('showConfiguration', function(e) {
     Pebble.openURL(clay.generateUrl());
@@ -18,17 +16,41 @@ Pebble.addEventListener('webviewclosed', function(e) {
         return;
     }
 
-    var dict = clay.getSettings(e.response, false);
-    console.log(dict.keyProvider.value);
+    var settings = clay.getSettings(e.response, false);
+    console.log(settings.provider.value);
 });
 
 // Listen for when the watchface is opened
 Pebble.addEventListener('ready',
     function (e) {
         console.log('PebbleKit JS ready!');
+        initProvider();
         tryFetch();
     }
 );
+
+function initProvider() {
+    if (!('clay-settings' in localStorage)) {
+        claySetDefaults();
+    }
+    var settings = JSON.parse(localStorage.getItem('clay-settings'));
+    switch (settings.provider) {
+        case 'wunderground':
+            provider = new WundergroundProvider(config.wundergroundApiKey);
+            break;
+        case 'darksky':
+            provider = new DarkSkyProvider(config.darkSkyApiKey);
+            break;
+    }
+    console.log('Using provider: ' + settings.provider);
+}
+
+function claySetDefaults() {
+    var settings = {
+        provider: 'wunderground'
+    }
+    localStorage.setItem('clay-settings', JSON.stringify(settings));
+}
 
 function fetch() {
     provider.fetch(function() {

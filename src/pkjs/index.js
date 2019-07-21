@@ -21,6 +21,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
     var settings = clay.getSettings(e.response, false);
     if (settings.fetch.value === true) {
         console.log('Force fetch!');
+        fetch(app.provider);
     }
 });
 
@@ -68,7 +69,6 @@ function clayTryDefaults() {
         }
         localStorage.setItem('clay-settings', JSON.stringify(persistClay));
     }
-    localStorage.setItem('clay-settings', JSON.stringify(persistClay));
 }
 
 function fetch(provider) {

@@ -17,6 +17,7 @@
             {
                 "type": "radiogroup",
                 "label": "Provider",
+                "messageKey": "keyProvider",
                 "defaultValue": "wunderground",
                 "options": [
                     {

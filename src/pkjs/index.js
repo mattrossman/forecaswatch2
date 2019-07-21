@@ -4,10 +4,23 @@ var WundergroundProvider = require('./weather/wunderground.js');
 var Clay = require('./clay/_source.js');
 var clayConfig = require('./clay/config.json');
 var customClay = require('./clay/inject.js');
-var clay = new Clay(clayConfig, customClay);
+var clay = new Clay(clayConfig, customClay, { autoHandleEvents: false });
 
 // var provider = new DarkSkyProvider(config.darkSkyApiKey);
 var provider = new WundergroundProvider(config.wundergroundApiKey);
+
+Pebble.addEventListener('showConfiguration', function(e) {
+    Pebble.openURL(clay.generateUrl());
+});
+
+Pebble.addEventListener('webviewclosed', function(e) {
+    if (e && !e.response) {
+        return;
+    }
+
+    var dict = clay.getSettings(e.response, false);
+    console.log(dict.keyProvider.value);
+});
 
 // Listen for when the watchface is opened
 Pebble.addEventListener('ready',

@@ -11,6 +11,7 @@ function request(url, type, callback) {
 
 var WundergroundProvider = function(apiKey) {
     this._super.call(this);
+    this.name = 'Weather Underground';
     this.apiKey = apiKey;
 }
 

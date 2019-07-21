@@ -1,5 +1,5 @@
 var config = require('./config.js');
-// var DarkSkyProvider = require('./weather/darksky.js');
+var DarkSkyProvider = require('./weather/darksky.js');
 var WundergroundProvider = require('./weather/wunderground.js');
 var Clay = require('./clay/_source.js');
 var clayConfig = require('./clay/config.json');
@@ -23,8 +23,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
 Pebble.addEventListener('ready',
     function (e) {
         console.log('PebbleKit JS ready!');
-        var provider = initProvider();
-        startTick(provider);
+        startTick(initProvider());
     }
 );
 
@@ -35,20 +34,22 @@ function startTick(provider) {
 }
 
 function initProvider() {
-    if (!localStorage.getItem('clay-settings')) {
+    if (!(localStorage.getItem('clay-settings'))) {
         console.log('No Clay settings found, setting defaults');
         claySetDefaults();
     }
     var settings = JSON.parse(localStorage.getItem('clay-settings'));
+    var provider;
+    console.log("Settings: " + JSON.stringify(settings));
     switch (settings.provider) {
         case 'wunderground':
-            var provider = new WundergroundProvider(config.wundergroundApiKey);
+            provider = new WundergroundProvider(config.wundergroundApiKey);
             break;
         case 'darksky':
-            var provider = new DarkSkyProvider(config.darkSkyApiKey);
+            provider = new DarkSkyProvider(config.darkSkyApiKey);
             break;
     }
-    console.log('Using provider: ' + settings.provider);
+    console.log('Initialized provider: ' + provider.name);
     return provider;
 }
 
@@ -60,9 +61,10 @@ function claySetDefaults() {
 }
 
 function fetch(provider) {
+    console.log('Fetching from ' + provider.name);
     provider.fetch(function() {
         // Sucess, update recent fetch time
-        window.localStorage.setItem('fetchTime', new Date());
+        localStorage.setItem('fetchTime', new Date());
         console.log('Successfully fetched weather!')
     },
     function() {
@@ -87,11 +89,11 @@ function roundDownMinutes(date, minuteMod) {
 }
 
 function needRefresh() {
-    // Has the weather ever been fetched?
-    if (!window.localStorage.getItem('fetchTime')) {
+    // If the weather has never been fetched
+    if (localStorage.getItem('fetchTime') === null) {
         return true;
     }
-    // Is the most recent fetch more than 30 minutes old?
-    lastFetchTime = new Date(window.localStorage.getItem('fetchTime'))
+    // If the most recent fetch is more than 30 minutes old
+    lastFetchTime = new Date(localStorage.getItem('fetchTime'))
     return (Date.now() - roundDownMinutes(lastFetchTime, 30) > 1000 * 60 * 30);
 }

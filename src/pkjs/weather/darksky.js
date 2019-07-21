@@ -11,6 +11,7 @@ function request(url, type, callback) {
 
 var DarkSkyProvider = function(apiKey) {
     this._super.call(this);
+    this.name = 'Dark Sky';
     this.apiKey = apiKey;
 }
 

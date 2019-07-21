@@ -9,6 +9,7 @@ function request(url, type, callback) {
 
 var WeatherProvider = function() {
     this.numEntries = 24;
+    this.name = 'Template';
 }
 
 WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
@@ -49,8 +50,8 @@ WeatherProvider.prototype.fetch = function(onSuccess, onFailure) {
     this.withCoordinates((function(lat, lon) {
         this.withCityName(lat, lon, (function(cityName) {
             this.withProviderData(lat, lon, (function() {
-                // if this. contains valid weather details:
-                // payload = this.getPayload()
+                // if `this` (the provider) contains valid weather details,
+                // then we can safely call this.getPayload()
                 if (this.hasValidData()) {
                     console.log('Lets get the payload for ' + cityName);
                     console.log('Forecast start time: ' + this.startHour);
@@ -79,15 +80,29 @@ WeatherProvider.prototype.fetch = function(onSuccess, onFailure) {
 
 WeatherProvider.prototype.hasValidData = function() {
     // all fields are set
-    if (this.tempTrend && this.precipTrend && this.startHour && this.currentTemp) {
+    if (this.hasOwnProperty('tempTrend') && this.hasOwnProperty('precipTrend') && this.hasOwnProperty('startHour') && this.hasOwnProperty('currentTemp')) {
         // trends are filled with enough data
         if (this.tempTrend.length >= this.numEntries && this.precipTrend.length >= this.numEntries) {
-            console.log('Data is good, ready to fetch.');
+            console.log('Data from ' + this.name + ' is good, ready to fetch.');
             return true;
         }
     }
-    console.log('Data is does not pass the checks.');
-    return false;
+    else {
+        if (!this.hasOwnProperty('tempTrend')) {
+            console.log('Temperature trend array was not set properly');
+        }
+        if (!this.hasOwnProperty('precipTrend')) {
+            console.log('Precipitation trend array was not set properly');
+        }
+        if (!this.hasOwnProperty('startHour')) {
+            console.log('Start hour value was not set properly');
+        }
+        if (!this.hasOwnProperty('currentTemp')) {
+            console.log('Current temperature value was not set properly');
+        }
+        console.log('Data does not pass the checks.');
+        return false;
+    }
 }
 
 WeatherProvider.prototype.getPayload = function() {

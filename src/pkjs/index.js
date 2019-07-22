@@ -9,7 +9,7 @@ var app = {};  // Namespace for global app variables
 
 Pebble.addEventListener('showConfiguration', function(e) {
     // Set the userData here rather than in the Clay() constructor so it's actually up to date
-    clay.meta.userData.lastFetchTime = localStorage.getItem('fetchTime');
+    clay.meta.userData.lastFetchSuccess = localStorage.getItem('lastFetchSuccess');
     Pebble.openURL(clay.generateUrl());
 });
 
@@ -19,6 +19,8 @@ Pebble.addEventListener('webviewclosed', function(e) {
     }
 
     var settings = clay.getSettings(e.response, false);
+    setProvider(settings.provider.value);
+    // Fetching goes last, after other settings have been handled
     if (settings.fetch.value === true) {
         console.log('Force fetch!');
         fetch(app.provider);
@@ -43,8 +45,11 @@ function startTick() {
 
 function initProvider() {
     var settings = JSON.parse(localStorage.getItem('clay-settings'));
-    console.log("Settings: " + JSON.stringify(settings));
-    switch (settings.provider) {
+    setProvider(settings.provider);
+}
+
+function setProvider(providerId) {
+    switch (providerId) {
         case 'wunderground':
             app.provider = new WundergroundProvider(devConfig.wundergroundApiKey);
             break;
@@ -54,7 +59,7 @@ function initProvider() {
         default:
             console.log('Error assigning provider in initProvider');
     }
-    console.log('Initialized provider: ' + app.provider.name);
+    console.log('Set provider: ' + app.provider.name);
 }
 
 function clayTryDefaults() {
@@ -73,9 +78,15 @@ function clayTryDefaults() {
 
 function fetch(provider) {
     console.log('Fetching from ' + provider.name);
+    var fetchStatus = {
+        time: new Date(),
+        id: provider.id,
+        name: provider.name
+    }
+    localStorage.setItem('lastFetchAttempt', JSON.stringify(fetchStatus));
     provider.fetch(function() {
         // Sucess, update recent fetch time
-        localStorage.setItem('fetchTime', new Date());
+        localStorage.setItem('lastFetchSuccess', JSON.stringify(fetchStatus));
         console.log('Successfully fetched weather!')
     },
     function() {
@@ -101,10 +112,15 @@ function roundDownMinutes(date, minuteMod) {
 
 function needRefresh() {
     // If the weather has never been fetched
-    if (localStorage.getItem('fetchTime') === null) {
+    var lastFetchSuccessString = localStorage.getItem('lastFetchSuccess');
+    if (lastFetchSuccessString === null) {
+        return true;
+    }
+    var lastFetchSuccess = JSON.parse(lastFetchSuccessString);
+    if (lastFetchSuccess.time === null) {
+        // Just covering all my bases
         return true;
     }
     // If the most recent fetch is more than 30 minutes old
-    lastFetchTime = new Date(localStorage.getItem('fetchTime'))
-    return (Date.now() - roundDownMinutes(lastFetchTime, 30) > 1000 * 60 * 30);
+    return (Date.now() - roundDownMinutes(new Date(lastFetchSuccess.time), 30) > 1000 * 60 * 30);
 }

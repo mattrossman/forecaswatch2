@@ -40,7 +40,7 @@
                 "type": "toggle",
                 "label": "Force weather fetch",
                 "messageKey": "fetch",
-                "description": "Last fetched: <span id='lastFetchSpan'>Never :(</span>"
+                "description": "Last successful fetch:<br><span id='lastFetchSpan'>Never :(</span>"
             }
         ]
     },

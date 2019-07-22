@@ -6,10 +6,11 @@ module.exports = function (minified) {
         clayConfig.getItemByMessageKey('fetch').set(false);
 
         // Show last weather fetch status
-        var lastFetchTime = clayConfig.meta.userData.lastFetchTime;
-        if (lastFetchTime !== null) {
-            var date = new Date(lastFetchTime);
-            $('#lastFetchSpan').ht(date.toLocaleDateString() + ' ' + date.toLocaleTimeString());
+        var lastFetchSuccessString = clayConfig.meta.userData.lastFetchSuccess;
+        if (lastFetchSuccessString !== null) {
+            var lastFetchSuccess = JSON.parse(lastFetchSuccessString);
+            var date = new Date(lastFetchSuccess.time);
+            $('#lastFetchSpan').ht(date.toLocaleDateString() + ' ' + date.toLocaleTimeString() + ' with ' + lastFetchSuccess.name);
         }
 
         var clayDarkSkyApiKey = clayConfig.getItemByMessageKey('darkSkyApiKey');

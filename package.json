@@ -1,12 +1,12 @@
 {
-  "name": "watchface",
+  "name": "forecaswatch2",
   "author": "mattrossman",
   "version": "1.0.0",
   "keywords": ["pebble-app"],
   "private": true,
   "dependencies": {},
   "pebble": {
-    "displayName": "watchface",
+    "displayName": "FCW2",
     "uuid": "7ed9b053-1521-4e49-be8b-6e12c68978ae",
     "sdkVersion": "3",
     "enableMultiJS": true,

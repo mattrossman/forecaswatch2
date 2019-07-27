@@ -2,7 +2,7 @@
 #include "battery_layer.h"
 
 #define MONTH_FONT_OFFSET 7
-#define BATTERY_W 18
+#define BATTERY_W 20
 #define BATTERY_H 10
 
 

@@ -19,9 +19,10 @@ WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
         + '&lon=' + lon
         + '&format=json';
     request(url, 'GET', function (response) {
-        var location = JSON.parse(response);
-        console.log('Running callback with city: ' + location.address.city);
-        callback(location.address.city);
+        var address = JSON.parse(response).address;
+        var name = address.city != null ? address.city : address.town
+        console.log('Running callback with city: ' + name);
+        callback(name);
     });
 }
 

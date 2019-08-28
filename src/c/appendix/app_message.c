@@ -29,8 +29,10 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         persist_set_temp_lo(lo);
         persist_set_temp_hi(hi);
         persist_set_current_temp((int)current_temp_tuple->value->int32);
-        uint8_t sun_events_start_type = (uint8_t) sun_events_tuple->value->uint8;
+        uint8_t sun_event_start_type = (uint8_t) sun_events_tuple->value->uint8;
         uint32_t *sun_event_times = (uint32_t*) (sun_events_tuple->value->data + 1);
+        persist_set_sun_event_start_type(sun_event_start_type);
+        persist_set_sun_event_times(sun_event_times, 2);
         forecast_layer_refresh();
         weather_status_layer_refresh();
     }

@@ -1,6 +1,9 @@
 #include "persist.h"
 
-enum key {TEMP_LO, TEMP_HI, TEMP_TREND, PRECIP_TREND, START_HOUR, CITY, NUM_ENTRIES, CURRENT_TEMP, BATTERY_LEVEL};
+enum key {
+    TEMP_LO, TEMP_HI, TEMP_TREND, PRECIP_TREND, START_HOUR, CITY, SUN_EVENT_START_TYPE, SUN_EVENT_TIMES, NUM_ENTRIES,
+    CURRENT_TEMP, BATTERY_LEVEL
+};
 
 void persist_init() {
     if (!persist_exists(TEMP_LO)) {
@@ -67,6 +70,14 @@ int persist_get_city(char *buffer, const size_t buffer_size) {
     return persist_read_string(CITY, buffer, buffer_size);
 }
 
+int persist_get_sun_event_start_type() {
+    return persist_read_int(SUN_EVENT_START_TYPE);
+}
+
+int persist_get_sun_event_times(int32_t *buffer, const size_t buffer_size) {
+    return persist_read_data(SUN_EVENT_TIMES, (void*) buffer, buffer_size * sizeof(int32_t));
+}
+
 int persist_get_battery_level() {
     return persist_read_int(BATTERY_LEVEL);
 }
@@ -101,6 +112,14 @@ void persist_set_current_temp(int val) {
 
 void persist_set_city(char *val) {
     persist_write_string(CITY, val);
+}
+
+void persist_set_sun_event_start_type(int val) {
+    persist_write_int(SUN_EVENT_START_TYPE, val);
+}
+
+void persist_set_sun_event_times(uint32_t *data, const size_t size) {
+    persist_write_data(SUN_EVENT_TIMES, (void*) data, size * sizeof(uint32_t));
 }
 
 void persist_set_battery_level(int val) {

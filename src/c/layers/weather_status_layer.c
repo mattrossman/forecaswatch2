@@ -39,7 +39,7 @@ static void current_temp_layer_refresh() {
     text_layer_set_text(s_current_temp_layer, s_temp_buffer);
 }
 
-static void city_layer_init(GRect bounds) {
+static void weather_status_layer_init(GRect bounds) {
     // Set up the city text layer properties
     int w = bounds.size.w;
     int h = bounds.size.h;
@@ -89,8 +89,8 @@ void weather_status_layer_create(Layer* parent_layer, GRect frame) {
     s_weather_status_layer = layer_create(frame);
     GRect bounds = layer_get_bounds(s_weather_status_layer);
 
-    // Set up the city name text layer
-    city_layer_init(bounds);
+    // Set up all the text layers
+    weather_status_layer_init(bounds);
     layer_add_child(s_weather_status_layer, text_layer_get_layer(s_city_layer));
     layer_add_child(s_weather_status_layer, text_layer_get_layer(s_current_temp_layer));
     layer_add_child(s_weather_status_layer, text_layer_get_layer(s_next_sun_event_layer));

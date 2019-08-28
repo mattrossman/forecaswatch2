@@ -3,7 +3,9 @@
 
 #define FONT_18_OFFSET 7
 #define CITY_MAX_WIDTH 100
-#define ARROW_HEIGHT 8
+#define ARROW_H 8
+#define ARROW_HEAD_H 3
+#define ARROW_HEAD_W 2
 
 static Layer *s_weather_status_layer;
 static TextLayer *s_city_layer;
@@ -12,11 +14,15 @@ static TextLayer *s_next_sun_event_layer;
 
 static GPath *s_arrow_path = NULL;
 static const GPathInfo ARROW_PATH_INFO = {
-    // Downward facing arrow
-    .num_points = 5,
+    // Downward facing arrow, centered at the origin
+    .num_points = 6,
     .points = (GPoint[]){
-        {0, -ARROW_HEIGHT/2}, {0, ARROW_HEIGHT/2}, {-3, ARROW_HEIGHT/2 - 3},
-        {0, ARROW_HEIGHT/2}, {3, ARROW_HEIGHT/2 - 3}
+        {0, -ARROW_H/2},
+        {0, ARROW_H/2 - ARROW_HEAD_H},
+        {-ARROW_HEAD_W, ARROW_H/2 - ARROW_HEAD_H},
+        {0, ARROW_H/2},
+        {ARROW_HEAD_W, ARROW_H/2 - ARROW_HEAD_H},
+        {0, ARROW_H/2 - ARROW_HEAD_H}
     }
 };
 
@@ -68,13 +74,14 @@ static void weather_status_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
     int w = bounds.size.w;
     int h = bounds.size.h;
-    // graphics_context_set_stroke_color(ctx, GColorRed);
-    // graphics_draw_rect(ctx, bounds);
     s_arrow_path = gpath_create(&ARROW_PATH_INFO);
-    // Translate by (5, 5):
+    // Translate to correct location in layer
+    // gpath_rotate_to(s_arrow_path, TRIG_MAX_ANGLE / 2);
     gpath_move_to(s_arrow_path, GPoint(w - 4, 6));
     graphics_context_set_stroke_color(ctx, GColorWhite);
     gpath_draw_outline_open(ctx, s_arrow_path);
+    graphics_context_set_fill_color(ctx, GColorWhite);
+    gpath_draw_filled(ctx, s_arrow_path);
     gpath_destroy(s_arrow_path);
 }
 

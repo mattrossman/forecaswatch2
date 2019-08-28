@@ -29,7 +29,8 @@
       "TEMP_START",
       "NUM_ENTRIES",
       "CURRENT_TEMP",
-      "CITY"
+      "CITY",
+      "SUN_EVENTS"
     ]
   }
 }

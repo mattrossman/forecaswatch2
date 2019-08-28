@@ -157,13 +157,19 @@ WeatherProvider.prototype.getPayload = function() {
     });
     var tempsIntView = new Int16Array(temps);
     var tempsByteArray = Array.prototype.slice.call(new Uint8Array(tempsIntView.buffer))
+    var sunEventsIntView = new Int32Array(this.sunEvents.map(function(sunEvent) {
+        return sunEvent.date.getTime() / 1000;  // Seconds since epoch
+    }));
+    var sunEventsByteArray = Array.prototype.slice.call(new Uint8Array(sunEventsIntView.buffer))
     var payload = {
         'TEMP_TREND_INT16': tempsByteArray,
         'PRECIP_TREND_UINT8': precips, // Holds values within [0,100]
         'TEMP_START': this.startHour,
         'NUM_ENTRIES': this.numEntries,
         'CURRENT_TEMP': Math.round(this.currentTemp),
-        'CITY': this.cityName
+        'CITY': this.cityName,
+        // The first byte determines whether the list of events starts on a sunrise (0) or sunset (1)
+        'SUN_EVENTS': [this.sunEvents[0].type == 'sunrise' ? 0 : 1].concat(sunEventsByteArray)
     }
     return payload;
 }

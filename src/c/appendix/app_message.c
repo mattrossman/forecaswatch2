@@ -12,8 +12,9 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *num_entries_tuple = dict_find(iterator, MESSAGE_KEY_NUM_ENTRIES);
     Tuple *current_temp_tuple = dict_find(iterator, MESSAGE_KEY_CURRENT_TEMP);
     Tuple *city_tuple = dict_find(iterator, MESSAGE_KEY_CITY);
+    Tuple *sun_events_tuple = dict_find(iterator, MESSAGE_KEY_SUN_EVENTS);
 
-    if(temp_trend_tuple && temp_trend_tuple && start_hour_tuple && num_entries_tuple && city_tuple) {
+    if(temp_trend_tuple && temp_trend_tuple && start_hour_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
         APP_LOG(APP_LOG_LEVEL_INFO, "All tuples received!");
         persist_set_start_hour((int)start_hour_tuple->value->int32);
         const int num_entries = ((int)num_entries_tuple->value->int32);
@@ -28,6 +29,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         persist_set_temp_lo(lo);
         persist_set_temp_hi(hi);
         persist_set_current_temp((int)current_temp_tuple->value->int32);
+        uint8_t sun_events_start_type = (uint8_t) sun_events_tuple->value->uint8;
+        uint32_t *sun_event_times = (uint32_t*) (sun_events_tuple->value->data + 1);
         forecast_layer_refresh();
         weather_status_layer_refresh();
     }
@@ -43,7 +46,7 @@ void app_message_init() {
     app_message_register_inbox_dropped(inbox_dropped_callback);
 
     // Open AppMessage
-    const int inbox_size = 128;
+    const int inbox_size = 256;
     const int outbox_size = 0;
     app_message_open(inbox_size, outbox_size);
 }

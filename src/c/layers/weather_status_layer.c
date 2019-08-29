@@ -42,7 +42,7 @@ static void current_temp_layer_refresh() {
 static void sun_event_layer_refresh() {
     // Get the time of the first sun event
     time_t first_sun_event_time;
-    persist_get_sun_event_times((uint32_t*) &first_sun_event_time, 1);
+    persist_get_sun_event_times(&first_sun_event_time, 1);
     struct tm *tick_time = localtime(&first_sun_event_time);
 
     // Write the time into a string buffer

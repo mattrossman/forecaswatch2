@@ -81,8 +81,8 @@ int persist_get_sun_event_start_type() {
     return persist_read_int(SUN_EVENT_START_TYPE);
 }
 
-int persist_get_sun_event_times(uint32_t *buffer, const size_t buffer_size) {
-    return persist_read_data(SUN_EVENT_TIMES, (void*) buffer, buffer_size * sizeof(int32_t));
+int persist_get_sun_event_times(time_t *buffer, const size_t buffer_size) {
+    return persist_read_data(SUN_EVENT_TIMES, (void*) buffer, buffer_size * sizeof(time_t));
 }
 
 int persist_get_battery_level() {
@@ -125,8 +125,8 @@ void persist_set_sun_event_start_type(int val) {
     persist_write_int(SUN_EVENT_START_TYPE, val);
 }
 
-void persist_set_sun_event_times(uint32_t *data, const size_t size) {
-    persist_write_data(SUN_EVENT_TIMES, (void*) data, size * sizeof(uint32_t));
+void persist_set_sun_event_times(time_t *data, const size_t size) {
+    persist_write_data(SUN_EVENT_TIMES, (void*) data, size * sizeof(time_t));
 }
 
 void persist_set_battery_level(int val) {

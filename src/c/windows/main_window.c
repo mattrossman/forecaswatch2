@@ -32,11 +32,12 @@ static void main_window_load(Window *window) {
     calendar_layer_create(window_layer,
             GRect(0, CALENDAR_STATUS_HEIGHT, bounds.size.w, CALENDAR_HEIGHT));
     calendar_status_layer_create(window_layer,
-            GRect(0, 0, bounds.size.w, CALENDAR_STATUS_HEIGHT));
+            GRect(0, 0, bounds.size.w, CALENDAR_STATUS_HEIGHT + 1));  // +1 to stop text clipping
 }
 
 static void main_window_unload(Window *window) {
     time_layer_destroy();
+    weather_status_layer_destroy();
     forecast_layer_destroy();
     calendar_layer_destroy();
     calendar_status_layer_destroy();

@@ -1,44 +1,104 @@
-var config = require('./config.js');
+var devConfig = require('./dev-config.js');
+var DarkSkyProvider = require('./weather/darksky.js');
+var WundergroundProvider = require('./weather/wunderground.js');
+var Clay = require('./clay/_source.js');
+var clayConfig = require('./clay/config.json');
+var customClay = require('./clay/inject.js');
+var clay = new Clay(clayConfig, customClay, { autoHandleEvents: false });
+var app = {};  // Namespace for global app variables
+
+Pebble.addEventListener('showConfiguration', function(e) {
+    // Set the userData here rather than in the Clay() constructor so it's actually up to date
+    clay.meta.userData.lastFetchSuccess = localStorage.getItem('lastFetchSuccess');
+    Pebble.openURL(clay.generateUrl());
+});
+
+Pebble.addEventListener('webviewclosed', function(e) {
+    if (e && !e.response) {
+        return;
+    }
+
+    var settings = clay.getSettings(e.response, false);
+    setProvider(settings.provider.value);
+    // Fetching goes last, after other settings have been handled
+    if (settings.fetch.value === true) {
+        console.log('Force fetch!');
+        fetch(app.provider);
+    }
+});
 
 // Listen for when the watchface is opened
 Pebble.addEventListener('ready',
     function (e) {
+        clayTryDefaults();
         console.log('PebbleKit JS ready!');
-        ifDataIsOld(function() {
-            withCoordinates(getWeather);
-        });
+        initProvider()
+        startTick();
     }
 );
 
-// Listen for when an AppMessage is received
-Pebble.addEventListener('appmessage',
-    function (e) {
-        console.log('AppMessage received!');
-        getWeather();
-    }
-);
-
-setInterval(function() {
+function startTick() {
     console.log('Tick from PKJS!');
-    ifDataIsOld(function() {
-        withCoordinates(getWeather);
-    });
-}, 60 * 1000); // 60 * 1000 milsec = 1 minute
+    tryFetch(app.provider);
+    setTimeout(startTick, 60 * 1000); // 60 * 1000 milsec = 1 minute
+}
 
-function withCoordinates(callback) {
-    var options = {
-        enableHighAccuracy: true,
-        maximumAge: 10000,
-        timeout: 10000
+function initProvider() {
+    var settings = JSON.parse(localStorage.getItem('clay-settings'));
+    setProvider(settings.provider);
+}
+
+function setProvider(providerId) {
+    switch (providerId) {
+        case 'wunderground':
+            app.provider = new WundergroundProvider(devConfig.wundergroundApiKey);
+            break;
+        case 'darksky':
+            app.provider = new DarkSkyProvider(devConfig.darkSkyApiKey);
+            break;
+        default:
+            console.log('Error assigning provider in initProvider');
+    }
+    console.log('Set provider: ' + app.provider.name);
+}
+
+function clayTryDefaults() {
+    /* Clay only considers `defaultValue` upon first startup, but we need
+     * defaults set even if the user has not made a custom config
+     */
+    var persistClay = localStorage.getItem('clay-settings');
+    if (persistClay === null) {
+        console.log('No clay settings found, setting defaults');
+        persistClay = {
+            provider: 'wunderground'
+        }
+        localStorage.setItem('clay-settings', JSON.stringify(persistClay));
+    }
+}
+
+function fetch(provider) {
+    console.log('Fetching from ' + provider.name);
+    var fetchStatus = {
+        time: new Date(),
+        id: provider.id,
+        name: provider.name
+    }
+    localStorage.setItem('lastFetchAttempt', JSON.stringify(fetchStatus));
+    provider.fetch(function() {
+        // Sucess, update recent fetch time
+        localStorage.setItem('lastFetchSuccess', JSON.stringify(fetchStatus));
+        console.log('Successfully fetched weather!')
+    },
+    function() {
+        // Failure
+        console.log('[!] Provider failed to update weather')
+    })
+}
+
+function tryFetch(provider) {
+    if (needRefresh()) {
+        fetch(provider);
     };
-    function success(pos) {
-        console.log('FOUND LOCATION: lat= ' + pos.coords.latitude + ' lon= ' + pos.coords.longitude);
-        callback(pos.coords.latitude, pos.coords.longitude);
-    }
-    function error(err) {
-        console.log('location error (' + err.code + '): ' + err.message);
-    }
-    navigator.geolocation.getCurrentPosition(success, error, options);
 }
 
 function roundDownMinutes(date, minuteMod) {
@@ -50,85 +110,17 @@ function roundDownMinutes(date, minuteMod) {
     return out;
 }
 
-function ifDataIsOld(callback) {
-    if (!window.localStorage.getItem('fetchTime')) {
-        console.log('fetchTime not found, fetching weather!');
-        callback();
+function needRefresh() {
+    // If the weather has never been fetched
+    var lastFetchSuccessString = localStorage.getItem('lastFetchSuccess');
+    if (lastFetchSuccessString === null) {
+        return true;
     }
-    else {
-        lastFetchTime = new Date(window.localStorage.getItem('fetchTime'))
-        if (Date.now() - roundDownMinutes(lastFetchTime, 30) > 1000 * 60 * 30) { // 1000 ms * 60 sec * 30 min
-            console.log('Existing data is too old, refetching!');
-            callback();
-        }
+    var lastFetchSuccess = JSON.parse(lastFetchSuccessString);
+    if (lastFetchSuccess.time === null) {
+        // Just covering all my bases
+        return true;
     }
-}
-
-function request(url, type, callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.onload = function () {
-        callback(this.responseText);
-    };
-    xhr.open(type, url);
-    xhr.send();
-}
-
-function getWeather(lat, lon) {
-    var url = 'https://api.darksky.net/forecast/' + config.apiKey + '/' + lat + ',' + lon + '?exclude=minutely,daily,alerts,flags';
-    request(url, 'GET', function (response) {
-        var weatherData = JSON.parse(response);
-        console.log('Found timezone: ' + weatherData.timezone);
-        processDarkskyResponse(weatherData);
-        console.log('Setting fetchTime in local storage');
-        window.localStorage.setItem('fetchTime', new Date());
-        console.log('Saved the time as: ' + window.localStorage.getItem('fetchTime'))
-    });
-}
-
-function processDarkskyResponse(darkskyReponse) {
-    var currentTemp = Math.round(darkskyReponse.currently.temperature);
-    // Get the first N hours of the hourly forecast
-    var head = darkskyReponse.hourly.data.slice(0, config.numEntries);
-
-    // Get the rounded (integer) temperatures for those hours
-    var temps = head.map(function(entry){
-        return Math.round(entry.temperature);
-    });
-    var precips = head.map(function(entry){
-        return Math.round(entry.precipProbability * 100);
-    });
-
-    var tempsIntView = new Int16Array(temps)
-    var tempsByteArray = Array.prototype.slice.call(new Uint8Array(tempsIntView.buffer))
-
-    // Calculate the starting time (hour) for the forecast
-    var tempStartHour = new Date(head[0].time * 1000).getHours()
-
-    locUrl = 'https://nominatim.openstreetmap.org/reverse?lat=' + darkskyReponse.latitude
-            + '&lon=' + darkskyReponse.longitude
-            + '&format=json';
-    request(locUrl, 'GET',  function(response) {
-        var location = JSON.parse(response);
-        console.log('Forecast was fetched for ' + location.address.city);
-
-        // Assemble the message keys
-        var payload = {
-            'TEMP_TREND_INT16': tempsByteArray,
-            'PRECIP_TREND_UINT8': precips, // Holds values within [0,100]
-            'TEMP_START': tempStartHour,
-            'NUM_ENTRIES': config.numEntries,
-            'CURRENT_TEMP': currentTemp,
-            'CITY': location.address.city
-        }
-    
-        // Send to Pebble
-        Pebble.sendAppMessage(payload,
-            function (e) {
-                console.log('Weather info sent to Pebble successfully!');
-            },
-            function (e) {
-                console.log('Error sending weather info to Pebble!');
-            }
-        );
-    })
+    // If the most recent fetch is more than 30 minutes old
+    return (Date.now() - roundDownMinutes(new Date(lastFetchSuccess.time), 30) > 1000 * 60 * 30);
 }

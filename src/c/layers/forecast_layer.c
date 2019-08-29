@@ -11,8 +11,6 @@
 static Layer *s_forecast_layer;
 static TextLayer *s_hi_layer;
 static TextLayer *s_lo_layer;
-char buf_hi[4];
-char buf_lo[4];
 
 static void forecast_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
@@ -89,6 +87,8 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
     GPath *path_precip_area_under = gpath_create(&path_info_precip);
     graphics_context_set_fill_color(ctx, GColorCobaltBlue);
     gpath_draw_filled(ctx, path_precip_area_under);
+    gpath_destroy(path_precip_area_under);
+
 
     // Draw the precipitation line
     path_info_precip.num_points = num_entries;
@@ -96,6 +96,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
     graphics_context_set_stroke_color(ctx, GColorPictonBlue);
     graphics_context_set_stroke_width(ctx, 1);
     gpath_draw_outline_open(ctx, path_precip_top);
+    gpath_destroy(path_precip_top);
 
     // Draw the temperature line
     GPathInfo path_info_temp = {
@@ -106,6 +107,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
     graphics_context_set_stroke_color(ctx, GColorRed);
     graphics_context_set_stroke_width(ctx, 3);  // Only odd stroke width values supported
     gpath_draw_outline_open(ctx, path_temp);
+    gpath_destroy(path_temp);
 
     // Draw a line for the bottom axis
     graphics_context_set_stroke_color(ctx, GColorOrange);
@@ -118,11 +120,13 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
 }
 
 static void text_layers_refresh() {
-    snprintf(buf_hi, sizeof(buf_hi), "%d", persist_get_temp_hi());
-    text_layer_set_text(s_hi_layer, buf_hi);
+    static char s_buffer_lo[4], s_buffer_hi[4];
 
-    snprintf(buf_lo, sizeof(buf_lo), "%d", persist_get_temp_lo());
-    text_layer_set_text(s_lo_layer, buf_lo);
+    snprintf(s_buffer_hi, sizeof(s_buffer_hi), "%d", persist_get_temp_hi());
+    text_layer_set_text(s_hi_layer, s_buffer_hi);
+
+    snprintf(s_buffer_lo, sizeof(s_buffer_lo), "%d", persist_get_temp_lo());
+    text_layer_set_text(s_lo_layer, s_buffer_lo);
 }
 
 void forecast_layer_create(Layer *parent_layer, GRect frame) {

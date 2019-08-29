@@ -1,7 +1,7 @@
 .*
 !.gitignore
 build
-src/pkjs/config.js
+src/pkjs/dev-config.js
 screenshot/*
 !screenshot/snowy-red.png
 !screenshot/composite.sh

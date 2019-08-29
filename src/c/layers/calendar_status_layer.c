@@ -2,7 +2,7 @@
 #include "battery_layer.h"
 
 #define MONTH_FONT_OFFSET 7
-#define BATTERY_W 18
+#define BATTERY_W 20
 #define BATTERY_H 10
 
 
@@ -32,7 +32,7 @@ void calendar_status_layer_refresh() {
     time_t now = time(NULL);
     struct tm *tm_now = localtime(&now);
 
-    strftime(s_buffer_month, sizeof(s_buffer_month), "%B %Y", tm_now);
+    strftime(s_buffer_month, sizeof(s_buffer_month), "%b %Y", tm_now);
     text_layer_set_text(s_calendar_month_layer, s_buffer_month);
 }
 

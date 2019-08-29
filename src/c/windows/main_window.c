@@ -37,6 +37,7 @@ static void main_window_load(Window *window) {
 
 static void main_window_unload(Window *window) {
     time_layer_destroy();
+    weather_status_layer_destroy();
     forecast_layer_destroy();
     calendar_layer_destroy();
     calendar_status_layer_destroy();

@@ -87,6 +87,8 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
     GPath *path_precip_area_under = gpath_create(&path_info_precip);
     graphics_context_set_fill_color(ctx, GColorCobaltBlue);
     gpath_draw_filled(ctx, path_precip_area_under);
+    gpath_destroy(path_precip_area_under);
+
 
     // Draw the precipitation line
     path_info_precip.num_points = num_entries;
@@ -94,6 +96,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
     graphics_context_set_stroke_color(ctx, GColorPictonBlue);
     graphics_context_set_stroke_width(ctx, 1);
     gpath_draw_outline_open(ctx, path_precip_top);
+    gpath_destroy(path_precip_top);
 
     // Draw the temperature line
     GPathInfo path_info_temp = {
@@ -104,6 +107,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
     graphics_context_set_stroke_color(ctx, GColorRed);
     graphics_context_set_stroke_width(ctx, 3);  // Only odd stroke width values supported
     gpath_draw_outline_open(ctx, path_temp);
+    gpath_destroy(path_temp);
 
     // Draw a line for the bottom axis
     graphics_context_set_stroke_color(ctx, GColorOrange);

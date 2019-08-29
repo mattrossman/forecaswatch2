@@ -22,7 +22,7 @@ int persist_get_city(char *buffer, const size_t buffer_size);
 
 int persist_get_sun_event_start_type();
 
-int persist_get_sun_event_times(int32_t *buffer, const size_t buffer_size);
+int persist_get_sun_event_times(uint32_t *buffer, const size_t buffer_size);
 
 int persist_get_battery_level();
 

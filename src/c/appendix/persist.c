@@ -36,6 +36,13 @@ void persist_init() {
         BatteryChargeState charge = battery_state_service_peek();
         persist_write_int(BATTERY_LEVEL, charge.charge_percent);
     }
+    if (!persist_exists(SUN_EVENT_START_TYPE)) {
+        persist_write_int(SUN_EVENT_START_TYPE, 0);
+    }
+    if (!persist_exists(SUN_EVENT_TIMES)) {
+        uint32_t data[] = {0, 0};
+        persist_write_data(SUN_EVENT_TIMES, (void*) data, 2*sizeof(uint32_t));
+    }
 }
 
 int persist_get_temp_lo() {
@@ -74,7 +81,7 @@ int persist_get_sun_event_start_type() {
     return persist_read_int(SUN_EVENT_START_TYPE);
 }
 
-int persist_get_sun_event_times(int32_t *buffer, const size_t buffer_size) {
+int persist_get_sun_event_times(uint32_t *buffer, const size_t buffer_size) {
     return persist_read_data(SUN_EVENT_TIMES, (void*) buffer, buffer_size * sizeof(int32_t));
 }
 

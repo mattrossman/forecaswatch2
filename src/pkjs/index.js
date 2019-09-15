@@ -51,7 +51,7 @@ function initProvider() {
 function setProvider(providerId) {
     switch (providerId) {
         case 'wunderground':
-            app.provider = new WundergroundProvider(devConfig.wundergroundApiKey);
+            app.provider = new WundergroundProvider();
             break;
         case 'darksky':
             app.provider = new DarkSkyProvider(devConfig.darkSkyApiKey);

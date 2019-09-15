@@ -1,0 +1,18 @@
+services:
+- docker
+
+before_install:
+- docker pull dmorgan81/rebble
+
+script:
+- docker run --rm -it -v (pwd):/work dmorgan81/rebble build
+
+deploy:
+  provider: releases
+  api_key:
+    secure: ljM3XjpVbVFciui3ZPR6KpgcHf3gwD6hAZ4PHpIW67rM2FrNjOtBXs0RArE71RJO8N6aVnDWOa0abtfZWcTN2c4/o9Xo4+T8puGWbMGGLVV4JpM5nUgokzRySXR41a4awsuLozW1BSFGaN34S41YLUOQ+eXOAanZ2JqZlYeRLaQDAYUWuFmfWYgStlvYaDkuSx5pmdq4Of3qLan+jeEo/f47hVBi7HkPHjAasDxP1fKmEYmwwMg2lXSXKiwkMvUdPqaUtmcEbtEMxpUwxqwZWa0O1VHOgx+r8/aE7R2ZXe1N8iexJKBFY1OYNlhajUKESwCBC5oiB8VKWyPqNyUb+tMEDYaHqBITbzJx0TsyN9ujLpvDYuKzvohMzBh5HXQcBIjgeeps0P/zottYFZgCqzzXKKvBJTeMajjJ7bmMZnph7aK+Dv2GFdE3/VZLghxO+2y9ITPdNYgFAcUwoK4jJ+2gu/X4eBp09s8A29Kmww343n03LDAV0YXTY0dKHH7zbhwmxfFQ5DwJUdb04j1hLBo3mvX3BUpTnd1THCSI6qZsi3MHNyhy/DT++HFXKs52+QLouvKM539QTz9B7D3XeOGU/crNFbBmDXA72gkxjWIUJql7b4Y2XOQeo6xCcK9C2KYi7KIGpfqEeJGQgu8EfSB96XIN73SAd7MiaHK0hns=
+  file: build/work.pbw
+  skip_cleanup: true
+  on:
+    repo: mattrossman/forecaswatch2
+  draft: true

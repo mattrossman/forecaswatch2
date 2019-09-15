@@ -21,3 +21,12 @@ The developer, RCY, is nowhere to be found in the Rebble era. I plan to continue
 * Updates every 30 minutes
 
 *\* Using a hacky workaround*
+
+## Developers
+
+You can create a file `src/pkjs/dev-config.js` to set values for Clay keys (for convenience), e.g.
+
+```javascript
+var darkSkyApiKey = 'abc123';
+module.exports.darkSkyApiKey = darkSkyApiKey;
+```

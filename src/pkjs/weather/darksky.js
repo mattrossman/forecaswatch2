@@ -14,6 +14,7 @@ var DarkSkyProvider = function(apiKey) {
     this.name = 'Dark Sky';
     this.id = 'darksky';
     this.apiKey = apiKey;
+    console.log('Constructed with ' + apiKey);
 }
 
 DarkSkyProvider.prototype = Object.create(WeatherProvider.prototype);

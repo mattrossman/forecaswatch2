@@ -1,8 +1,9 @@
 
 # ForecasWatch 2
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/mattrossman/forecaswatch2?label=Download&color=85C1E9 )](https://github.com/mattrossman/forecaswatch2/releases/latest/download/forecaswatch2.pbw)
-[![Build status](https://img.shields.io/travis/mattrossman/forecaswatch2/master?label=Travis%20CI)](https://travis-ci.org/mattrossman/forecaswatch2)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/mattrossman/forecaswatch2?label=latest&color=85C1E9 )](https://github.com/mattrossman/forecaswatch2/releases/latest/download/forecaswatch2.pbw)
+![GitHub All Releases](https://img.shields.io/github/downloads/mattrossman/forecaswatch2/total?label=downloads&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAM1BMVEUAAAD///////////////v///z///z///z///v///v///v///v///v///3///z///z///xB67/PAAAAEHRSTlMAERwgPExhYouMjY6P1N7g8FyKngAAAF5JREFUKM/VjksOgCAMBR+IH0CB+59WEBpTPsYts+tM2hTIiLUgwFGhoKYN+xVxFFyatlx0qDhox3Cv32tm4FnR/CtL3lTvUmk8cCZvgW7p+lgG/j9yaZBP8KHBf4QbpMkNa908ZS8AAAAASUVORK5CYII=)
+[![Build status](https://img.shields.io/travis/mattrossman/forecaswatch2/master?label=build&logo=travis)](https://travis-ci.org/mattrossman/forecaswatch2)
+[![GitHub](https://img.shields.io/github/license/mattrossman/forecaswatch2?logo=data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAB7ElEQVRIie2TPWsUURSGnxsWjLosIgTJLpL8AbWwUKwjgpg%2FYEAQxCiCSLKgsAppBG38AFNolU72P4hlrLZQEwsVxSD4AWmyKFmLPBY5wWGys9ktBAtfGJh73o9z7p078K9ATeqkOqWmv9Fg0j84269vaIAelcx7u19TaSeBOgocBYaBlxE%2Bop4BWimlL32PqJ5Sj6hVdVZtqRsWYyM0dbUW3tNF4eM9gt6py5n1ctSKMF7U5IL6NkRN9ZxaC24uEzAXtVponkb9vTrd64h2qSshvpzjtjXIcBej%2FlkdznL5WzQNjALPgUZeXDQUcCs8B4BLRcI96lf1cXyPjjqz0w7Ua6EdU59Ext5uDa6rP9VqrB%2Bq39VyUQO1rH5TH8S6Ghk38uEVdVW9k6mNqG210aNBQ11TRzK%2Bu5FVASjFywKwH9id%2B4AfgLr6usuOJ4E68BG4om5Rw5G1oJ4vAevAsSCvbju7TYwV1PbFc7gLfxxYH0op%2FQJOAktdRB3gNvCoCzcfXKcLtwRMpJQ6JYCU0hvgkHoipqkAn4BnKaVVgMwREB6Bm%2Bp9YCJ2tAa8SiktbulKOdMisMgAiAGag3i2QZ2JG7WFdvYf6TlAj9CDwBSbt2IWKOckbeAe8ANoppRWBp26Zf94MVD4f2TxGzyXVgXKldOBAAAAAElFTkSuQmCC)](https://www.gnu.org/licenses/gpl-3.0)
 
 
 Once upon a time I relied on *ForecasWatch* as the daily driver watchface on my beloved red Pebble Time. Recently, the free tier of the Weather Underground API on which the watchface relied was discontinued, making a huge portion of the watchface unusable.
@@ -26,6 +27,10 @@ The developer, RCY, is nowhere to be found in the Rebble era. I plan to continue
 * Updates every 30 minutes
 
 *\* Using a hacky workaround*
+
+## Platforms
+
+Currently only the Basalt platform (Pebble Time, Pebble Time Steel) is supported.
 
 ## Installation
 

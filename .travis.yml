@@ -17,4 +17,5 @@ deploy:
   skip_cleanup: true
   on:
     repo: mattrossman/forecaswatch2
+    branch: travis
   draft: true

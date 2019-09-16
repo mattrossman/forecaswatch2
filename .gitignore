@@ -1,5 +1,6 @@
 .*
 !.gitignore
+!.travis.yml
 build
 src/pkjs/dev-config.js
 screenshot/*

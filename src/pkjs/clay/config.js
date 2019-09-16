@@ -1,11 +1,12 @@
-[
+var meta = require('../../../package.json');
+module.exports = [
     {
         "type": "heading",
         "defaultValue": "ForecasWatch2"
     },
     { 
       "type": "text", 
-      "defaultValue": "Missing a feature? Submit an issue or PR on the Github repo!" 
+      "defaultValue": "Contribute on <a href=\"https://github.com/mattrossman/forecaswatch2\">GitHub!</a>" 
     },
     {
         "type": "section",
@@ -47,5 +48,9 @@
     {
         "type": "submit",
         "defaultValue": "Save Settings"
+    },
+    { 
+        "type": "text", 
+        "defaultValue": "v" + meta.version 
     }
 ]

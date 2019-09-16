@@ -9,11 +9,23 @@ function request(url, type, callback) {
     xhr.send();
 }
 
-var WundergroundProvider = function(apiKey) {
+var WundergroundProvider = function() {
+    var _this = this;
     this._super.call(this);
     this.name = 'Weather Underground';
     this.id = 'wunderground';
-    this.apiKey = apiKey;
+    var wundergroundApiKey = localStorage.getItem('wundergroundApiKey');
+    if (wundergroundApiKey === null) {
+        WundergroundProvider.withApiKey(function(apiKey) {
+            localStorage.setItem('wundergroundApiKey', apiKey);
+            console.log("Extracted Weather Underground API key: " + apiKey);
+            _this.apiKey = apiKey;
+        });
+    }
+    else {
+        console.log("Using saved API key for Weather Underground");
+        _this.apiKey = wundergroundApiKey;
+    }
 }
 
 WundergroundProvider.prototype = Object.create(WeatherProvider.prototype);
@@ -26,6 +38,13 @@ WundergroundProvider.prototype.withWundergroundResponse = function(lat, lon, cal
     request(url, 'GET', function (response) {
         var weatherData = JSON.parse(response);
         callback(weatherData);
+    });
+}
+
+WundergroundProvider.withApiKey = function(callback) {
+    var url = "https://www.wunderground.com/";
+    request(url, 'GET', function (response) {
+        callback(response.match(/apiKey=([a-z0-9]*)/)[1]);
     });
 }
 

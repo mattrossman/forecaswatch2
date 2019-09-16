@@ -8,7 +8,9 @@ before_install:
 
 script:
 - docker run -u $(id -u):$(id -g) --rm -it -v $(pwd):/work dmorgan81/rebble build
-- cd build && mv work.pbw forecaswatch2.pbw
+
+before_deploy:
+- mv build/work.pbw build/forecaswatch2.pbw
 
 deploy:
   provider: releases

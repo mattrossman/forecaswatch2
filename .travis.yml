@@ -7,7 +7,7 @@ before_install:
 - docker pull dmorgan81/rebble
 
 script:
-- docker run --rm -it -v $(pwd):/work dmorgan81/rebble build
+- docker run -u $(id -u):$(id -g) --rm -it -v $(pwd):/work dmorgan81/rebble build
 
 deploy:
   provider: releases

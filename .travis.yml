@@ -13,11 +13,8 @@ jobs:
     - docker run -u $(id -u):$(id -g) --rm -it -v $(pwd):/work dmorgan81/rebble build
   # --------------------------------------------
   - stage: release
-    on:
-      branch: master
     after_script:
-    - cd build
-    - mv work.pbw forecaswatch2.pbw
+    - cd build && mv work.pbw forecaswatch2.pbw
     deploy:
       provider: releases
       api_key:
@@ -25,3 +22,8 @@ jobs:
       file: build/forecaswatch2.pbw
       skip_cleanup: true
       draft: true
+
+stages:
+  - build
+  - name: release
+    if: (branch = master)

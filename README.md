@@ -1,6 +1,7 @@
 
 # ForecasWatch 2
-[![Build Status](https://travis-ci.org/mattrossman/forecaswatch2.svg?branch=master)](https://travis-ci.org/mattrossman/forecaswatch2)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/mattrossman/forecaswatch2?label=Download&color=85C1E9 )](https://github.com/mattrossman/forecaswatch2/releases/latest/download/forecaswatch2.pbw)
+[![Build status](https://img.shields.io/travis/mattrossman/forecaswatch2/master?label=Travis%20CI)](https://travis-ci.org/mattrossman/forecaswatch2)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 
@@ -25,6 +26,10 @@ The developer, RCY, is nowhere to be found in the Rebble era. I plan to continue
 * Updates every 30 minutes
 
 *\* Using a hacky workaround*
+
+## Installation
+
+Download the latest [`forecaswatch2.pbw`](https://github.com/mattrossman/forecaswatch2/releases/latest/download/forecaswatch2.pbw) release. On Android you can use [Amaze File Manager](https://play.google.com/store/apps/details?id=com.amaze.filemanager&hl=en_US) to open this file through the Pebble app.
 
 ## Developers
 

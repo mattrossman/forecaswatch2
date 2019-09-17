@@ -20,7 +20,7 @@ static void calendar_update_proc(Layer *layer, GContext *ctx) {
     struct tm *tm_today = localtime(&today);
     const int i_today = 7 + tm_today->tm_wday;
 
-    graphics_context_set_fill_color(ctx, GColorBlue);
+    graphics_context_set_fill_color(ctx, PBL_IF_COLOR_ELSE(GColorBlue, GColorWhite));
     graphics_fill_rect(ctx,
         GRect((i_today % DAYS_PER_WEEK) * box_w, (i_today / DAYS_PER_WEEK) * box_h,
         box_w, box_h), 1, GCornersAll);
@@ -74,6 +74,12 @@ void calendar_layer_refresh() {
     // Fill each box with an appropriate relative day number
     for (int i = 0; i < NUM_WEEKS * DAYS_PER_WEEK; ++i) {
         char *buffer = s_calendar_box_buffers[i];
+        if (i == i_today) {
+            text_layer_set_text_color(s_calendar_text_layers[i], PBL_IF_COLOR_ELSE(GColorWhite, GColorBlue));
+        }
+        else {
+            text_layer_set_text_color(s_calendar_text_layers[i], GColorWhite);
+        }
         snprintf(buffer, 4, "%d", relative_day_of_month(i - i_today));  
         text_layer_set_text(s_calendar_text_layers[i], buffer);
     }

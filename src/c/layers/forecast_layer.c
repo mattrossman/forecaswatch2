@@ -85,7 +85,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
         .points = points_precip
     };
     GPath *path_precip_area_under = gpath_create(&path_info_precip);
-    graphics_context_set_fill_color(ctx, GColorCobaltBlue);
+    graphics_context_set_fill_color(ctx, PBL_IF_COLOR_ELSE(GColorCobaltBlue, GColorLightGray));
     gpath_draw_filled(ctx, path_precip_area_under);
     gpath_destroy(path_precip_area_under);
 
@@ -104,13 +104,13 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
         .points = points_temp
     };
     GPath *path_temp = gpath_create(&path_info_temp);
-    graphics_context_set_stroke_color(ctx, GColorRed);
+    graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorRed, GColorWhite));
     graphics_context_set_stroke_width(ctx, 3);  // Only odd stroke width values supported
     gpath_draw_outline_open(ctx, path_temp);
     gpath_destroy(path_temp);
 
     // Draw a line for the bottom axis
-    graphics_context_set_stroke_color(ctx, GColorOrange);
+    graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorOrange, GColorWhite));
     graphics_context_set_stroke_width(ctx, 1);
     graphics_draw_line(ctx, GPoint(graph_bounds.origin.x, h - BOTTOM_AXIS_H), GPoint(graph_bounds.origin.x + w, h - BOTTOM_AXIS_H));
     // And for the left side axis

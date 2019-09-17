@@ -37,7 +37,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     GRect color_area = GRect(
         color_bounds.origin.x, color_bounds.origin.y,
         color_bounds.size.w * (float) (battery_level + 10) / (100.0 + 10), color_bounds.size.h);
-    graphics_context_set_fill_color(ctx, get_battery_color(battery_level));
+    graphics_context_set_fill_color(ctx, PBL_IF_COLOR_ELSE(get_battery_color(battery_level), GColorWhite));
     graphics_fill_rect(ctx, color_area, 0, GCornerNone);
 
     // Draw the white battery outline

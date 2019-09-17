@@ -5,4 +5,6 @@ build
 src/pkjs/dev-config.js
 screenshot/*
 !screenshot/snowy-red.png
-!screenshot/composite.sh
+!screenshot/steel-black.png
+!screenshot/composite_bw.sh
+!screenshot/composite_color.sh

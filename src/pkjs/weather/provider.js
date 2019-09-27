@@ -11,6 +11,15 @@ var WeatherProvider = function() {
     this.numEntries = 24;
     this.name = 'Template';
     this.id = 'interface';
+    this.location = null;  // Address query used for overriding the GPS
+}
+
+WeatherProvider.prototype.gpsEnable = function() {
+    this.location = null;
+}
+
+WeatherProvider.prototype.gpsOverride = function(location) {
+    this.location = location;
 }
 
 WeatherProvider.prototype.withSunEvents = function(lat, lon, callback) {
@@ -63,7 +72,24 @@ WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
     });
 }
 
-WeatherProvider.prototype.withCoordinates = function(callback) {
+WeatherProvider.prototype.withGeocodeCoordinates = function(callback) {
+    // callback(lattitude, longtitude)
+    var url = 'https://us1.locationiq.com/v1/search.php?key=dd15eccc31178e'
+        + '&q=' + this.location
+        + '&format=json';
+    request(url, 'GET', function (response) {
+        var locations = JSON.parse(response);
+        if (locations.length === 0) {
+            console.log('[!] No geocoding results')
+        }
+        else {
+            var closest = locations[0];
+            callback(closest.lat, closest.lon);
+        }
+    });
+}
+
+WeatherProvider.prototype.withGpsCoordinates = function(callback) {
     // callback(lattitude, longtitude)
     var options = {
         enableHighAccuracy: true,
@@ -78,6 +104,17 @@ WeatherProvider.prototype.withCoordinates = function(callback) {
         console.log('location error (' + err.code + '): ' + err.message);
     }
     navigator.geolocation.getCurrentPosition(success, error, options);
+}
+
+WeatherProvider.prototype.withCoordinates = function(callback) {
+    if (this.location === null) {
+        console.log('Using GPS')
+        this.withGpsCoordinates(callback);
+    }
+    else {
+        console.log('Using geocoded coordinates')
+        this.withGeocodeCoordinates(callback);
+    }
 }
 
 WeatherProvider.prototype.withProviderData = function(lat, lon, callback) {

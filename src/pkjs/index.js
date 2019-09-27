@@ -75,7 +75,8 @@ function clayTryDefaults() {
     if (persistClay === null) {
         console.log('No clay settings found, setting defaults');
         persistClay = {
-            provider: 'wunderground'
+            provider: 'wunderground',
+            location: ''
         }
         localStorage.setItem('clay-settings', JSON.stringify(persistClay));
     }
@@ -102,7 +103,6 @@ function clayTryDevConfig() {
 }
 
 function getClaySettings() {
-    console.log(localStorage.getItem('clay-settings'));
     return JSON.parse(localStorage.getItem('clay-settings'));
 }
 
@@ -118,7 +118,6 @@ function fetch(provider) {
         // Sucess, update recent fetch time
         localStorage.setItem('lastFetchSuccess', JSON.stringify(fetchStatus));
         console.log('Successfully fetched weather!')
-        console.log('Finished fetch:' + JSON.stringify(getClaySettings()));
     },
     function() {
         // Failure

@@ -42,6 +42,12 @@ module.exports = [
                 "label": "Force weather fetch",
                 "messageKey": "fetch",
                 "description": "Last successful fetch:<br><span id='lastFetchSpan'>Never :(</span>"
+            },
+            {
+                "type": "input",
+                "label": "Location override",
+                "messageKey": "location",
+                "description": "Leave this blank to use GPS"
             }
         ]
     },

@@ -20,9 +20,9 @@ Pebble.addEventListener('webviewclosed', function(e) {
     }
 
     clay.getSettings(e.response, false);  // This triggers the update in localStorage
-    app.settings = getClaySettings();
-    setProvider(app.settings.provider);
-    refreshLocationPreference();
+    app.settings = getClaySettings();  // This reads from localStorage in sensible format
+    refreshProvider();
+
     // Fetching goes last, after other settings have been handled
     if (app.settings.fetch === true) {
         console.log('Force fetch!');
@@ -38,7 +38,7 @@ Pebble.addEventListener('ready',
         clayTryDevConfig();
         console.log('PebbleKit JS ready!');
         app.settings = getClaySettings();
-        initProvider()
+        refreshProvider();
         startTick();
     }
 );
@@ -49,9 +49,9 @@ function startTick() {
     setTimeout(startTick, 60 * 1000); // 60 * 1000 milsec = 1 minute
 }
 
-function initProvider() {
+function refreshProvider() {
     setProvider(app.settings.provider);
-    refreshLocationPreference();
+    app.provider.location = app.settings.location === '' ? null : app.settings.location
 }
 
 function setProvider(providerId) {
@@ -66,11 +66,6 @@ function setProvider(providerId) {
             console.log('Error assigning provider in initProvider');
     }
     console.log('Set provider: ' + app.provider.name);
-}
-
-function refreshLocationPreference() {
-    app.provider.location = app.settings.location === '' ? null : app.settings.location
-    console.log('Set provider location to ' + app.provider.location === null ? 'null' : app.provider.location)
 }
 
 function clayTryDefaults() {

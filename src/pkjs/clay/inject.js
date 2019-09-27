@@ -9,8 +9,10 @@ module.exports = function (minified) {
         // Save initial states to detect changes to provider
         var clayDarkSkyApiKey = clayConfig.getItemByMessageKey('darkSkyApiKey');
         var clayProvider = clayConfig.getItemByMessageKey('provider');
+        var clayLocation = clayConfig.getItemByMessageKey('location');
         var initProvider = clayProvider.get();
         var initDarkSkyApiKey = clayDarkSkyApiKey.get();
+        var initLocation = clayLocation.get();
 
         // Configure default provide section layout
         if (initProvider !== 'darksky') {
@@ -38,7 +40,9 @@ module.exports = function (minified) {
 
         // Override submit handler to force re-fetch if provider config changed
         $('#main-form').on('submit', function() {
-            if (clayProvider.get() !== initProvider || clayDarkSkyApiKey.get() !== initDarkSkyApiKey) {
+            if (clayProvider.get() !== initProvider
+                || clayDarkSkyApiKey.get() !== initDarkSkyApiKey
+                || clayLocation.get() !== initLocation) {
                 clayFetch.set(true);
             }
 

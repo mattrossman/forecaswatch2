@@ -19,11 +19,12 @@ Pebble.addEventListener('webviewclosed', function(e) {
         return;
     }
 
-    var settings = clay.getSettings(e.response, false);
-    app.settings = settings;
-    setProvider(settings.provider.value);
+    clay.getSettings(e.response, false);  // This triggers the update in localStorage
+    app.settings = getClaySettings();  // This reads from localStorage in sensible format
+    refreshProvider();
+
     // Fetching goes last, after other settings have been handled
-    if (settings.fetch.value === true) {
+    if (app.settings.fetch === true) {
         console.log('Force fetch!');
         fetch(app.provider);
     }
@@ -37,7 +38,7 @@ Pebble.addEventListener('ready',
         clayTryDevConfig();
         console.log('PebbleKit JS ready!');
         app.settings = getClaySettings();
-        initProvider()
+        refreshProvider();
         startTick();
     }
 );
@@ -48,9 +49,9 @@ function startTick() {
     setTimeout(startTick, 60 * 1000); // 60 * 1000 milsec = 1 minute
 }
 
-function initProvider() {
-    var settings = JSON.parse(localStorage.getItem('clay-settings'));
-    setProvider(settings.provider);
+function refreshProvider() {
+    setProvider(app.settings.provider);
+    app.provider.location = app.settings.location === '' ? null : app.settings.location
 }
 
 function setProvider(providerId) {
@@ -75,7 +76,8 @@ function clayTryDefaults() {
     if (persistClay === null) {
         console.log('No clay settings found, setting defaults');
         persistClay = {
-            provider: 'wunderground'
+            provider: 'wunderground',
+            location: ''
         }
         localStorage.setItem('clay-settings', JSON.stringify(persistClay));
     }
@@ -102,7 +104,6 @@ function clayTryDevConfig() {
 }
 
 function getClaySettings() {
-    console.log(localStorage.getItem('clay-settings'));
     return JSON.parse(localStorage.getItem('clay-settings'));
 }
 
@@ -118,7 +119,6 @@ function fetch(provider) {
         // Sucess, update recent fetch time
         localStorage.setItem('lastFetchSuccess', JSON.stringify(fetchStatus));
         console.log('Successfully fetched weather!')
-        console.log('Finished fetch:' + JSON.stringify(getClaySettings()));
     },
     function() {
         // Failure

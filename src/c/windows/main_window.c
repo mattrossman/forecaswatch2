@@ -73,6 +73,14 @@ void main_window_create() {
     time_layer_refresh();
 }
 
+void main_window_refresh() {
+    time_layer_refresh();
+    weather_status_layer_refresh();
+    forecast_layer_refresh();
+    calendar_layer_refresh();
+    calendar_status_layer_refresh();
+}
+
 void main_window_destroy() {
     // Interface for destroying the main window (implicitly unloads contents)
     window_destroy(s_main_window);

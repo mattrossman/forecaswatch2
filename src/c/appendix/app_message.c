@@ -3,6 +3,7 @@
 #include "math.h"
 #include "c/layers/forecast_layer.h"
 #include "c/layers/weather_status_layer.h"
+#include "c/windows/main_window.h"
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Message received!");
@@ -48,6 +49,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
             .celsius = clay_celsius
         };
         persist_set_config(config);
+        main_window_refresh();
     }
 }
 

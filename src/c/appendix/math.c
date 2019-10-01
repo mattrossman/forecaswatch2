@@ -14,3 +14,8 @@ void min_max(int16_t *array, int n, int *min, int *max) {
         }
     }
 }
+
+int f_to_c(int temp_f) {
+    // Convert a fahrenheit temperature to celcius
+    return (temp_f - 32) * 5.0 / 9;
+}

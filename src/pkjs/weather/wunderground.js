@@ -32,12 +32,23 @@ WundergroundProvider.prototype = Object.create(WeatherProvider.prototype);
 WundergroundProvider.prototype.constructor = WundergroundProvider;
 WundergroundProvider.prototype._super = WeatherProvider;
 
-WundergroundProvider.prototype.withWundergroundResponse = function(lat, lon, callback) {
+WundergroundProvider.prototype.withWundergroundForecast = function(lat, lon, callback) {
     // callback(wundergroundResponse)
     var url = 'https://api.weather.com/v1/geocode/' + lat + '/' + lon + '/forecast/hourly/48hour.json?apiKey=' + this.apiKey;
     request(url, 'GET', function (response) {
         var weatherData = JSON.parse(response);
-        callback(weatherData);
+        callback(weatherData.forecasts);
+    });
+}
+
+WundergroundProvider.prototype.withWundergroundCurrent = function(lat, lon, callback) {
+    // callback(wundergroundResponse)
+    var url = 'https://api.weather.com/v3/wx/observations/current?language=en-US&units=e&format=json'
+        + '&apiKey=' + this.apiKey
+        + '&geocode=' + lat + ',' + lon;
+    request(url, 'GET', function (response) {
+        var weatherData = JSON.parse(response);
+        callback(weatherData.temperature);
     });
 }
 
@@ -52,18 +63,19 @@ WundergroundProvider.withApiKey = function(callback) {
 
 WundergroundProvider.prototype.withProviderData = function(lat, lon, callback) {
     // callBack expects that this.hasValidData() will be true
-    this.withWundergroundResponse(lat, lon, (function(wundergroundResponse) {
-        var forecast = wundergroundResponse.forecasts;
-        this.tempTrend = forecast.map(function(entry) {
-            return entry.temp;
-        })
-        this.precipTrend = forecast.map(function(entry) {
-            return entry.pop / 100.0
-        })
-        this.startHour = new Date(forecast[0].fcst_valid * 1000).getHours()
-        this.currentTemp = this.tempTrend[0];
-        callback();
-    }).bind(this));
+    this.withWundergroundCurrent(lat, lon, (function(currentTemp) {
+        this.withWundergroundForecast(lat, lon, (function(forecast) {
+            this.tempTrend = forecast.map(function(entry) {
+                return entry.temp;
+            })
+            this.precipTrend = forecast.map(function(entry) {
+                return entry.pop / 100.0
+            })
+            this.startHour = new Date(forecast[0].fcst_valid * 1000).getHours()
+            this.currentTemp = currentTemp;
+            callback();
+        }).bind(this));
+    }).bind(this))
 }
 
 module.exports = WundergroundProvider;

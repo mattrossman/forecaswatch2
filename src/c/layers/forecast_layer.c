@@ -1,6 +1,7 @@
 #include "forecast_layer.h"
 #include "c/appendix/persist.h"
 #include "c/appendix/math.h"
+#include "c/appendix/config.h"
 
 #define LEFT_AXIS_MARGIN_W 17
 #define BOTTOM_AXIS_FONT_OFFSET 4  // Adjustment for whitespace at top of font
@@ -122,10 +123,10 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
 static void text_layers_refresh() {
     static char s_buffer_lo[4], s_buffer_hi[4];
 
-    snprintf(s_buffer_hi, sizeof(s_buffer_hi), "%d", persist_get_temp_hi());
+    snprintf(s_buffer_hi, sizeof(s_buffer_hi), "%d", config_localize_temp(persist_get_temp_hi()));
     text_layer_set_text(s_hi_layer, s_buffer_hi);
 
-    snprintf(s_buffer_lo, sizeof(s_buffer_lo), "%d", persist_get_temp_lo());
+    snprintf(s_buffer_lo, sizeof(s_buffer_lo), "%d", config_localize_temp(persist_get_temp_lo()));
     text_layer_set_text(s_lo_layer, s_buffer_lo);
 }
 

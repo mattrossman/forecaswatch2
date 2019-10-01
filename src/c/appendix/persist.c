@@ -1,8 +1,9 @@
 #include "persist.h"
+#include "config.h"
 
 enum key {
     TEMP_LO, TEMP_HI, TEMP_TREND, PRECIP_TREND, START_HOUR, CITY, SUN_EVENT_START_TYPE, SUN_EVENT_TIMES, NUM_ENTRIES,
-    CURRENT_TEMP, BATTERY_LEVEL
+    CURRENT_TEMP, BATTERY_LEVEL, CONFIG
 };
 
 void persist_init() {
@@ -42,6 +43,12 @@ void persist_init() {
     if (!persist_exists(SUN_EVENT_TIMES)) {
         uint32_t data[] = {0, 0};
         persist_write_data(SUN_EVENT_TIMES, (void*) data, 2*sizeof(uint32_t));
+    }
+    if (!persist_exists(CONFIG)) {
+        Config config = (Config) {
+            .celsius = false
+        };
+        persist_set_config(config);
     }
 }
 
@@ -89,6 +96,10 @@ int persist_get_battery_level() {
     return persist_read_int(BATTERY_LEVEL);
 }
 
+int persist_get_config(Config *config) {
+    return persist_read_data(CONFIG, config, sizeof(Config));
+}
+
 void persist_set_temp_lo(int val) {
     persist_write_int(TEMP_LO, val);
 }
@@ -131,4 +142,8 @@ void persist_set_sun_event_times(time_t *data, const size_t size) {
 
 void persist_set_battery_level(int val) {
     persist_write_int(BATTERY_LEVEL, val);
+}
+
+void persist_set_config(Config config) {
+    persist_write_data(CONFIG, &config, sizeof(Config));
 }

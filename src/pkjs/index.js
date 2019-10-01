@@ -22,6 +22,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
     clay.getSettings(e.response, false);  // This triggers the update in localStorage
     app.settings = getClaySettings();  // This reads from localStorage in sensible format
     refreshProvider();
+    sendClaySettings();
 
     // Fetching goes last, after other settings have been handled
     if (app.settings.fetch === true) {
@@ -47,6 +48,17 @@ function startTick() {
     console.log('Tick from PKJS!');
     tryFetch(app.provider);
     setTimeout(startTick, 60 * 1000); // 60 * 1000 milsec = 1 minute
+}
+
+function sendClaySettings() {
+    payload = {
+        "CLAY_CELSIUS": app.settings.temperatureUnits === 'c'
+    }
+    Pebble.sendAppMessage(payload, function() {
+        console.log('Message sent successfully: ' + JSON.stringify(payload));
+    }, function(e) {
+        console.log('Message failed: ' + JSON.stringify(e));
+    });
 }
 
 function refreshProvider() {

@@ -32,7 +32,8 @@
       "NUM_ENTRIES",
       "CURRENT_TEMP",
       "CITY",
-      "SUN_EVENTS"
+      "SUN_EVENTS",
+      "CLAY_CELSIUS"
     ]
   }
 }

@@ -29,6 +29,8 @@ The developer, RCY, is nowhere to be found in the Rebble era. I plan to continue
 * City where forecast was fetched
 * Next sunrise or sunset time
 * Updates every 30 minutes
+* GPS or manual location entry
+* Fahrenheit and Celcius temperatures
 
 *\* Using a hacky workaround*
 

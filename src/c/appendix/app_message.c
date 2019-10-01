@@ -6,6 +6,7 @@
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Message received!");
+    // Weather data
     Tuple *temp_trend_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_TREND_INT16);
     Tuple *precip_trend_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_TREND_UINT8);
     Tuple *start_hour_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_START);
@@ -14,7 +15,11 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *city_tuple = dict_find(iterator, MESSAGE_KEY_CITY);
     Tuple *sun_events_tuple = dict_find(iterator, MESSAGE_KEY_SUN_EVENTS);
 
+    // Clay config options
+    Tuple *clay_celsius_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_CELSIUS);
+
     if(temp_trend_tuple && temp_trend_tuple && start_hour_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
+        // Weather data received
         APP_LOG(APP_LOG_LEVEL_INFO, "All tuples received!");
         persist_set_start_hour((int)start_hour_tuple->value->int32);
         const int num_entries = ((int)num_entries_tuple->value->int32);
@@ -35,6 +40,14 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         persist_set_sun_event_times(sun_event_times, 2);
         forecast_layer_refresh();
         weather_status_layer_refresh();
+    }
+    if (clay_celsius_tuple) {
+        // Clay config data received
+        bool clay_celsius = (bool) (clay_celsius_tuple->value->int16);
+        Config config = (Config) {
+            .celsius = clay_celsius
+        };
+        persist_set_config(config);
     }
 }
 

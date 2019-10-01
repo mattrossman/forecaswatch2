@@ -4,16 +4,32 @@ module.exports = [
         "type": "heading",
         "defaultValue": "ForecasWatch2"
     },
-    { 
-      "type": "text", 
-      "defaultValue": "Contribute on <a href=\"https://github.com/mattrossman/forecaswatch2\">GitHub!</a>" 
+    {
+        "type": "text",
+        "defaultValue": "Contribute on <a href=\"https://github.com/mattrossman/forecaswatch2\">GitHub!</a>"
     },
     {
         "type": "section",
         "items": [
             {
-              "type": "heading",
-              "defaultValue": "Weather"
+                "type": "heading",
+                "defaultValue": "Weather"
+            },
+            {
+                "type": "select",
+                "defaultValue": "f",
+                "messageKey": "temperatureUnits",
+                "label": "Temperature Units",
+                "options": [
+                    {
+                        "label": "°F",
+                        "value": "f"
+                    },
+                    {
+                        "label": "°C",
+                        "value": "c"
+                    }
+                ]
             },
             {
                 "type": "radiogroup",
@@ -55,8 +71,8 @@ module.exports = [
         "type": "submit",
         "defaultValue": "Save Settings"
     },
-    { 
-        "type": "text", 
-        "defaultValue": "v" + meta.version 
+    {
+        "type": "text",
+        "defaultValue": "v" + meta.version
     }
 ]

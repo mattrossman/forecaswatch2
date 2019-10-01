@@ -30,7 +30,7 @@ The developer, RCY, is nowhere to be found in the Rebble era. I plan to continue
 * Next sunrise or sunset time
 * Updates every 30 minutes
 * GPS or manual location entry
-* Fahrenheit and Celcius temperatures
+* Fahrenheit and Celsius temperatures
 
 *\* Using a hacky workaround*
 

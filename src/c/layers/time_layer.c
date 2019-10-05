@@ -16,18 +16,18 @@ void time_layer_create(Layer* parent_layer, GRect frame) {
 
 }
 
+// 12:30 -> 12:30
+// 13:30 -> 1:30
+// 00:30 -> 12:30
+
 void time_layer_refresh() {
     // Get a tm structure
     time_t temp = time(NULL);
     struct tm *tick_time = localtime(&temp);
-    int hour = tick_time->tm_hour;
-    if (hour > 12)
-        hour %= 12;
-    int minute = tick_time->tm_min;
 
-    // Write the current hours and minutes into a buffer
+    // Format the time into a buffer
     static char s_buffer[8];
-    snprintf(s_buffer, 8, "%d:%.2d", hour, minute);
+    strftime(s_buffer, 8, clock_is_24h_style() ? "%H:%M" : "%I:%M", tick_time);
 
     // Display this time on the TextLayer
     text_layer_set_text(s_time_layer, s_buffer);

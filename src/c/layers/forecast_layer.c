@@ -59,7 +59,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
         if (i % entries_per_label == 0) {
             // Draw a text hour label at the appropriate interval
             char buf[4];
-            snprintf(buf, sizeof(buf), "%d", (forecast_start_hour + i) % 24);
+            snprintf(buf, sizeof(buf), "%d", config_axis_hour(forecast_start_hour + i));
             graphics_draw_text(ctx, buf,
                 fonts_get_system_font(FONT_KEY_GOTHIC_14),
                 GRect(entry_x - 20, h - BOTTOM_AXIS_H - BOTTOM_AXIS_FONT_OFFSET, 40, BOTTOM_AXIS_H),

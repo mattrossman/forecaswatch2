@@ -1,4 +1,5 @@
 #include "time_layer.h"
+#include "c/appendix/config.h"
 
 static TextLayer *s_time_layer;
 
@@ -24,10 +25,11 @@ void time_layer_refresh() {
     // Get a tm structure
     time_t temp = time(NULL);
     struct tm *tick_time = localtime(&temp);
+    tick_time->tm_hour = 9;
 
     // Format the time into a buffer
     static char s_buffer[8];
-    strftime(s_buffer, 8, clock_is_24h_style() ? "%H:%M" : "%I:%M", tick_time);
+    config_format_time(s_buffer, 8, tick_time);
 
     // Display this time on the TextLayer
     text_layer_set_text(s_time_layer, s_buffer);

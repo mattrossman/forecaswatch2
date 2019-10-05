@@ -52,7 +52,8 @@ function startTick() {
 
 function sendClaySettings() {
     payload = {
-        "CLAY_CELSIUS": app.settings.temperatureUnits === 'c'
+        "CLAY_CELSIUS": app.settings.temperatureUnits === 'c',
+        "CLAY_TIME_LEAD_ZERO": app.settings.timeLeadingZero
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));

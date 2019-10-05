@@ -18,6 +18,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
     // Clay config options
     Tuple *clay_celsius_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_CELSIUS);
+    Tuple *clay_time_lead_zero_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_TIME_LEAD_ZERO);
 
     if(temp_trend_tuple && temp_trend_tuple && start_hour_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
         // Weather data received
@@ -45,8 +46,10 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     if (clay_celsius_tuple) {
         // Clay config data received
         bool clay_celsius = (bool) (clay_celsius_tuple->value->int16);
+        bool time_lead_zero = (bool) (clay_time_lead_zero_tuple->value->int16);
         Config config = (Config) {
-            .celsius = clay_celsius
+            .celsius = clay_celsius,
+            .time_lead_zero = time_lead_zero
         };
         persist_set_config(config);
         main_window_refresh();

@@ -33,7 +33,8 @@
       "CURRENT_TEMP",
       "CITY",
       "SUN_EVENTS",
-      "CLAY_CELSIUS"
+      "CLAY_CELSIUS",
+      "CLAY_TIME_LEAD_ZERO"
     ]
   }
 }

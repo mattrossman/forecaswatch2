@@ -68,6 +68,20 @@ module.exports = [
         ]
     },
     {
+        "type": "section",
+        "items": [
+            {
+                "type": "heading",
+                "defaultValue": "Wall Time"
+            },
+            {
+                "type": "toggle",
+                "label": "Leading zero",
+                "messageKey": "timeLeadingZero",
+            }
+        ]
+    },
+    {
         "type": "submit",
         "defaultValue": "Save Settings"
     },

@@ -47,7 +47,8 @@ void persist_init() {
     if (!persist_exists(CONFIG)) {
         Config config = (Config) {
             .celsius = false,
-            .time_lead_zero = false
+            .time_lead_zero = false,
+            .axis_12h = false,
         };
         persist_set_config(config);
     }

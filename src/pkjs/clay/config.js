@@ -78,6 +78,22 @@ module.exports = [
                 "type": "toggle",
                 "label": "Leading zero",
                 "messageKey": "timeLeadingZero",
+            },
+            {
+                "type": "select",
+                "label": "Axis time format",
+                "messageKey": "axisTimeFormat",
+                "defaultValue": "24h",
+                "options": [
+                    {
+                        "label": "12h",
+                        "value": "12h"
+                    },
+                    {
+                        "label": "24h",
+                        "value": "24h"
+                    }
+                ]
             }
         ]
     },

@@ -27,3 +27,16 @@ int config_format_time(char *s, size_t maxsize, const struct tm * tm_p) {
     free(config);
     return res;
 }
+
+int config_axis_hour(int hour) {
+    Config *config = (Config*) malloc(sizeof(Config));
+    persist_get_config(config);
+    if (config->axis_12h) {
+        hour = hour % 12;
+        hour = hour == 0 ? 12 : hour;
+    }
+    else 
+        hour = hour % 24;
+    free(config);
+    return hour;
+}

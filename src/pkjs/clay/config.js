@@ -72,7 +72,7 @@ module.exports = [
         "items": [
             {
                 "type": "heading",
-                "defaultValue": "Wall Time"
+                "defaultValue": "Time",
             },
             {
                 "type": "toggle",

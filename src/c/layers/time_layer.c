@@ -25,7 +25,6 @@ void time_layer_refresh() {
     // Get a tm structure
     time_t temp = time(NULL);
     struct tm *tick_time = localtime(&temp);
-    tick_time->tm_hour = 9;
 
     // Format the time into a buffer
     static char s_buffer[8];

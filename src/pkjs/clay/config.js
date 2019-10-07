@@ -106,10 +106,11 @@ module.exports = [
             },
             {
                 "type": "color",
-                "label": "Today color",
+                "label": "Today highlight",
                 "messageKey": "colorToday",
                 "defaultValue": "#0055FF",
-                "sunlight": false
+                "sunlight": false,
+                "capabilities": ["COLOR"]
             }
         ]
     },

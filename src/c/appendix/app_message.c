@@ -20,6 +20,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *clay_celsius_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_CELSIUS);
     Tuple *clay_time_lead_zero_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_TIME_LEAD_ZERO);
     Tuple *clay_axis_12h_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_AXIS_12H);
+    Tuple *clay_color_today_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_TODAY);
 
     if(temp_trend_tuple && temp_trend_tuple && start_hour_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
         // Weather data received
@@ -44,15 +45,17 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         forecast_layer_refresh();
         weather_status_layer_refresh();
     }
-    if (clay_celsius_tuple && clay_axis_12h_tuple) {
+    if (clay_celsius_tuple && clay_axis_12h_tuple && clay_color_today_tuple) {
         // Clay config data received
         bool clay_celsius = (bool) (clay_celsius_tuple->value->int16);
         bool time_lead_zero = (bool) (clay_time_lead_zero_tuple->value->int16);
         bool axis_12h = (bool) (clay_axis_12h_tuple->value->int16);
+        GColor color_today = GColorFromHEX(clay_color_today_tuple->value->int32);
         Config config = (Config) {
             .celsius = clay_celsius,
             .time_lead_zero = time_lead_zero,
             .axis_12h = axis_12h,
+            .color_today = color_today
         };
         persist_set_config(config);
         main_window_refresh();

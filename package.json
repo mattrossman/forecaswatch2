@@ -35,7 +35,8 @@
       "SUN_EVENTS",
       "CLAY_CELSIUS",
       "CLAY_TIME_LEAD_ZERO",
-      "CLAY_AXIS_12H"
+      "CLAY_AXIS_12H",
+      "CLAY_COLOR_TODAY"
     ]
   }
 }

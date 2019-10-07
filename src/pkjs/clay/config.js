@@ -98,6 +98,23 @@ module.exports = [
         ]
     },
     {
+        "type": "section",
+        "items": [
+            {
+                "type": "heading",
+                "defaultValue": "Calendar",
+            },
+            {
+                "type": "color",
+                "label": "Today highlight",
+                "messageKey": "colorToday",
+                "defaultValue": "#0055FF",
+                "sunlight": false,
+                "capabilities": ["COLOR"]
+            }
+        ]
+    },
+    {
         "type": "submit",
         "defaultValue": "Save Settings"
     },

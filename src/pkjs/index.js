@@ -54,7 +54,9 @@ function sendClaySettings() {
     payload = {
         "CLAY_CELSIUS": app.settings.temperatureUnits === 'c',
         "CLAY_TIME_LEAD_ZERO": app.settings.timeLeadingZero,
-        "CLAY_AXIS_12H": app.settings.axisTimeFormat === '12h'
+        "CLAY_AXIS_12H": app.settings.axisTimeFormat === '12h',
+        "CLAY_COLOR_TODAY": app.settings.hasOwnProperty('colorToday') ? app.settings.colorToday : 16777215,
+        "CLAY_START_MON": app.settings.weekStartDay === 'mon'
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));

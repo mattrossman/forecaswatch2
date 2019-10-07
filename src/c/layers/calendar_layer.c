@@ -1,4 +1,5 @@
 #include "calendar_layer.h"
+#include "c/appendix/config.h"
 #include <time.h>
 
 #define NUM_WEEKS 3
@@ -16,11 +17,9 @@ static void calendar_update_proc(Layer *layer, GContext *ctx) {
     float box_h = (float) h / NUM_WEEKS;
 
     // Calculate which box holds today's date
-    time_t today = time(NULL);
-    struct tm *tm_today = localtime(&today);
-    const int i_today = 7 + tm_today->tm_wday;
+    const int i_today = 7 + config_day_of_week();
 
-    graphics_context_set_fill_color(ctx, PBL_IF_COLOR_ELSE(GColorBlue, GColorWhite));
+    graphics_context_set_fill_color(ctx, PBL_IF_COLOR_ELSE(config_today_color(), GColorWhite));
     graphics_fill_rect(ctx,
         GRect((i_today % DAYS_PER_WEEK) * box_w, (i_today / DAYS_PER_WEEK) * box_h,
         box_w, box_h), 1, GCornersAll);
@@ -67,15 +66,14 @@ void calendar_layer_refresh() {
     layer_mark_dirty(s_calendar_layer);
 
     // Calculate which box holds today's date
-    time_t today = time(NULL);
-    struct tm *tm_today = localtime(&today);
-    const int i_today = 7 + tm_today->tm_wday;
+    const int i_today = 7 + config_day_of_week();
 
     // Fill each box with an appropriate relative day number
     for (int i = 0; i < NUM_WEEKS * DAYS_PER_WEEK; ++i) {
         char *buffer = s_calendar_box_buffers[i];
         if (i == i_today) {
-            text_layer_set_text_color(s_calendar_text_layers[i], PBL_IF_COLOR_ELSE(GColorWhite, GColorBlue));
+            text_layer_set_text_color(s_calendar_text_layers[i],
+            PBL_IF_COLOR_ELSE(gcolor_legible_over(config_today_color()), GColorBlack));
         }
         else {
             text_layer_set_text_color(s_calendar_text_layers[i], GColorWhite);

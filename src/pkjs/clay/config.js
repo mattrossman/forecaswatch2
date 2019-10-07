@@ -13,6 +13,69 @@ module.exports = [
         "items": [
             {
                 "type": "heading",
+                "defaultValue": "Time",
+            },
+            {
+                "type": "toggle",
+                "label": "Leading zero",
+                "messageKey": "timeLeadingZero",
+            },
+            {
+                "type": "select",
+                "label": "Axis time format",
+                "messageKey": "axisTimeFormat",
+                "defaultValue": "24h",
+                "options": [
+                    {
+                        "label": "12h",
+                        "value": "12h"
+                    },
+                    {
+                        "label": "24h",
+                        "value": "24h"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "type": "section",
+        "items": [
+            {
+                "type": "heading",
+                "defaultValue": "Calendar",
+            },
+            {
+                "type": "color",
+                "label": "Today highlight",
+                "messageKey": "colorToday",
+                "defaultValue": "#0055FF",
+                "sunlight": false,
+                "capabilities": ["COLOR"]
+            },
+            {
+                "type": "select",
+                "label": "Start week on",
+                "messageKey": "weekStartDay",
+                "defaultValue": "sun",
+                "options": [
+                    {
+                        "label": "Sunday",
+                        "value": "sun"
+                    },
+                    {
+                        "label": "Monday",
+                        "value": "mon"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "type": "section",
+        "items": [
+            {
+                "type": "heading",
                 "defaultValue": "Weather"
             },
             {
@@ -64,36 +127,6 @@ module.exports = [
                 "label": "Location override",
                 "messageKey": "location",
                 "description": "Leave this blank to use GPS"
-            }
-        ]
-    },
-    {
-        "type": "section",
-        "items": [
-            {
-                "type": "heading",
-                "defaultValue": "Time",
-            },
-            {
-                "type": "toggle",
-                "label": "Leading zero",
-                "messageKey": "timeLeadingZero",
-            },
-            {
-                "type": "select",
-                "label": "Axis time format",
-                "messageKey": "axisTimeFormat",
-                "defaultValue": "24h",
-                "options": [
-                    {
-                        "label": "12h",
-                        "value": "12h"
-                    },
-                    {
-                        "label": "24h",
-                        "value": "24h"
-                    }
-                ]
             }
         ]
     },

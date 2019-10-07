@@ -1,7 +1,7 @@
 {
   "name": "forecaswatch2",
   "author": "mattrossman",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "keywords": ["pebble-app"],
   "private": true,
   "dependencies": {},
@@ -35,7 +35,9 @@
       "SUN_EVENTS",
       "CLAY_CELSIUS",
       "CLAY_TIME_LEAD_ZERO",
-      "CLAY_AXIS_12H"
+      "CLAY_AXIS_12H",
+      "CLAY_START_MON",
+      "CLAY_COLOR_TODAY"
     ]
   }
 }

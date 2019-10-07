@@ -49,6 +49,8 @@ void persist_init() {
             .celsius = false,
             .time_lead_zero = false,
             .axis_12h = false,
+            .start_mon = false,
+            .color_today = GColorBlue
         };
         persist_set_config(config);
     }

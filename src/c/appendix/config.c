@@ -41,6 +41,17 @@ int config_axis_hour(int hour) {
     return hour;
 }
 
+int config_day_of_week() {
+    Config *config = (Config*) malloc(sizeof(Config));
+    persist_get_config(config);
+    time_t today = time(NULL);
+    struct tm *tm_today = localtime(&today);
+    int wday = tm_today->tm_wday;
+    wday = config->start_mon ? (wday + 6) % 7 : wday;
+    free(config);
+    return wday;
+}
+
 GColor config_today_color() {
     Config *config = (Config*) malloc(sizeof(Config));
     persist_get_config(config);

@@ -16,4 +16,6 @@ int config_format_time(char *s, size_t maxsize, const struct tm * tm_p);
 
 int config_axis_hour(int hour);
 
+int config_day_of_week();
+
 GColor config_today_color();

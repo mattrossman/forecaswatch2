@@ -6,6 +6,7 @@ typedef struct {
     bool celsius;
     bool time_lead_zero;
     bool axis_12h;
+    bool start_mon;
     GColor color_today;
 } Config;
 

@@ -44,15 +44,10 @@ static void sun_event_layer_refresh() {
     // Get the time of the first sun event
     time_t first_sun_event_time;
     persist_get_sun_event_times(&first_sun_event_time, 1);
-    struct tm *tick_time = localtime(&first_sun_event_time);
+    struct tm *sun_time = localtime(&first_sun_event_time);
 
-    // Write the time into a string buffer
-    int hour = tick_time->tm_hour;
-    if (hour > 12)
-        hour %= 12;
-    int minute = tick_time->tm_min;
     static char s_buffer[8];
-    snprintf(s_buffer, 8, "%d:%.2d", hour, minute);
+    config_format_time(s_buffer, 8, sun_time);
 
     // Display this time on the TextLayer
     text_layer_set_text(s_next_sun_event_layer, s_buffer);

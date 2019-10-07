@@ -40,3 +40,11 @@ int config_axis_hour(int hour) {
     free(config);
     return hour;
 }
+
+GColor config_today_color() {
+    Config *config = (Config*) malloc(sizeof(Config));
+    persist_get_config(config);
+    GColor color = config->color_today;
+    free(config);
+    return color;
+}

@@ -36,6 +36,7 @@
       "CLAY_CELSIUS",
       "CLAY_TIME_LEAD_ZERO",
       "CLAY_AXIS_12H",
+      "CLAY_START_MON",
       "CLAY_COLOR_TODAY"
     ]
   }

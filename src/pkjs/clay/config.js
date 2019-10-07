@@ -111,6 +111,22 @@ module.exports = [
                 "defaultValue": "#0055FF",
                 "sunlight": false,
                 "capabilities": ["COLOR"]
+            },
+            {
+                "type": "select",
+                "label": "Start week on",
+                "messageKey": "weekStartDay",
+                "defaultValue": "sun",
+                "options": [
+                    {
+                        "label": "Sunday",
+                        "value": "sun"
+                    },
+                    {
+                        "label": "Monday",
+                        "value": "mon"
+                    }
+                ]
             }
         ]
     },

@@ -3,10 +3,14 @@
 #include "c/appendix/config.h"
 
 #define FONT_18_OFFSET 7
-#define CITY_MAX_WIDTH 100
+#define CITY_INIT_WIDTH 100
 #define ARROW_H 8
 #define ARROW_HEAD_H 3
 #define ARROW_HEAD_W 2
+#define MARGIN 2
+
+static GRect frame_curr_temp;
+static GRect frame_sun_event;
 
 static Layer *s_weather_status_layer;
 static TextLayer *s_city_layer;
@@ -27,6 +31,10 @@ static const GPathInfo ARROW_PATH_INFO = {
     }
 };
 
+static void text_layer_move_frame(TextLayer *text_layer, GRect frame) {
+    layer_set_frame(text_layer_get_layer(text_layer), frame);
+}
+
 static void city_layer_refresh() {
     // Set the city text layer contents from storage
     static char s_city_buffer[20];
@@ -38,6 +46,9 @@ static void current_temp_layer_refresh() {
     static char s_temp_buffer[8];
     snprintf(s_temp_buffer, sizeof(s_temp_buffer), "• %d", config_localize_temp(persist_get_current_temp()));
     text_layer_set_text(s_current_temp_layer, s_temp_buffer);
+    text_layer_move_frame(s_current_temp_layer, GRect(0, 0, 100, 100));  // Make it big so content doesn't get clipped
+    GSize size = text_layer_get_content_size(s_current_temp_layer);
+    text_layer_move_frame(s_current_temp_layer, GRect(MARGIN, -FONT_18_OFFSET, size.w, size.h));
 }
 
 static void sun_event_layer_refresh() {
@@ -59,30 +70,31 @@ static void weather_status_layer_init(GRect bounds) {
     int h = bounds.size.h;
 
     // Current temperature
-    s_current_temp_layer = text_layer_create(GRect(2, -FONT_18_OFFSET, 40, 25));
+    s_current_temp_layer = text_layer_create(GRect(MARGIN, -FONT_18_OFFSET, 40, 25));
     text_layer_set_background_color(s_current_temp_layer, GColorClear);
     text_layer_set_text_alignment(s_current_temp_layer, GTextAlignmentLeft);
     text_layer_set_text_color(s_current_temp_layer, GColorWhite);
     text_layer_set_font(s_current_temp_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+    text_layer_set_background_color(s_current_temp_layer, GColorRed);
 
     // City where weather was fetched
-    s_city_layer = text_layer_create(GRect(w/2 - CITY_MAX_WIDTH/2, 4 - FONT_18_OFFSET, CITY_MAX_WIDTH, 25));
+    s_city_layer = text_layer_create(GRect(w/2 - CITY_INIT_WIDTH/2, 4 - FONT_18_OFFSET, CITY_INIT_WIDTH, 25));
     text_layer_set_background_color(s_city_layer, GColorClear);
     text_layer_set_text_alignment(s_city_layer, GTextAlignmentCenter);
     text_layer_set_text_color(s_city_layer, GColorWhite);
     text_layer_set_font(s_city_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
 
     // Time of next sun event (sunrise/sunset)
-    s_next_sun_event_layer = text_layer_create(GRect(w - 2 - 6 - 40, 4 - FONT_18_OFFSET, 40, 25));
+    s_next_sun_event_layer = text_layer_create(GRect(w - MARGIN - 6 - 40, 4 - FONT_18_OFFSET, 40, 25));
     text_layer_set_background_color(s_next_sun_event_layer, GColorClear);
     text_layer_set_text_alignment(s_next_sun_event_layer, GTextAlignmentRight);
     text_layer_set_text_color(s_next_sun_event_layer, GColorWhite);
     text_layer_set_font(s_next_sun_event_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
-    text_layer_set_text(s_next_sun_event_layer, "7:42");
+    // text_layer_set_text(s_next_sun_event_layer, "7:42");
 
-    city_layer_refresh();
     current_temp_layer_refresh();
     sun_event_layer_refresh();
+    city_layer_refresh();
 }
 
 static void weather_status_update_proc(Layer *layer, GContext *ctx) {
@@ -118,9 +130,9 @@ void weather_status_layer_create(Layer* parent_layer, GRect frame) {
 
 void weather_status_layer_refresh() {
     layer_mark_dirty(s_weather_status_layer);
-    city_layer_refresh();
     current_temp_layer_refresh();
     sun_event_layer_refresh();
+    city_layer_refresh();
 }
 
 void weather_status_layer_destroy() {

@@ -46,10 +46,10 @@ static void city_layer_refresh() {
     // Dynamic resizing
     GRect bounds = layer_get_bounds(s_weather_status_layer);
     GSize size = text_layer_get_content_size(s_city_layer);
-    int x = frame_curr_temp.origin.x + frame_curr_temp.size.w + MARGIN;
+    int x = frame_curr_temp.origin.x + frame_curr_temp.size.w + MARGIN * 2;
     int y = -FONT_14_OFFSET;
-    int w = bounds.size.w - frame_curr_temp.size.w - frame_sun_event.size.w - MARGIN * 2;
-    int h = size.h;
+    int w = bounds.size.w - frame_curr_temp.size.w - frame_sun_event.size.w - MARGIN * 4;
+    int h = size.h + FONT_14_OFFSET;
     text_layer_move_frame(s_city_layer, GRect(x, y, w, h));
 }
 
@@ -98,7 +98,6 @@ static void weather_status_layer_init(GRect bounds) {
     text_layer_set_text_alignment(s_current_temp_layer, GTextAlignmentLeft);
     text_layer_set_text_color(s_current_temp_layer, GColorWhite);
     text_layer_set_font(s_current_temp_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
-    text_layer_set_background_color(s_current_temp_layer, GColorRed);
 
     // City where weather was fetched
     s_city_layer = text_layer_create(GRect(w/2 - CITY_INIT_WIDTH/2, -FONT_14_OFFSET, CITY_INIT_WIDTH, 25));
@@ -106,7 +105,6 @@ static void weather_status_layer_init(GRect bounds) {
     text_layer_set_text_alignment(s_city_layer, GTextAlignmentCenter);
     text_layer_set_text_color(s_city_layer, GColorWhite);
     text_layer_set_font(s_city_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
-    text_layer_set_background_color(s_city_layer, GColorRed);
 
     // Time of next sun event (sunrise/sunset)
     s_next_sun_event_layer = text_layer_create(GRect(w - MARGIN - 6 - 40, 4 - FONT_18_OFFSET, 40, 25));
@@ -114,8 +112,6 @@ static void weather_status_layer_init(GRect bounds) {
     text_layer_set_text_alignment(s_next_sun_event_layer, GTextAlignmentLeft);
     text_layer_set_text_color(s_next_sun_event_layer, GColorWhite);
     text_layer_set_font(s_next_sun_event_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
-    text_layer_set_background_color(s_next_sun_event_layer, GColorRed);
-    // text_layer_set_text(s_next_sun_event_layer, "7:42");
 
     current_temp_layer_refresh();
     sun_event_layer_refresh();

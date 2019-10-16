@@ -61,12 +61,11 @@ WeatherProvider.prototype.withSunEvents = function(lat, lon, callback) {
 
 WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
     // callback(cityName)
-    var url = 'https://nominatim.openstreetmap.org/reverse?lat=' + lat
-        + '&lon=' + lon
-        + '&format=json';
+    var url = 'http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?f=json&langCode=EN&location='
+        + lon + ',' + lat;
     request(url, 'GET', function (response) {
         var address = JSON.parse(response).address;
-        var name = address.city != null ? address.city : address.town
+        var name = address.District ? address.District : address.City;
         console.log('Running callback with city: ' + name);
         callback(name);
     });
@@ -84,6 +83,7 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback) {
         }
         else {
             var closest = locations[0];
+            console.log('Query ' + this.location + ' geocoded to ' + closest.lat + ', ' + closest.lon);
             callback(closest.lat, closest.lon);
         }
     });

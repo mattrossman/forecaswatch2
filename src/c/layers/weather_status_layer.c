@@ -3,10 +3,12 @@
 #include "c/appendix/config.h"
 
 #define FONT_18_OFFSET 7
+#define FONT_14_OFFSET 3
 #define CITY_INIT_WIDTH 100
 #define ARROW_H 8
 #define ARROW_HEAD_H 3
 #define ARROW_HEAD_W 2
+#define ARROW_W 6
 #define MARGIN 2
 
 static GRect frame_curr_temp;
@@ -46,12 +48,16 @@ static void current_temp_layer_refresh() {
     static char s_temp_buffer[8];
     snprintf(s_temp_buffer, sizeof(s_temp_buffer), "• %d", config_localize_temp(persist_get_current_temp()));
     text_layer_set_text(s_current_temp_layer, s_temp_buffer);
+
+    // Dynamic resizing
     text_layer_move_frame(s_current_temp_layer, GRect(0, 0, 100, 100));  // Make it big so content doesn't get clipped
     GSize size = text_layer_get_content_size(s_current_temp_layer);
     text_layer_move_frame(s_current_temp_layer, GRect(MARGIN, -FONT_18_OFFSET, size.w, size.h));
+    frame_curr_temp = GRect(0, -FONT_18_OFFSET, size.w + MARGIN, size.h);
 }
 
 static void sun_event_layer_refresh() {
+    GRect bounds = layer_get_bounds(s_weather_status_layer);
     // Get the time of the first sun event
     time_t first_sun_event_time;
     persist_get_sun_event_times(&first_sun_event_time, 1);
@@ -62,6 +68,14 @@ static void sun_event_layer_refresh() {
 
     // Display this time on the TextLayer
     text_layer_set_text(s_next_sun_event_layer, s_buffer);
+    text_layer_set_text(s_next_sun_event_layer, "17:42");
+
+    // Dynamic resizing
+    text_layer_move_frame(s_next_sun_event_layer, GRect(0, 0, 100, 100));  // Make it big so content doesn't get clipped
+    GSize size = text_layer_get_content_size(s_next_sun_event_layer);
+    text_layer_move_frame(s_next_sun_event_layer,
+        GRect(bounds.size.w - MARGIN - ARROW_W - size.w, -FONT_14_OFFSET, size.w + ARROW_W, size.h));
+    frame_sun_event = GRect(bounds.size.w - MARGIN - ARROW_W - size.w, -FONT_14_OFFSET, size.w + ARROW_W + MARGIN, size.h);
 }
 
 static void weather_status_layer_init(GRect bounds) {
@@ -87,9 +101,10 @@ static void weather_status_layer_init(GRect bounds) {
     // Time of next sun event (sunrise/sunset)
     s_next_sun_event_layer = text_layer_create(GRect(w - MARGIN - 6 - 40, 4 - FONT_18_OFFSET, 40, 25));
     text_layer_set_background_color(s_next_sun_event_layer, GColorClear);
-    text_layer_set_text_alignment(s_next_sun_event_layer, GTextAlignmentRight);
+    text_layer_set_text_alignment(s_next_sun_event_layer, GTextAlignmentLeft);
     text_layer_set_text_color(s_next_sun_event_layer, GColorWhite);
     text_layer_set_font(s_next_sun_event_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+    // text_layer_set_background_color(s_next_sun_event_layer, GColorGreen);
     // text_layer_set_text(s_next_sun_event_layer, "7:42");
 
     current_temp_layer_refresh();

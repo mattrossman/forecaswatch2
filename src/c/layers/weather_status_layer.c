@@ -42,6 +42,15 @@ static void city_layer_refresh() {
     static char s_city_buffer[20];
     persist_get_city(s_city_buffer, sizeof(s_city_buffer));
     text_layer_set_text(s_city_layer, s_city_buffer);
+
+    // Dynamic resizing
+    GRect bounds = layer_get_bounds(s_weather_status_layer);
+    GSize size = text_layer_get_content_size(s_city_layer);
+    int x = frame_curr_temp.origin.x + frame_curr_temp.size.w + MARGIN;
+    int y = -FONT_14_OFFSET;
+    int w = bounds.size.w - frame_curr_temp.size.w - frame_sun_event.size.w - MARGIN * 2;
+    int h = size.h;
+    text_layer_move_frame(s_city_layer, GRect(x, y, w, h));
 }
 
 static void current_temp_layer_refresh() {
@@ -68,7 +77,7 @@ static void sun_event_layer_refresh() {
 
     // Display this time on the TextLayer
     text_layer_set_text(s_next_sun_event_layer, s_buffer);
-    text_layer_set_text(s_next_sun_event_layer, "17:42");
+    // text_layer_set_text(s_next_sun_event_layer, "17:42");
 
     // Dynamic resizing
     text_layer_move_frame(s_next_sun_event_layer, GRect(0, 0, 100, 100));  // Make it big so content doesn't get clipped
@@ -92,11 +101,12 @@ static void weather_status_layer_init(GRect bounds) {
     text_layer_set_background_color(s_current_temp_layer, GColorRed);
 
     // City where weather was fetched
-    s_city_layer = text_layer_create(GRect(w/2 - CITY_INIT_WIDTH/2, 4 - FONT_18_OFFSET, CITY_INIT_WIDTH, 25));
+    s_city_layer = text_layer_create(GRect(w/2 - CITY_INIT_WIDTH/2, -FONT_14_OFFSET, CITY_INIT_WIDTH, 25));
     text_layer_set_background_color(s_city_layer, GColorClear);
     text_layer_set_text_alignment(s_city_layer, GTextAlignmentCenter);
     text_layer_set_text_color(s_city_layer, GColorWhite);
     text_layer_set_font(s_city_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+    text_layer_set_background_color(s_city_layer, GColorRed);
 
     // Time of next sun event (sunrise/sunset)
     s_next_sun_event_layer = text_layer_create(GRect(w - MARGIN - 6 - 40, 4 - FONT_18_OFFSET, 40, 25));
@@ -104,7 +114,7 @@ static void weather_status_layer_init(GRect bounds) {
     text_layer_set_text_alignment(s_next_sun_event_layer, GTextAlignmentLeft);
     text_layer_set_text_color(s_next_sun_event_layer, GColorWhite);
     text_layer_set_font(s_next_sun_event_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
-    // text_layer_set_background_color(s_next_sun_event_layer, GColorGreen);
+    text_layer_set_background_color(s_next_sun_event_layer, GColorRed);
     // text_layer_set_text(s_next_sun_event_layer, "7:42");
 
     current_temp_layer_refresh();

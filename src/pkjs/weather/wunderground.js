@@ -71,7 +71,7 @@ WundergroundProvider.prototype.withProviderData = function(lat, lon, callback) {
             this.precipTrend = forecast.map(function(entry) {
                 return entry.pop / 100.0
             })
-            this.startHour = new Date(forecast[0].fcst_valid * 1000).getHours()
+            this.startTime = forecast[0].fcst_valid;
             this.currentTemp = currentTemp;
             callback();
         }).bind(this));

@@ -10,7 +10,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     // Weather data
     Tuple *temp_trend_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_TREND_INT16);
     Tuple *precip_trend_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_TREND_UINT8);
-    Tuple *start_hour_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_START);
+    Tuple *forecast_start_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_START);
     Tuple *num_entries_tuple = dict_find(iterator, MESSAGE_KEY_NUM_ENTRIES);
     Tuple *current_temp_tuple = dict_find(iterator, MESSAGE_KEY_CURRENT_TEMP);
     Tuple *city_tuple = dict_find(iterator, MESSAGE_KEY_CITY);
@@ -23,10 +23,10 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *clay_start_mon_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_START_MON);
     Tuple *clay_color_today_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_TODAY);
 
-    if(temp_trend_tuple && temp_trend_tuple && start_hour_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
+    if(temp_trend_tuple && temp_trend_tuple && forecast_start_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
         // Weather data received
         APP_LOG(APP_LOG_LEVEL_INFO, "All tuples received!");
-        persist_set_start_hour((int)start_hour_tuple->value->int32);
+        persist_set_forecast_start((time_t)forecast_start_tuple->value->int32);
         const int num_entries = ((int)num_entries_tuple->value->int32);
         persist_set_num_entries(num_entries);
         int16_t *temp_data = (int16_t*) temp_trend_tuple->value->data;

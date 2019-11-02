@@ -36,6 +36,7 @@ static void main_window_load(Window *window) {
             GRect(0, 0, bounds.size.w, CALENDAR_STATUS_HEIGHT + 1));  // +1 to stop text clipping
     loading_layer_create(window_layer,
             GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, w, FORECAST_HEIGHT + WEATHER_STATUS_HEIGHT));
+    loading_layer_set_hidden(true);
 }
 
 static void main_window_unload(Window *window) {

@@ -35,7 +35,7 @@
     "messageKeys": [
       "TEMP_TREND_INT16",
       "PRECIP_TREND_UINT8",
-      "TEMP_START",
+      "FORECAST_START",
       "NUM_ENTRIES",
       "CURRENT_TEMP",
       "CITY",

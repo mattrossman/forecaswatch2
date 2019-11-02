@@ -3,6 +3,7 @@
 #include "math.h"
 #include "c/layers/forecast_layer.h"
 #include "c/layers/weather_status_layer.h"
+#include "c/layers/loading_layer.h"
 #include "c/windows/main_window.h"
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
@@ -43,6 +44,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         time_t *sun_event_times = (time_t*) (sun_events_tuple->value->data + 1);
         persist_set_sun_event_start_type(sun_event_start_type);
         persist_set_sun_event_times(sun_event_times, 2);
+        loading_layer_refresh();
         forecast_layer_refresh();
         weather_status_layer_refresh();
     }

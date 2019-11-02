@@ -50,7 +50,7 @@ void persist_init() {
             .time_lead_zero = false,
             .axis_12h = false,
             .start_mon = false,
-            .color_today = GColorBlue
+            .color_today = GColorWhite
         };
         persist_set_config(config);
     }

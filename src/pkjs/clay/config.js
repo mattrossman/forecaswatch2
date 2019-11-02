@@ -49,7 +49,7 @@ module.exports = [
                 "type": "color",
                 "label": "Today highlight",
                 "messageKey": "colorToday",
-                "defaultValue": "#0055FF",
+                "defaultValue": "#FFFFFF",
                 "sunlight": false,
                 "capabilities": ["COLOR"]
             },

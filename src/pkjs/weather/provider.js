@@ -159,7 +159,7 @@ WeatherProvider.prototype.fetch = function(onSuccess, onFailure) {
 
 WeatherProvider.prototype.hasValidData = function() {
     // all fields are set
-    if (this.hasOwnProperty('tempTrend') && this.hasOwnProperty('precipTrend') && this.hasOwnProperty('startHour') && this.hasOwnProperty('currentTemp')) {
+    if (this.hasOwnProperty('tempTrend') && this.hasOwnProperty('precipTrend') && this.hasOwnProperty('startTime') && this.hasOwnProperty('currentTemp')) {
         // trends are filled with enough data
         if (this.tempTrend.length >= this.numEntries && this.precipTrend.length >= this.numEntries) {
             console.log('Data from ' + this.name + ' is good, ready to fetch.');
@@ -173,8 +173,8 @@ WeatherProvider.prototype.hasValidData = function() {
         if (!this.hasOwnProperty('precipTrend')) {
             console.log('Precipitation trend array was not set properly');
         }
-        if (!this.hasOwnProperty('startHour')) {
-            console.log('Start hour value was not set properly');
+        if (!this.hasOwnProperty('startTime')) {
+            console.log('Start time value was not set properly');
         }
         if (!this.hasOwnProperty('currentTemp')) {
             console.log('Current temperature value was not set properly');
@@ -201,7 +201,7 @@ WeatherProvider.prototype.getPayload = function() {
     var payload = {
         'TEMP_TREND_INT16': tempsByteArray,
         'PRECIP_TREND_UINT8': precips, // Holds values within [0,100]
-        'TEMP_START': this.startHour,
+        'FORECAST_START': this.startTime,
         'NUM_ENTRIES': this.numEntries,
         'CURRENT_TEMP': Math.round(this.currentTemp),
         'CITY': this.cityName,

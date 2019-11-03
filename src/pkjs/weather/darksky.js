@@ -43,7 +43,7 @@ DarkSkyProvider.prototype.withProviderData = function(lat, lon, callback) {
         this.precipTrend = darkSkyResponse.hourly.data.map(function(entry) {
             return entry.precipProbability;
         })
-        this.startHour = new Date(darkSkyResponse.hourly.data[0].time * 1000).getHours()
+        this.startTime = darkSkyResponse.hourly.data[0].time;
         this.currentTemp = darkSkyResponse.currently.temperature;
         callback();
     }).bind(this));

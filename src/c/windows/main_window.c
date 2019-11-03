@@ -4,6 +4,8 @@
 #include "c/layers/weather_status_layer.h"
 #include "c/layers/calendar_layer.h"
 #include "c/layers/calendar_status_layer.h"
+#include "c/layers/loading_layer.h"
+#include "c/appendix/persist.h"
 
 #define FORECAST_HEIGHT 51
 #define WEATHER_STATUS_HEIGHT 14
@@ -33,6 +35,9 @@ static void main_window_load(Window *window) {
             GRect(0, CALENDAR_STATUS_HEIGHT, bounds.size.w, CALENDAR_HEIGHT));
     calendar_status_layer_create(window_layer,
             GRect(0, 0, bounds.size.w, CALENDAR_STATUS_HEIGHT + 1));  // +1 to stop text clipping
+    loading_layer_create(window_layer,
+            GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, w, FORECAST_HEIGHT + WEATHER_STATUS_HEIGHT));
+    loading_layer_refresh();
 }
 
 static void main_window_unload(Window *window) {
@@ -41,6 +46,7 @@ static void main_window_unload(Window *window) {
     forecast_layer_destroy();
     calendar_layer_destroy();
     calendar_status_layer_destroy();
+    loading_layer_destroy();
 }
 
 static void minute_handler(struct tm *tick_time, TimeUnits units_changed) {
@@ -49,6 +55,7 @@ static void minute_handler(struct tm *tick_time, TimeUnits units_changed) {
         calendar_layer_refresh();
         calendar_status_layer_refresh();
     }
+    loading_layer_refresh();
 }
 
 /*----------------------------

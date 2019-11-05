@@ -1,7 +1,7 @@
 {
   "name": "ForecasWatch 2",
   "author": "Matt Rossman",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "keywords": ["pebble-app"],
   "private": true,
   "dependencies": {},
@@ -44,7 +44,8 @@
       "CLAY_TIME_LEAD_ZERO",
       "CLAY_AXIS_12H",
       "CLAY_START_MON",
-      "CLAY_COLOR_TODAY"
+      "CLAY_COLOR_TODAY",
+      "CLAY_PREV_WEEK"
     ]
   }
 }

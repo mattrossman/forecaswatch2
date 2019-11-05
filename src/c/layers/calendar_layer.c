@@ -17,7 +17,7 @@ static void calendar_update_proc(Layer *layer, GContext *ctx) {
     float box_h = (float) h / NUM_WEEKS;
 
     // Calculate which box holds today's date
-    const int i_today = 7 + config_day_of_week();
+    const int i_today = config_n_today();
 
     graphics_context_set_fill_color(ctx, PBL_IF_COLOR_ELSE(config_today_color(), GColorWhite));
     graphics_fill_rect(ctx,
@@ -64,7 +64,7 @@ void calendar_layer_refresh() {
     layer_mark_dirty(s_calendar_layer);
 
     // Calculate which box holds today's date
-    const int i_today = 7 + config_day_of_week();
+    const int i_today = config_n_today();
 
     // Fill each box with an appropriate relative day number
     for (int i = 0; i < NUM_WEEKS * DAYS_PER_WEEK; ++i) {

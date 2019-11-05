@@ -68,6 +68,22 @@ module.exports = [
                         "value": "mon"
                     }
                 ]
+            },
+            {
+                "type": "select",
+                "label": "First week to display",
+                "messageKey": "firstWeek",
+                "defaultValue": "prev",
+                "options": [
+                    {
+                        "label": "Previous week",
+                        "value": "prev"
+                    },
+                    {
+                        "label": "Current week",
+                        "value": "curr"
+                    }
+                ]
             }
         ]
     },

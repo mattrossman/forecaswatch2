@@ -41,13 +41,19 @@ int config_axis_hour(int hour) {
     return hour;
 }
 
-int config_day_of_week() {
+int config_n_today() {
+    // Returns the index of the calendar box that holds today's date
+    
     Config *config = (Config*) malloc(sizeof(Config));
     persist_get_config(config);
     time_t today = time(NULL);
     struct tm *tm_today = localtime(&today);
     int wday = tm_today->tm_wday;
+    // Offset if user wants to start the week on monday
     wday = config->start_mon ? (wday + 6) % 7 : wday;
+    // Offset if user wants to show the previous week first
+    if (config->prev_week)
+        wday += 7;
     free(config);
     return wday;
 }

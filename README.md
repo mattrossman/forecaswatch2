@@ -41,7 +41,13 @@ All rectangular watches are supported (Classic, Steel, Time, Time Steel, Pebble 
 
 ## Installation
 
-Download the latest [`forecaswatch2.pbw`](https://github.com/mattrossman/forecaswatch2/releases/latest/download/forecaswatch2.pbw) release. On Android you can use [Amaze File Manager](https://play.google.com/store/apps/details?id=com.amaze.filemanager&hl=en_US) to open this file through the Pebble app.
+### Rebble
+
+A stable release is was made available on the Rebble store thanks to @joshua. [Click here for the store page.](https://apps.rebble.io/en_US/application/5dcdca6ac393f50cf6dbc264)
+
+### Manual install
+
+For more cutting-edge features, download the latest [`forecaswatch2.pbw`](https://github.com/mattrossman/forecaswatch2/releases/latest/download/forecaswatch2.pbw) release. On Android you can use [Amaze File Manager](https://play.google.com/store/apps/details?id=com.amaze.filemanager&hl=en_US) to open this file through the Pebble app.
 
 ## Developers
 

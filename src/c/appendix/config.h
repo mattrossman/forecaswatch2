@@ -21,3 +21,5 @@ int config_axis_hour(int hour);
 int config_n_today();
 
 GColor config_today_color();
+
+GFont config_time_font();

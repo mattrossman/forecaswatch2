@@ -65,3 +65,17 @@ GColor config_today_color() {
     free(config);
     return color;
 }
+
+GFont config_time_font() {
+    const char *font_keys[] = {
+        FONT_KEY_ROBOTO_BOLD_SUBSET_49,
+        FONT_KEY_LECO_42_NUMBERS,
+        FONT_KEY_BITHAM_42_MEDIUM_NUMBERS
+    };
+    Config *config = (Config*) malloc(sizeof(Config));
+    persist_get_config(config);
+    int16_t font_index = config->time_font;
+    free(config);
+    return fonts_get_system_font(font_keys[font_index]);
+
+}

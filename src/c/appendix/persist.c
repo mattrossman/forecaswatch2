@@ -51,6 +51,7 @@ void persist_init() {
             .axis_12h = false,
             .start_mon = false,
             .prev_week = true,
+            .time_font = 0,
             .color_today = GColorWhite
         };
         persist_set_config(config);

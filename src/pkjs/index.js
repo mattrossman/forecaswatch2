@@ -57,7 +57,8 @@ function sendClaySettings() {
         "CLAY_AXIS_12H": app.settings.axisTimeFormat === '12h',
         "CLAY_COLOR_TODAY": app.settings.hasOwnProperty('colorToday') ? app.settings.colorToday : 16777215,
         "CLAY_START_MON": app.settings.weekStartDay === 'mon',
-        "CLAY_PREV_WEEK": app.settings.firstWeek === 'prev'
+        "CLAY_PREV_WEEK": app.settings.firstWeek === 'prev',
+        "CLAY_TIME_FONT": ['roboto', 'leco', 'bitham'].indexOf(app.settings.timeFont)
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));

@@ -35,6 +35,26 @@ module.exports = [
                         "value": "24h"
                     }
                 ]
+            },
+            {
+                "type": "select",
+                "label": "Main time font",
+                "messageKey": "timeFont",
+                "defaultValue": "roboto",
+                "options": [
+                    {
+                        "label": "Roboto",
+                        "value": "roboto"
+                    },
+                    {
+                        "label": "Leco",
+                        "value": "leco"
+                    },
+                    {
+                        "label": "Bitham",
+                        "value": "bitham"
+                    },
+                ]
             }
         ]
     },

@@ -27,14 +27,7 @@ static void text_layer_move_frame(TextLayer *text_layer, GRect frame) {
     layer_set_frame(text_layer_get_layer(text_layer), frame);
 }
 
-void time_layer_refresh() {
-    // Set up font and its positioning
-    text_layer_set_font(s_time_layer, config_time_font());
-    GSize time_size = text_layer_get_content_size(s_time_layer);
-    GRect bounds = layer_get_bounds(s_container_layer);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Content height: %d", time_size.h);
-    text_layer_move_frame(s_time_layer, GRect(0, (49 - time_size.h) / 2, bounds.size.w, bounds.size.h));
-
+void time_layer_tick() {
     // Get a tm structure
     time_t temp = time(NULL);
     struct tm *tick_time = localtime(&temp);
@@ -47,6 +40,17 @@ void time_layer_refresh() {
     text_layer_set_text(s_time_layer, s_buffer);
 }
 
+void time_layer_refresh() {
+    // Set up font and its positioning
+    text_layer_set_font(s_time_layer, config_time_font());
+    GSize time_size = text_layer_get_content_size(s_time_layer);
+    GRect bounds = layer_get_bounds(s_container_layer);
+    text_layer_move_frame(s_time_layer, GRect(0, (49 - time_size.h) / 2, bounds.size.w, bounds.size.h));
+
+    time_layer_tick();
+}
+
 void time_layer_destroy() {
     text_layer_destroy(s_time_layer);
+    layer_destroy(s_container_layer);
 }

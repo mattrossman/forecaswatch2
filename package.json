@@ -25,6 +25,12 @@
           "type": "png",
           "name": "IMAGE_MENU_ICON",
           "file": "icon.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_MUTE",
+          "file": "img/mute.png",
+          "memoryFormat": "1Bit"
         }
       ]
     },

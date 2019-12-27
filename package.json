@@ -1,7 +1,7 @@
 {
   "name": "ForecasWatch 2",
   "author": "Matt Rossman",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "keywords": ["pebble-app"],
   "private": true,
   "dependencies": {},
@@ -25,6 +25,12 @@
           "type": "png",
           "name": "IMAGE_MENU_ICON",
           "file": "icon.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_MUTE",
+          "file": "img/mute.png",
+          "memoryFormat": "1Bit"
         }
       ]
     },
@@ -45,7 +51,9 @@
       "CLAY_AXIS_12H",
       "CLAY_START_MON",
       "CLAY_COLOR_TODAY",
-      "CLAY_PREV_WEEK"
+      "CLAY_PREV_WEEK",
+      "CLAY_TIME_FONT",
+      "CLAY_SHOW_QT"
     ]
   }
 }

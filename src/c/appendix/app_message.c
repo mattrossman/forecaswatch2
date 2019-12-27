@@ -24,6 +24,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *clay_start_mon_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_START_MON);
     Tuple *clay_prev_week_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_PREV_WEEK);
     Tuple *clay_color_today_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_TODAY);
+    Tuple *clay_time_font_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_TIME_FONT);
+    Tuple *clay_show_qt_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_SHOW_QT);
 
     if(temp_trend_tuple && temp_trend_tuple && forecast_start_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
         // Weather data received
@@ -56,6 +58,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         bool axis_12h = (bool) (clay_axis_12h_tuple->value->int16);
         bool start_mon = (bool) (clay_start_mon_tuple->value->int16);
         bool prev_week = (bool) (clay_prev_week_tuple->value->int16);
+        bool show_qt = (bool) (clay_show_qt_tuple->value->int16);
+        int16_t time_font = clay_time_font_tuple->value->int16;
         GColor color_today = GColorFromHEX(clay_color_today_tuple->value->int32);
         Config config = (Config) {
             .celsius = clay_celsius,
@@ -63,7 +67,9 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
             .axis_12h = axis_12h,
             .start_mon = start_mon,
             .prev_week = prev_week,
-            .color_today = color_today
+            .time_font = time_font,
+            .color_today = color_today,
+            .show_qt = show_qt
         };
         persist_set_config(config);
         main_window_refresh();

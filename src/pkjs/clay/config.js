@@ -35,6 +35,26 @@ module.exports = [
                         "value": "24h"
                     }
                 ]
+            },
+            {
+                "type": "select",
+                "label": "Main time font",
+                "messageKey": "timeFont",
+                "defaultValue": "roboto",
+                "options": [
+                    {
+                        "label": "Roboto",
+                        "value": "roboto"
+                    },
+                    {
+                        "label": "Leco",
+                        "value": "leco"
+                    },
+                    {
+                        "label": "Bitham",
+                        "value": "bitham"
+                    },
+                ]
             }
         ]
     },
@@ -144,6 +164,21 @@ module.exports = [
                 "messageKey": "location",
                 "description": "Leave this blank to use GPS"
             }
+        ]
+    },
+    {
+        "type": "section",
+        "items": [
+            {
+                "type": "heading",
+                "defaultValue": "Misc"
+            },
+            {
+                "type": "toggle",
+                "label": "Show quiet time indicator",
+                "messageKey": "showQt",
+                "defaultValue": true
+            },
         ]
     },
     {

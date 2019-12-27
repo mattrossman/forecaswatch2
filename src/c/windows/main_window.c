@@ -50,11 +50,12 @@ static void main_window_unload(Window *window) {
 }
 
 static void minute_handler(struct tm *tick_time, TimeUnits units_changed) {
-    time_layer_refresh();
+    time_layer_tick();
     if (tick_time->tm_hour == 0) {
         calendar_layer_refresh();
         calendar_status_layer_refresh();
     }
+    status_icons_refresh();
     loading_layer_refresh();
 }
 

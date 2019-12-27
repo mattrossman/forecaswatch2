@@ -8,6 +8,7 @@ typedef struct {
     bool axis_12h;
     bool start_mon;
     bool prev_week;
+    bool show_qt;
     int16_t time_font;
     GColor color_today;
 } Config;
@@ -23,3 +24,5 @@ int config_n_today();
 GColor config_today_color();
 
 GFont config_time_font();
+
+bool config_show_qt();

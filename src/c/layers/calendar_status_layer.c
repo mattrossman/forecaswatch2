@@ -1,9 +1,11 @@
 #include "calendar_status_layer.h"
 #include "battery_layer.h"
+#include "c/appendix/config.h"
 
 #define MONTH_FONT_OFFSET 7
 #define BATTERY_W 20
 #define BATTERY_H 10
+#define PADDING 4
 
 
 static Layer *s_calendar_status_layer;
@@ -30,7 +32,7 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     s_mute_palette[1] = GColorClear;
     gbitmap_set_palette(s_bitmap, s_mute_palette, false);
 
-    s_bitmap_layer = bitmap_layer_create(GRect(0, 0, h, h));
+    s_bitmap_layer = bitmap_layer_create(GRect(PADDING, 0, h, h));
     bitmap_layer_set_compositing_mode(s_bitmap_layer, GCompOpSet);
     bitmap_layer_set_bitmap(s_bitmap_layer, s_bitmap);
 
@@ -45,12 +47,13 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     calendar_status_layer_refresh();
     layer_add_child(s_calendar_status_layer, bitmap_layer_get_layer(s_bitmap_layer));
     layer_add_child(s_calendar_status_layer, text_layer_get_layer(s_calendar_month_layer));
-    battery_layer_create(s_calendar_status_layer, GRect(w - BATTERY_W - 4, 1, BATTERY_W, BATTERY_H));
+    battery_layer_create(s_calendar_status_layer, GRect(w - BATTERY_W - PADDING, 1, BATTERY_W, BATTERY_H));
     layer_add_child(parent_layer, s_calendar_status_layer);
 }
 
 void status_icons_refresh() {
-    layer_set_hidden(bitmap_layer_get_layer(s_bitmap_layer), !quiet_time_is_active());
+    bool show = config_show_qt() && quiet_time_is_active();
+    layer_set_hidden(bitmap_layer_get_layer(s_bitmap_layer), !show);
 }
 
 void calendar_status_layer_refresh() {

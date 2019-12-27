@@ -167,6 +167,21 @@ module.exports = [
         ]
     },
     {
+        "type": "section",
+        "items": [
+            {
+                "type": "heading",
+                "defaultValue": "Misc"
+            },
+            {
+                "type": "toggle",
+                "label": "Show quiet time indicator",
+                "messageKey": "showQt",
+                "defaultValue": true
+            },
+        ]
+    },
+    {
         "type": "submit",
         "defaultValue": "Save Settings"
     },

@@ -77,5 +77,12 @@ GFont config_time_font() {
     int16_t font_index = config->time_font;
     free(config);
     return fonts_get_system_font(font_keys[font_index]);
+}
 
+bool config_show_qt() {
+    Config *config = (Config*) malloc(sizeof(Config));
+    persist_get_config(config);
+    bool show_qt = config->show_qt;
+    free(config);
+    return show_qt;
 }

@@ -52,7 +52,8 @@
       "CLAY_START_MON",
       "CLAY_COLOR_TODAY",
       "CLAY_PREV_WEEK",
-      "CLAY_TIME_FONT"
+      "CLAY_TIME_FONT",
+      "CLAY_SHOW_QT"
     ]
   }
 }

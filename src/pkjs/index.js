@@ -59,7 +59,10 @@ function sendClaySettings() {
         "CLAY_START_MON": app.settings.weekStartDay === 'mon',
         "CLAY_PREV_WEEK": app.settings.firstWeek === 'prev',
         "CLAY_TIME_FONT": ['roboto', 'leco', 'bitham'].indexOf(app.settings.timeFont),
-        "CLAY_SHOW_QT": app.settings.showQt
+        "CLAY_SHOW_QT": app.settings.showQt,
+        "CLAY_SHOW_BT": ["connected", "both"].includes(app.settings.btIcons),
+        "CLAY_SHOW_BT_DISCONNECT": ["disconnected", "both"].includes(app.settings.btIcons),
+        "CLAY_VIBE": app.settings.vibe
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));

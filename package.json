@@ -67,7 +67,8 @@
       "CLAY_TIME_FONT",
       "CLAY_SHOW_QT",
       "CLAY_SHOW_BT",
-      "CLAY_SHOW_BT_DISCONNECT"
+      "CLAY_SHOW_BT_DISCONNECT",
+      "CLAY_VIBE"
     ]
   }
 }

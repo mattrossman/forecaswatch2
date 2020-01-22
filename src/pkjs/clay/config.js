@@ -181,15 +181,15 @@ module.exports = [
             },
             {
                 "type": "toggle",
-                "label": "Vibrate on disconnect",
-                "messageKey": "vibrate",
+                "label": "Vibrate on bluetooth disconnect",
+                "messageKey": "vibe",
                 "defaultValue": false
             },
             {
                 "type": "select",
-                "defaultValue": "disconnected",
+                "defaultValue": "both",
                 "messageKey": "btIcons",
-                "label": "Show bluetooth icon for",
+                "label": "Show icon for bluetooth",
                 "options": [
                     {
                         "label": "Disconnected",
@@ -202,6 +202,10 @@ module.exports = [
                     {
                         "label": "Both",
                         "value": "both"
+                    },
+                    {
+                        "label": "None",
+                        "value": "none"
                     }
                 ]
             },

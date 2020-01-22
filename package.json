@@ -65,7 +65,9 @@
       "CLAY_COLOR_TODAY",
       "CLAY_PREV_WEEK",
       "CLAY_TIME_FONT",
-      "CLAY_SHOW_QT"
+      "CLAY_SHOW_QT",
+      "CLAY_SHOW_BT",
+      "CLAY_SHOW_BT_DISCONNECT"
     ]
   }
 }

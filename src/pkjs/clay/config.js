@@ -175,9 +175,35 @@ module.exports = [
             },
             {
                 "type": "toggle",
-                "label": "Show quiet time indicator",
+                "label": "Show quiet time icon",
                 "messageKey": "showQt",
                 "defaultValue": true
+            },
+            {
+                "type": "toggle",
+                "label": "Vibrate on disconnect",
+                "messageKey": "vibrate",
+                "defaultValue": false
+            },
+            {
+                "type": "select",
+                "defaultValue": "disconnected",
+                "messageKey": "btIcons",
+                "label": "Show bluetooth icon for",
+                "options": [
+                    {
+                        "label": "Disconnected",
+                        "value": "disconnected"
+                    },
+                    {
+                        "label": "Connected",
+                        "value": "connected"
+                    },
+                    {
+                        "label": "Both",
+                        "value": "both"
+                    }
+                ]
             },
         ]
     },

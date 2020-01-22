@@ -25,6 +25,7 @@ module.exports = [
                 "label": "Axis time format",
                 "messageKey": "axisTimeFormat",
                 "defaultValue": "24h",
+                "description": "Tip: go to Settings > Date & Time > Time Format on your watch to change the main time format",
                 "options": [
                     {
                         "label": "12h",

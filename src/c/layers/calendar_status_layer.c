@@ -91,7 +91,6 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
 void bluetooth_icons_refresh(bool connected) {
     bool show_bt = connected && config_show_bt();
     bool show_bt_disconnect = !connected && config_show_bt_disconnect();
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "show_bt: %i", show_bt);
     layer_set_hidden(bitmap_layer_get_layer(s_bt_bitmap_layer), !show_bt);
     layer_set_hidden(bitmap_layer_get_layer(s_bt_disconnect_bitmap_layer), !show_bt_disconnect);
 }

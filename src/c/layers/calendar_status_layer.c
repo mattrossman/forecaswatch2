@@ -6,7 +6,8 @@
 #define BATTERY_W 20
 #define BATTERY_H 10
 #define PADDING 4
-
+#define ICON_SLOT_1 GRect(PADDING, 0, 10, 10)
+#define ICON_SLOT_2 GRect(PADDING * 2 + 10, 0, 10, 10)
 
 static Layer *s_calendar_status_layer;
 static TextLayer *s_calendar_month_layer;
@@ -20,6 +21,11 @@ static BitmapLayer *s_bt_disconnect_bitmap_layer;
 static GColor *s_bt_palette;
 static GColor *s_bt_disconnect_palette;
 static GColor *s_mute_palette;
+
+
+static void bitmap_layer_move_frame(BitmapLayer *bitmap_layer, GRect frame) {
+    layer_set_frame(bitmap_layer_get_layer(bitmap_layer), frame);
+}
 
 void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     s_calendar_status_layer = layer_create(frame);
@@ -48,15 +54,15 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     s_mute_palette[1] = GColorClear;
     gbitmap_set_palette(s_mute_bitmap, s_mute_palette, false);
 
-    s_mute_bitmap_layer = bitmap_layer_create(GRect(PADDING, 0, h, h));
+    s_mute_bitmap_layer = bitmap_layer_create(ICON_SLOT_1);
     bitmap_layer_set_compositing_mode(s_mute_bitmap_layer, GCompOpSet);
     bitmap_layer_set_bitmap(s_mute_bitmap_layer, s_mute_bitmap);
 
-    s_bt_bitmap_layer = bitmap_layer_create(GRect(PADDING * 2 + 10, 0, h, h));
+    s_bt_bitmap_layer = bitmap_layer_create(ICON_SLOT_2);
     bitmap_layer_set_compositing_mode(s_bt_bitmap_layer, GCompOpSet);
     bitmap_layer_set_bitmap(s_bt_bitmap_layer, s_bt_bitmap);
 
-    s_bt_disconnect_bitmap_layer = bitmap_layer_create(GRect(PADDING * 2 + 10, 0, h, h));
+    s_bt_disconnect_bitmap_layer = bitmap_layer_create(ICON_SLOT_2);
     bitmap_layer_set_compositing_mode(s_bt_disconnect_bitmap_layer, GCompOpSet);
     bitmap_layer_set_bitmap(s_bt_disconnect_bitmap_layer, s_bt_disconnect_bitmap);
 
@@ -100,7 +106,10 @@ bool show_qt_icon() {
 }
 
 void status_icons_refresh() {
-    layer_set_hidden(bitmap_layer_get_layer(s_mute_bitmap_layer), !show_qt_icon());
+    bool show_qt = show_qt_icon();
+    layer_set_hidden(bitmap_layer_get_layer(s_mute_bitmap_layer), !show_qt);
+    bitmap_layer_move_frame(s_bt_bitmap_layer, show_qt ? ICON_SLOT_2 : ICON_SLOT_1);
+    bitmap_layer_move_frame(s_bt_disconnect_bitmap_layer, show_qt ? ICON_SLOT_2 : ICON_SLOT_1);
 }
 
 void calendar_status_layer_refresh() {

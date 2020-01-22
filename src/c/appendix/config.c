@@ -86,3 +86,27 @@ bool config_show_qt() {
     free(config);
     return show_qt;
 }
+
+bool config_show_bt() {
+    Config *config = (Config*) malloc(sizeof(Config));
+    persist_get_config(config);
+    bool show_bt = config->show_bt;
+    free(config);
+    return show_bt;
+}
+
+bool config_show_bt_disconnect() {
+    Config *config = (Config*) malloc(sizeof(Config));
+    persist_get_config(config);
+    bool show_bt_disconnect = config->show_bt_disconnect;
+    free(config);
+    return show_bt_disconnect;
+}
+
+bool config_vibe() {
+    Config *config = (Config*) malloc(sizeof(Config));
+    persist_get_config(config);
+    bool vibe = config->vibe;
+    free(config);
+    return vibe;
+}

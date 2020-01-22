@@ -78,8 +78,6 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     connection_service_subscribe((ConnectionHandlers) {
         .pebble_app_connection_handler = bluetooth_callback
     });
-    // Ensure bt icons are correct at start
-    bluetooth_icons_refresh(connection_service_peek_pebble_app_connection());
 
     calendar_status_layer_refresh();
     layer_add_child(s_calendar_status_layer, bitmap_layer_get_layer(s_mute_bitmap_layer));
@@ -91,13 +89,16 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
 }
 
 void bluetooth_icons_refresh(bool connected) {
-    layer_set_hidden(bitmap_layer_get_layer(s_bt_disconnect_bitmap_layer), connected);
-    layer_set_hidden(bitmap_layer_get_layer(s_bt_bitmap_layer), !connected);
+    bool show_bt = connected && config_show_bt();
+    bool show_bt_disconnect = !connected && config_show_bt_disconnect();
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "show_bt: %i", show_bt);
+    layer_set_hidden(bitmap_layer_get_layer(s_bt_bitmap_layer), !show_bt);
+    layer_set_hidden(bitmap_layer_get_layer(s_bt_disconnect_bitmap_layer), !show_bt_disconnect);
 }
 
 void bluetooth_callback(bool connected) {
     bluetooth_icons_refresh(connected);
-    if (!connected)
+    if (!connected && config_vibe())
         vibes_double_pulse();
 }
 
@@ -110,6 +111,9 @@ void status_icons_refresh() {
     layer_set_hidden(bitmap_layer_get_layer(s_mute_bitmap_layer), !show_qt);
     bitmap_layer_move_frame(s_bt_bitmap_layer, show_qt ? ICON_SLOT_2 : ICON_SLOT_1);
     bitmap_layer_move_frame(s_bt_disconnect_bitmap_layer, show_qt ? ICON_SLOT_2 : ICON_SLOT_1);
+
+    // Ensure bt icons are correct at start
+    bluetooth_icons_refresh(connection_service_peek_pebble_app_connection());
 }
 
 void calendar_status_layer_refresh() {

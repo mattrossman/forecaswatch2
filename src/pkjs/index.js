@@ -60,8 +60,8 @@ function sendClaySettings() {
         "CLAY_PREV_WEEK": app.settings.firstWeek === 'prev',
         "CLAY_TIME_FONT": ['roboto', 'leco', 'bitham'].indexOf(app.settings.timeFont),
         "CLAY_SHOW_QT": app.settings.showQt,
-        "CLAY_SHOW_BT": ["connected", "both"].includes(app.settings.btIcons),
-        "CLAY_SHOW_BT_DISCONNECT": ["disconnected", "both"].includes(app.settings.btIcons),
+        "CLAY_SHOW_BT": app.settings.btIcons === "connected" || app.settings.btIcons === "both",
+        "CLAY_SHOW_BT_DISCONNECT": app.settings.btIcons === "disconnected" || app.settings.btIcons === "both",
         "CLAY_VIBE": app.settings.vibe
     }
     Pebble.sendAppMessage(payload, function() {

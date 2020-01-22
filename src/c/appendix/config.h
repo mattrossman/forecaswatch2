@@ -9,6 +9,9 @@ typedef struct {
     bool start_mon;
     bool prev_week;
     bool show_qt;
+    bool show_bt;
+    bool show_bt_disconnect;
+    bool vibe;
     int16_t time_font;
     GColor color_today;
 } Config;
@@ -26,3 +29,9 @@ GColor config_today_color();
 GFont config_time_font();
 
 bool config_show_qt();
+
+bool config_show_bt();
+
+bool config_show_bt_disconnect();
+
+bool config_vibe();

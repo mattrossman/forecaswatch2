@@ -53,7 +53,10 @@ void persist_init() {
             .prev_week = true,
             .time_font = 0,
             .color_today = GColorWhite,
-            .show_qt = true
+            .show_qt = true,
+            .show_bt = true,
+            .show_bt_disconnect = true,
+            .vibe = false
         };
         persist_set_config(config);
     }

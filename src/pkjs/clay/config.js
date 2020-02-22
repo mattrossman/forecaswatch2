@@ -163,7 +163,7 @@ module.exports = [
                 "type": "input",
                 "label": "Location override",
                 "messageKey": "location",
-                "description": "Leave this blank to use GPS"
+                "description": "Leave this blank to use GPS (ensure GPS is enabled if left blank), example: 40.758896,-73.985130"
             }
         ]
     },

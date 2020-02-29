@@ -1,7 +1,17 @@
 #include "config.h"
 #include "persist.h"
-#include "globals.h"
 #include "math.h"
+
+// NOTE: g_config is a global config variable
+
+void config_load() {
+    g_config = (Config*) malloc(sizeof(Config));
+    persist_get_config(g_config);
+}
+
+void config_unload() {
+    free(g_config);
+}
 
 int config_localize_temp(int temp_f) {
     // Convert temperatures as desired
@@ -60,24 +70,4 @@ GFont config_time_font() {
     };
     int16_t font_index = g_config->time_font;
     return fonts_get_system_font(font_keys[font_index]);
-}
-
-bool config_show_qt() {
-    bool show_qt = g_config->show_qt;
-    return show_qt;
-}
-
-bool config_show_bt() {
-    bool show_bt = g_config->show_bt;
-    return show_bt;
-}
-
-bool config_show_bt_disconnect() {
-    bool show_bt_disconnect = g_config->show_bt_disconnect;
-    return show_bt_disconnect;
-}
-
-bool config_vibe() {
-    bool vibe = g_config->vibe;
-    return vibe;
 }

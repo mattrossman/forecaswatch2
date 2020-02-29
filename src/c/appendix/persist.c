@@ -1,6 +1,5 @@
 #include "persist.h"
 #include "config.h"
-#include "globals.h"
 
 enum key {
     TEMP_LO, TEMP_HI, TEMP_TREND, PRECIP_TREND, FORECAST_START, CITY, SUN_EVENT_START_TYPE, SUN_EVENT_TIMES, NUM_ENTRIES,
@@ -145,5 +144,5 @@ void persist_set_sun_event_times(time_t *data, const size_t size) {
 
 void persist_set_config(Config config) {
     persist_write_data(CONFIG, &config, sizeof(Config));
-    globals_load();  // Refresh global config variable
+    config_load();  // Refresh global config variable
 }

@@ -89,20 +89,20 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
 }
 
 void bluetooth_icons_refresh(bool connected) {
-    bool show_bt = connected && config_show_bt();
-    bool show_bt_disconnect = !connected && config_show_bt_disconnect();
+    bool show_bt = connected && g_config->show_bt;
+    bool show_bt_disconnect = !connected && g_config->show_bt_disconnect;
     layer_set_hidden(bitmap_layer_get_layer(s_bt_bitmap_layer), !show_bt);
     layer_set_hidden(bitmap_layer_get_layer(s_bt_disconnect_bitmap_layer), !show_bt_disconnect);
 }
 
 void bluetooth_callback(bool connected) {
     bluetooth_icons_refresh(connected);
-    if (!connected && config_vibe())
+    if (!connected && g_config->vibe)
         vibes_double_pulse();
 }
 
 bool show_qt_icon() {
-    return config_show_qt() && quiet_time_is_active();
+    return g_config->show_qt && quiet_time_is_active();
 }
 
 void status_icons_refresh() {

@@ -10,7 +10,6 @@
 static Layer *s_battery_layer;
 
 static void battery_state_handler(BatteryChargeState charge) {
-    persist_set_battery_level(charge.charge_percent);
     battery_layer_refresh();
 }
 
@@ -28,7 +27,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     int w = bounds.size.w;
     int h = bounds.size.h;
     int battery_w = w - BATTERY_NUB_W;
-    BatteryChargeState battery_state=battery_state_service_peek();
+    BatteryChargeState battery_state = battery_state_service_peek();
     int battery_level = battery_state.charge_percent;
 
     // Fill the battery level

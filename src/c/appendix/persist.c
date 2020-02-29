@@ -4,7 +4,7 @@
 enum key {
     TEMP_LO, TEMP_HI, TEMP_TREND, PRECIP_TREND, FORECAST_START, CITY, SUN_EVENT_START_TYPE, SUN_EVENT_TIMES, NUM_ENTRIES,
     CURRENT_TEMP, BATTERY_LEVEL, CONFIG
-};
+}; // Deprecated: BATTERY_LEVEL
 
 void persist_init() {
     if (!persist_exists(TEMP_LO)) {
@@ -32,10 +32,6 @@ void persist_init() {
     }
     if (!persist_exists(CITY)) {
         persist_write_string(CITY, "Koji");
-    }
-    if (!persist_exists(BATTERY_LEVEL)) {
-        BatteryChargeState charge = battery_state_service_peek();
-        persist_write_int(BATTERY_LEVEL, charge.charge_percent);
     }
     if (!persist_exists(SUN_EVENT_START_TYPE)) {
         persist_write_int(SUN_EVENT_START_TYPE, 0);
@@ -102,10 +98,6 @@ int persist_get_sun_event_times(time_t *buffer, const size_t buffer_size) {
     return persist_read_data(SUN_EVENT_TIMES, (void*) buffer, buffer_size * sizeof(time_t));
 }
 
-int persist_get_battery_level() {
-    return persist_read_int(BATTERY_LEVEL);
-}
-
 int persist_get_config(Config *config) {
     return persist_read_data(CONFIG, config, sizeof(Config));
 }
@@ -148,10 +140,6 @@ void persist_set_sun_event_start_type(int val) {
 
 void persist_set_sun_event_times(time_t *data, const size_t size) {
     persist_write_data(SUN_EVENT_TIMES, (void*) data, size * sizeof(time_t));
-}
-
-void persist_set_battery_level(int val) {
-    persist_write_int(BATTERY_LEVEL, val);
 }
 
 void persist_set_config(Config config) {

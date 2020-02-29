@@ -16,6 +16,12 @@ typedef struct {
     GColor color_today;
 } Config;
 
+Config *g_config;
+
+void config_load();
+
+void config_unload();
+
 int config_localize_temp(int temp_f);
 
 int config_format_time(char *s, size_t maxsize, const struct tm * tm_p);
@@ -27,11 +33,3 @@ int config_n_today();
 GColor config_today_color();
 
 GFont config_time_font();
-
-bool config_show_qt();
-
-bool config_show_bt();
-
-bool config_show_bt_disconnect();
-
-bool config_vibe();

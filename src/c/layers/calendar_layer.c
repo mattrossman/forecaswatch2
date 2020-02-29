@@ -26,7 +26,6 @@ static void calendar_update_proc(Layer *layer, GContext *ctx) {
 }
 
 void calendar_layer_create(Layer* parent_layer, GRect frame) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "Creating calendar layer...");
     s_calendar_layer = layer_create(frame);
     GRect bounds = layer_get_bounds(s_calendar_layer);
     int w = bounds.size.w;
@@ -47,7 +46,6 @@ void calendar_layer_create(Layer* parent_layer, GRect frame) {
     layer_set_update_proc(s_calendar_layer, calendar_update_proc);
     calendar_layer_refresh();
     layer_add_child(parent_layer, s_calendar_layer);
-    // APP_LOG(APP_LOG_LEVEL_DEBUG, "The DOM 0 days from today is: %d", relative_day_of_month(0));
 }
 
 static int relative_day_of_month(int days_from_today) {

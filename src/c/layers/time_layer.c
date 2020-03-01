@@ -65,6 +65,7 @@ void time_layer_refresh() {
     // Set up font and its positioning
     text_layer_set_font(s_time_layer, config_time_font());
     GRect bounds = layer_get_bounds(text_layer_get_layer(s_container_layer));
+    text_layer_move_frame(s_time_layer, GRect(0, 0, bounds.size.w, bounds.size.h)); // Reset for size calculation
     GSize time_size = text_layer_get_content_size(s_time_layer);
     GSize am_pm_size = text_layer_get_content_size(s_am_pm_layer);
 

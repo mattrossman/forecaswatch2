@@ -9,6 +9,10 @@ void config_load() {
     persist_get_config(g_config);
 }
 
+// void config_refresh() {
+//     persist_get_config(g_config);
+// }
+
 void config_unload() {
     free(g_config);
 }

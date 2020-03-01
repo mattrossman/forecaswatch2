@@ -9,8 +9,7 @@
 
 #define FORECAST_HEIGHT 51
 #define WEATHER_STATUS_HEIGHT 14
-#define TIME_HEIGHT 50
-#define TIME_MARGIN_BOTTOM 5
+#define TIME_HEIGHT 45
 #define CALENDAR_HEIGHT 45
 #define CALENDAR_STATUS_HEIGHT 13
 
@@ -29,7 +28,7 @@ static void main_window_load(Window *window) {
     weather_status_layer_create(window_layer,
             GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, w, WEATHER_STATUS_HEIGHT));
     time_layer_create(window_layer,
-            GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT - TIME_HEIGHT - TIME_MARGIN_BOTTOM,
+            GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT - TIME_HEIGHT,
             bounds.size.w, TIME_HEIGHT));
     calendar_layer_create(window_layer,
             GRect(0, CALENDAR_STATUS_HEIGHT, bounds.size.w, CALENDAR_HEIGHT));

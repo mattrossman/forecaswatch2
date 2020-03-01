@@ -79,7 +79,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
             .show_qt = show_qt,
             .show_bt = show_bt,
             .show_bt_disconnect = show_bt_disconnect,
-            .show_am_pm = clay_show_am_pm_tuple
+            .show_am_pm = show_am_pm
         };
         persist_set_config(config);
         main_window_refresh();

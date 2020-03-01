@@ -21,6 +21,8 @@ Config *g_config;
 
 void config_load();
 
+void config_refresh();
+
 void config_unload();
 
 int config_localize_temp(int temp_f);

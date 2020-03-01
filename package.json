@@ -1,7 +1,7 @@
 {
   "name": "ForecasWatch 2",
   "author": "Matt Rossman",
-  "version": "1.11.0",
+  "version": "1.12.0",
   "keywords": ["pebble-app"],
   "private": true,
   "dependencies": {},
@@ -68,7 +68,8 @@
       "CLAY_SHOW_QT",
       "CLAY_SHOW_BT",
       "CLAY_SHOW_BT_DISCONNECT",
-      "CLAY_VIBE"
+      "CLAY_VIBE",
+      "CLAY_SHOW_AM_PM"
     ]
   }
 }

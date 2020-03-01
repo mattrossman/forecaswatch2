@@ -21,6 +21,11 @@ module.exports = [
                 "messageKey": "timeLeadingZero",
             },
             {
+                "type": "toggle",
+                "label": "Show AM/PM",
+                "messageKey": "timeShowAmPm",
+            },
+            {
                 "type": "select",
                 "label": "Axis time format",
                 "messageKey": "axisTimeFormat",

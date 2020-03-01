@@ -52,7 +52,8 @@ void persist_init() {
             .show_qt = true,
             .show_bt = true,
             .show_bt_disconnect = true,
-            .vibe = false
+            .vibe = false,
+            .show_am_pm = false
         };
         persist_set_config(config);
     }

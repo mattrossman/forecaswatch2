@@ -9,9 +9,11 @@ void config_load() {
     persist_get_config(g_config);
 }
 
-// void config_refresh() {
-//     persist_get_config(g_config);
-// }
+void config_refresh() {
+    free(g_config);  // Clear out the old config
+    g_config = (Config*) malloc(sizeof(Config));
+    persist_get_config(g_config);  // Then reload
+}
 
 void config_unload() {
     free(g_config);

@@ -145,5 +145,5 @@ void persist_set_sun_event_times(time_t *data, const size_t size) {
 
 void persist_set_config(Config config) {
     persist_write_data(CONFIG, &config, sizeof(Config));
-    config_load();  // Refresh global config variable
+    config_refresh();  // Refresh global config variable
 }

@@ -62,7 +62,8 @@ function sendClaySettings() {
         "CLAY_SHOW_QT": app.settings.showQt,
         "CLAY_SHOW_BT": app.settings.btIcons === "connected" || app.settings.btIcons === "both",
         "CLAY_SHOW_BT_DISCONNECT": app.settings.btIcons === "disconnected" || app.settings.btIcons === "both",
-        "CLAY_VIBE": app.settings.vibe
+        "CLAY_VIBE": app.settings.vibe,
+        "CLAY_SHOW_AM_PM": app.settings.timeShowAmPm,
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));

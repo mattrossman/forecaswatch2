@@ -68,7 +68,8 @@
       "CLAY_SHOW_QT",
       "CLAY_SHOW_BT",
       "CLAY_SHOW_BT_DISCONNECT",
-      "CLAY_VIBE"
+      "CLAY_VIBE",
+      "CLAY_SHOW_AM_PM"
     ]
   }
 }

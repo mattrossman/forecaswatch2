@@ -12,6 +12,7 @@ typedef struct {
     bool show_bt;
     bool show_bt_disconnect;
     bool vibe;
+    bool show_am_pm;
     int16_t time_font;
     GColor color_today;
 } Config;
@@ -19,6 +20,8 @@ typedef struct {
 Config *g_config;
 
 void config_load();
+
+void config_refresh();
 
 void config_unload();
 

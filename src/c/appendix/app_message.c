@@ -28,6 +28,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *clay_show_qt_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_SHOW_QT);
     Tuple *clay_show_bt_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_SHOW_BT);
     Tuple *clay_show_bt_disconnect_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_SHOW_BT_DISCONNECT);
+    Tuple *clay_show_am_pm_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_SHOW_AM_PM);
 
     if(temp_trend_tuple && temp_trend_tuple && forecast_start_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
         // Weather data received
@@ -54,7 +55,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         weather_status_layer_refresh();
     }
     if (clay_celsius_tuple && clay_axis_12h_tuple && clay_start_mon_tuple && clay_prev_week_tuple && clay_color_today_tuple
-        && clay_show_qt_tuple && clay_show_bt_tuple && clay_show_bt_disconnect_tuple) {
+        && clay_show_qt_tuple && clay_show_bt_tuple && clay_show_bt_disconnect_tuple && clay_show_am_pm_tuple) {
         // Clay config data received
         bool clay_celsius = (bool) (clay_celsius_tuple->value->int16);
         bool time_lead_zero = (bool) (clay_time_lead_zero_tuple->value->int16);
@@ -64,6 +65,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         bool show_qt = (bool) (clay_show_qt_tuple->value->int16);
         bool show_bt = (bool) (clay_show_bt_tuple->value->int16);
         bool show_bt_disconnect = (bool) (clay_show_bt_disconnect_tuple->value->int16);
+        bool show_am_pm = (bool) (clay_show_am_pm_tuple->value->int16);
         int16_t time_font = clay_time_font_tuple->value->int16;
         GColor color_today = GColorFromHEX(clay_color_today_tuple->value->int32);
         Config config = (Config) {
@@ -76,7 +78,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
             .color_today = color_today,
             .show_qt = show_qt,
             .show_bt = show_bt,
-            .show_bt_disconnect = show_bt_disconnect
+            .show_bt_disconnect = show_bt_disconnect,
+            .show_am_pm = show_am_pm
         };
         persist_set_config(config);
         main_window_refresh();

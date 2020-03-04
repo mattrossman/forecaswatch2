@@ -57,13 +57,8 @@ void time_layer_tick() {
     text_layer_set_text(s_time_layer, s_buffer);
     if (g_config->show_am_pm)
         text_layer_set_text(s_am_pm_layer, tick_time->tm_hour < 12 ? "AM" : "PM");
-}
-
-void time_layer_refresh() {
-    time_layer_tick();  // Update time text
-
-    // Set up font and its positioning
-    text_layer_set_font(s_time_layer, config_time_font());
+    
+    // Reposition everything
     GRect bounds = layer_get_bounds(text_layer_get_layer(s_container_layer));
     text_layer_move_frame(s_time_layer, GRect(0, 0, bounds.size.w, bounds.size.h)); // Reset for size calculation
     GSize time_size = text_layer_get_content_size(s_time_layer);
@@ -80,6 +75,11 @@ void time_layer_refresh() {
     if (g_config->show_am_pm)
         text_layer_move_frame(s_am_pm_layer, GRect(time_size.w, MT_TIME - MT_AM_PM, 30, time_size.h));
     layer_set_hidden(text_layer_get_layer(s_am_pm_layer), !g_config->show_am_pm);
+}
+
+void time_layer_refresh() {
+    text_layer_set_font(s_time_layer, config_time_font());
+    time_layer_tick();  // Update main time text and layer positions
 }
 
 void time_layer_destroy() {

@@ -61,7 +61,7 @@ WeatherProvider.prototype.withSunEvents = function(lat, lon, callback) {
 
 WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
     // callback(cityName)
-    var url = 'http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?f=json&langCode=EN&location='
+    var url = 'https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?f=json&langCode=EN&location='
         + lon + ',' + lat;
     request(url, 'GET', function (response) {
         var address = JSON.parse(response).address;

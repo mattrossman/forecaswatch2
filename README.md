@@ -12,24 +12,27 @@ Once upon a time I relied on *ForecasWatch* as the daily driver watchface on my 
 
 The developer, RCY, is nowhere to be found in the Rebble era. I plan to continue using my Pebble(s) for years to come, so this is my attempt to revive this wonderful watchface—and this time it's open source!
 
-## Progress
+## Screenshots
 
 <div>
-    <img src="https://i.imgur.com/l609WwZ.png" alt="Color screenshot" style="display:inline-block;vertical-align: middle;">
-    <img src="https://i.imgur.com/uW7gwn9.png" alt="Black and white screenshot" style="display:inline-block;vertical-align: middle;">
+    <img src="screenshot/v1.14.0/color-composite.png" alt="Color screenshot" style="display:inline-block;vertical-align: middle;">
+    <img src="screenshot/v1.14.0/bw-composite.png" alt="Black and white screenshot" style="display:inline-block;vertical-align: middle;">
 </div>
 
+## Features
+
 * Current time
-* Color-coded battery indicator (on color models)
+* Battery indicator
 * 3 week calendar
-* 24 hour weather forecast
+* 24 hour weather forecast (updates every 30 minutes)
+* Bluetooth connection indicator
+* Quiet time indicator
 * Multiple weather providers (Weather Underground*, DarkSky)
 * Current temperature
 * Temperature forecast (red line)
 * Precipitation probability forecast (blue area)
 * City where forecast was fetched
 * Next sunrise or sunset time
-* Updates every 30 minutes
 * GPS or manual location entry
 * Fahrenheit and Celsius temperatures
 * Offline configuration page

@@ -218,6 +218,24 @@ module.exports = [
                     }
                 ]
             },
+            {
+                "type": "toggle",
+                "label": "Show Sunday in color",
+                "messageKey": "colorSunday",
+                "defaultValue": false
+            },
+            {
+                "type": "toggle",
+                "label": "Show Saturday in color",
+                "messageKey": "colorSaturday",
+                "defaultValue": false
+            },
+            {
+                "type": "toggle",
+                "label": "Show US Federal holidays in color",
+                "messageKey": "colorUSFederal",
+                "defaultValue": false
+            },
         ]
     },
     {

@@ -15,6 +15,9 @@ typedef struct {
     bool show_am_pm;
     int16_t time_font;
     GColor color_today;
+    bool color_saturday;
+    bool color_sunday;
+    bool color_us_federal;
 } Config;
 
 Config *g_config;

@@ -8,6 +8,40 @@
 
 static Layer *s_calendar_layer;
 static TextLayer *s_calendar_text_layers[NUM_WEEKS * DAYS_PER_WEEK];
+static struct tm *get_tm(int days_from_today);
+
+static bool is_colored_calendar_day(int i)
+{
+    const int i_today = config_n_today();
+    tm *t = get_tm(i - i_today);
+
+    if ((g_config->color_sunday && t->tm_wday == 0) ||
+	(g_config->color_saturday && t->tm_wday == 6))
+	return true;
+    if (g_config->color_us_federal) {
+	if (t->tm_mon == 0 && t->tm_mday == 1)
+	    return true;
+	if (t->tm_mon == 0 && t->tm_mday >= 15 && t->tm_mday <= 21 && t->tm_wday == 1)
+	    return true;
+	if (t->tm_mon == 1 && t->tm_mday >= 15 && t->tm_mday <= 21 && t->tm_wday == 1)
+	    return true;
+	if (t->tm_mon == 4 && t->tm_mday >= 25 && t->tm_mday <= 31 && t->tm_wday == 1)
+	    return true;
+	if (t->tm_mon == 6 && t->tm_mday == 4)
+	    return true;
+	if (t->tm_mon == 8 && t->tm_mday >= 1 && t->tm_mday <= 7 && t->tm_wday == 1)
+	    return true;
+	if (t->tm_mon == 9 && t->tm_mday >= 8 && t->tm_mday <= 14 && t->tm_wday == 1)
+	    return true;
+	if (t->tm_mon == 10 && t->tm_mday == 11)
+	    return true;
+	if (t->tm_mon == 10 && t->tm_mday >= 22 && t->tm_mday <= 28 && t->tm_wday == 4)
+	    return true;
+	if (t->tm_mon == 11 && t->tm_mday == 25)
+	    return true;
+    }
+    return false;
+}
 
 static void calendar_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
@@ -19,7 +53,7 @@ static void calendar_update_proc(Layer *layer, GContext *ctx) {
     // Calculate which box holds today's date
     const int i_today = config_n_today();
 
-    graphics_context_set_fill_color(ctx, PBL_IF_COLOR_ELSE(config_today_color(), GColorWhite));
+    graphics_context_set_fill_color(ctx, is_colored_calendar_day(i_today) ? GColorSunsetOrange : PBL_IF_COLOR_ELSE(config_today_color(), GColorWhite));
     graphics_fill_rect(ctx,
         GRect((i_today % DAYS_PER_WEEK) * box_w, (i_today / DAYS_PER_WEEK) * box_h,
         box_w, box_h), 1, GCornersAll);
@@ -48,11 +82,21 @@ void calendar_layer_create(Layer* parent_layer, GRect frame) {
     layer_add_child(parent_layer, s_calendar_layer);
 }
 
-static int relative_day_of_month(int days_from_today) {
+static struct tm *get_tm(int days_from_today)
+{
     // What is the day of the month relative to today?
     time_t timestamp = time(NULL);
-    timestamp += days_from_today * SECONDS_PER_DAY;
     tm *local_time = localtime(&timestamp);
+    // You get the next day by adding days * seconds, *unless* we're in the hour
+    // after midnight and daylight savings comes up.  Set the hour to an
+    // arbitrary value that does not cause this to happen.
+    local_time->tm_hour = 5;
+    timestamp = mktime(local_time) + days_from_today * SECONDS_PER_DAY;
+    return localtime(&timestamp);
+}
+
+static int relative_day_of_month(int days_from_today) {
+    tm *local_time = get_tm(days_from_today);
     return local_time->tm_mday;
 }
 
@@ -74,7 +118,12 @@ void calendar_layer_refresh() {
                 fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
         }
         else {
-            text_layer_set_text_color(s_calendar_text_layers[i], GColorWhite);
+	    GColor8 color = GColorWhite;
+
+	    if (is_colored_calendar_day(i))
+		color = GColorSunsetOrange;
+	    
+            text_layer_set_text_color(s_calendar_text_layers[i], color);
             text_layer_set_font(s_calendar_text_layers[i],
                 fonts_get_system_font(FONT_KEY_GOTHIC_18));
         }

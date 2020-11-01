@@ -7,7 +7,6 @@
   ],
   "private": true,
   "dependencies": {
-    "pebble-clay": "^1.0.4"
   },
   "pebble": {
     "displayName": "FCW2",

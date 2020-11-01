@@ -6,41 +6,79 @@
 #define DAYS_PER_WEEK 7
 #define FONT_OFFSET 5
 
+#define HOLIDAY_COLOR GColorSunsetOrange
+#define SUNDAY_COLOR GColorSunsetOrange
+#define SATURDAY_COLOR GColorPictonBlue
+
 static Layer *s_calendar_layer;
 static TextLayer *s_calendar_text_layers[NUM_WEEKS * DAYS_PER_WEEK];
 static struct tm *get_tm(int days_from_today);
 
-static bool is_colored_calendar_day(int i)
+static GColor8 get_colored_calendar_day(int i, GColor8 unchanged)
 {
     const int i_today = config_n_today();
     tm *t = get_tm(i - i_today);
 
-    if ((g_config->color_sunday && t->tm_wday == 0) ||
-	(g_config->color_saturday && t->tm_wday == 6))
-	return true;
+#ifdef PBL_COLOR
     if (g_config->color_us_federal) {
-	if (t->tm_mon == 0 && t->tm_mday == 1)
-	    return true;
+	// Federal holidays that are on a specific day of the week
 	if (t->tm_mon == 0 && t->tm_mday >= 15 && t->tm_mday <= 21 && t->tm_wday == 1)
-	    return true;
+	    return HOLIDAY_COLOR;
 	if (t->tm_mon == 1 && t->tm_mday >= 15 && t->tm_mday <= 21 && t->tm_wday == 1)
-	    return true;
+	    return HOLIDAY_COLOR;
 	if (t->tm_mon == 4 && t->tm_mday >= 25 && t->tm_mday <= 31 && t->tm_wday == 1)
-	    return true;
-	if (t->tm_mon == 6 && t->tm_mday == 4)
-	    return true;
+	    return HOLIDAY_COLOR;
 	if (t->tm_mon == 8 && t->tm_mday >= 1 && t->tm_mday <= 7 && t->tm_wday == 1)
-	    return true;
+	    return HOLIDAY_COLOR;
 	if (t->tm_mon == 9 && t->tm_mday >= 8 && t->tm_mday <= 14 && t->tm_wday == 1)
-	    return true;
-	if (t->tm_mon == 10 && t->tm_mday == 11)
-	    return true;
+	    return HOLIDAY_COLOR;
 	if (t->tm_mon == 10 && t->tm_mday >= 22 && t->tm_mday <= 28 && t->tm_wday == 4)
-	    return true;
-	if (t->tm_mon == 11 && t->tm_mday == 25)
-	    return true;
+	    return HOLIDAY_COLOR;
+
+	// Federal holidays that are on a specific day of the month, which get
+	// moved if they fall on a weekend
+	switch(t->tm_wday) {
+	    // weekend that would otherwise contain the holiday does not
+	    case 0: case 6:
+		break;
+	    // Friday if it matches (normal day of holiday - 1)
+	    case 5:
+		if ((t->tm_mon == 11 && t->tm_mday == 31) || // New Years
+		    (t->tm_mon == 6 && t->tm_mday == 3) || // Independence Day
+		    (t->tm_mon == 10 && t->tm_mday == 10) || // Veterans' Day
+		    (t->tm_mon == 11 && t->tm_mday == 24)) // Christmas
+		{
+		    return HOLIDAY_COLOR;
+		}
+		break;
+	    // Monday if the monday matches (normal day of holiday + 1)
+	    case 1:
+		if ((t->tm_mon == 0 && t->tm_mday == 2) || // New Years
+		    (t->tm_mon == 6 && t->tm_mday == 5) || // Independence Day
+		    (t->tm_mon == 10 && t->tm_mday == 12) || // Veterans' Day
+		    (t->tm_mon == 11 && t->tm_mday == 26)) // Christmas
+		{
+		    return HOLIDAY_COLOR;
+		}
+		break;
+	    default:
+		if ((t->tm_mon == 0 && t->tm_mday == 1) || // New Years
+		    (t->tm_mon == 6 && t->tm_mday == 4) || // Independence Day
+		    (t->tm_mon == 10 && t->tm_mday == 11) || // Veterans' Day
+		    (t->tm_mon == 11 && t->tm_mday == 25)) // Christmas
+		{
+		    return HOLIDAY_COLOR;
+		}
+		break;
+	}
     }
-    return false;
+    // Let holidays take precedence over weekends
+    if (g_config->color_sunday && t->tm_wday == 0)
+	return SUNDAY_COLOR;
+    if (g_config->color_saturday && t->tm_wday == 6)
+	return SATURDAY_COLOR;
+#endif // PBL_COLOR
+    return unchanged;
 }
 
 static void calendar_update_proc(Layer *layer, GContext *ctx) {
@@ -53,7 +91,7 @@ static void calendar_update_proc(Layer *layer, GContext *ctx) {
     // Calculate which box holds today's date
     const int i_today = config_n_today();
 
-    graphics_context_set_fill_color(ctx, is_colored_calendar_day(i_today) ? GColorSunsetOrange : PBL_IF_COLOR_ELSE(config_today_color(), GColorWhite));
+    graphics_context_set_fill_color(ctx, get_colored_calendar_day(i_today, PBL_IF_COLOR_ELSE(config_today_color(), GColorWhite)));
     graphics_fill_rect(ctx,
         GRect((i_today % DAYS_PER_WEEK) * box_w, (i_today / DAYS_PER_WEEK) * box_h,
         box_w, box_h), 1, GCornersAll);
@@ -118,10 +156,7 @@ void calendar_layer_refresh() {
                 fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
         }
         else {
-	    GColor8 color = GColorWhite;
-
-	    if (is_colored_calendar_day(i))
-		color = GColorSunsetOrange;
+	    GColor8 color = get_colored_calendar_day(i, GColorWhite);
 	    
             text_layer_set_text_color(s_calendar_text_layers[i], color);
             text_layer_set_font(s_calendar_text_layers[i],

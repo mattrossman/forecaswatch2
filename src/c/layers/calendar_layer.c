@@ -72,7 +72,8 @@ static GColor8 get_colored_calendar_day(int i, GColor8 unchanged)
 		break;
 	}
     }
-    // Let holidays take precedence over weekends
+    // Since holidays that fall on weekends get pushed, it never matters whether
+    // we do weekends before or after
     if (g_config->color_sunday && t->tm_wday == 0)
 	return SUNDAY_COLOR;
     if (g_config->color_saturday && t->tm_wday == 6)

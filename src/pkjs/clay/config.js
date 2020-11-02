@@ -72,14 +72,6 @@ module.exports = [
                 "defaultValue": "Calendar",
             },
             {
-                "type": "color",
-                "label": "Today highlight",
-                "messageKey": "colorToday",
-                "defaultValue": "#FFFFFF",
-                "sunlight": false,
-                "capabilities": ["COLOR"]
-            },
-            {
                 "type": "select",
                 "label": "Start week on",
                 "messageKey": "weekStartDay",
@@ -113,9 +105,17 @@ module.exports = [
             },
             {
                 "type": "color",
+                "label": "Today highlight",
+                "messageKey": "colorToday",
+                "defaultValue": "#FFFFFF",
+                "sunlight": false,
+                "capabilities": ["COLOR"]
+            },
+            {
+                "type": "color",
                 "label": "Sunday color",
                 "messageKey": "colorSunday",
-                "defaultValue": "#FF5555",
+                "defaultValue": "#FFFFFF",
                 "sunlight": false,
                 "capabilities": ["COLOR"]
             },
@@ -123,15 +123,15 @@ module.exports = [
                 "type": "color",
                 "label": "Saturday color",
                 "messageKey": "colorSaturday",
-                "defaultValue": "#00AAFF",
+                "defaultValue": "#FFFFFF",
                 "sunlight": false,
                 "capabilities": ["COLOR"]
             },
             {
                 "type": "color",
-                "label": "US Federal holidays color",
+                "label": "US federal holidays color",
                 "messageKey": "colorUSFederal",
-                "defaultValue": "#FF5555",
+                "defaultValue": "#FFFFFF",
                 "sunlight": false,
                 "capabilities": ["COLOR"]
             },

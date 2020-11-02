@@ -112,22 +112,28 @@ module.exports = [
                 ]
             },
             {
-                "type": "toggle",
-                "label": "Show Sunday in color",
+                "type": "color",
+                "label": "Sunday color",
                 "messageKey": "colorSunday",
-                "defaultValue": false
+                "defaultValue": "#FF5555",
+                "sunlight": false,
+                "capabilities": ["COLOR"]
             },
             {
-                "type": "toggle",
-                "label": "Show Saturday in color",
+                "type": "color",
+                "label": "Saturday color",
                 "messageKey": "colorSaturday",
-                "defaultValue": false
+                "defaultValue": "#00AAFF",
+                "sunlight": false,
+                "capabilities": ["COLOR"]
             },
             {
-                "type": "toggle",
-                "label": "Show US Federal holidays in color",
+                "type": "color",
+                "label": "US Federal holidays color",
                 "messageKey": "colorUSFederal",
-                "defaultValue": false
+                "defaultValue": "#FF5555",
+                "sunlight": false,
+                "capabilities": ["COLOR"]
             },
         ]
     },

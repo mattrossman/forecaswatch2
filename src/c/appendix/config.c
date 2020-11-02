@@ -63,11 +63,6 @@ int config_n_today() {
     return wday;
 }
 
-GColor config_today_color() {
-    GColor color = g_config->color_today;
-    return color;
-}
-
 GFont config_time_font() {
     const char *font_keys[] = {
         FONT_KEY_ROBOTO_BOLD_SUBSET_49,

@@ -1,10 +1,13 @@
 {
   "name": "ForecasWatch 2",
   "author": "Matt Rossman",
-  "version": "1.14.0",
-  "keywords": ["pebble-app"],
+  "version": "1.15.0",
+  "keywords": [
+    "pebble-app"
+  ],
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+  },
   "pebble": {
     "displayName": "FCW2",
     "uuid": "7ed9b053-1521-4e49-be8b-6e12c68978ae",
@@ -69,7 +72,11 @@
       "CLAY_SHOW_BT",
       "CLAY_SHOW_BT_DISCONNECT",
       "CLAY_VIBE",
-      "CLAY_SHOW_AM_PM"
+      "CLAY_SHOW_AM_PM",
+      "CLAY_COLOR_SATURDAY",
+      "CLAY_COLOR_SUNDAY",
+      "CLAY_COLOR_US_FEDERAL",
+      "CLAY_COLOR_TIME"
     ]
   }
 }

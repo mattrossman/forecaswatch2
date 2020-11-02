@@ -19,7 +19,6 @@ void time_layer_create(Layer* parent_layer, GRect frame) {
 
     // Main time formatting
     text_layer_set_background_color(s_time_layer, GColorClear);
-    text_layer_set_text_color(s_time_layer, GColorWhite);
     text_layer_set_text(s_time_layer, "00:00");
     text_layer_set_text_alignment(s_time_layer, GTextAlignmentLeft);
 
@@ -79,6 +78,7 @@ void time_layer_tick() {
 
 void time_layer_refresh() {
     text_layer_set_font(s_time_layer, config_time_font());
+    text_layer_set_text_color(s_time_layer, g_config->color_time);
     time_layer_tick();  // Update main time text and layer positions
 }
 

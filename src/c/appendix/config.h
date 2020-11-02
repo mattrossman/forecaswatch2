@@ -15,6 +15,10 @@ typedef struct {
     bool show_am_pm;
     int16_t time_font;
     GColor color_today;
+    GColor color_saturday;
+    GColor color_sunday;
+    GColor color_us_federal;
+    GColor color_time;
 } Config;
 
 Config *g_config;
@@ -32,7 +36,5 @@ int config_format_time(char *s, size_t maxsize, const struct tm * tm_p);
 int config_axis_hour(int hour);
 
 int config_n_today();
-
-GColor config_today_color();
 
 GFont config_time_font();

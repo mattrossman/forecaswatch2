@@ -61,7 +61,15 @@ module.exports = [
                         "value": "bitham"
                     },
                 ]
-            }
+            },
+            {
+                "type": "color",
+                "label": "Main time color",
+                "messageKey": "colorTime",
+                "defaultValue": "#FFFFFF",
+                "sunlight": false,
+                "capabilities": ["COLOR"]
+            },
         ]
     },
     {
@@ -70,14 +78,6 @@ module.exports = [
             {
                 "type": "heading",
                 "defaultValue": "Calendar",
-            },
-            {
-                "type": "color",
-                "label": "Today highlight",
-                "messageKey": "colorToday",
-                "defaultValue": "#FFFFFF",
-                "sunlight": false,
-                "capabilities": ["COLOR"]
             },
             {
                 "type": "select",
@@ -110,7 +110,39 @@ module.exports = [
                         "value": "curr"
                     }
                 ]
-            }
+            },
+            {
+                "type": "color",
+                "label": "Today highlight",
+                "messageKey": "colorToday",
+                "defaultValue": "#FFFFFF",
+                "sunlight": false,
+                "capabilities": ["COLOR"]
+            },
+            {
+                "type": "color",
+                "label": "Sunday color",
+                "messageKey": "colorSunday",
+                "defaultValue": "#FFFFFF",
+                "sunlight": false,
+                "capabilities": ["COLOR"]
+            },
+            {
+                "type": "color",
+                "label": "Saturday color",
+                "messageKey": "colorSaturday",
+                "defaultValue": "#FFFFFF",
+                "sunlight": false,
+                "capabilities": ["COLOR"]
+            },
+            {
+                "type": "color",
+                "label": "US federal holidays color",
+                "messageKey": "colorUSFederal",
+                "defaultValue": "#FFFFFF",
+                "sunlight": false,
+                "capabilities": ["COLOR"]
+            },
         ]
     },
     {

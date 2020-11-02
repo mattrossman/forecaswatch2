@@ -17,10 +17,8 @@ static struct tm *relative_tm(int days_from_today)
     */
     time_t timestamp = time(NULL);
     tm *local_time = localtime(&timestamp);
-    // You get the next day by adding days * seconds, *unless* we're in the hour
-    // after midnight and daylight savings comes up.  Set the hour to an
-    // arbitrary value that does not cause this to happen.
-    local_time->tm_hour = 5;
+    // Set arbitrary hour so there's no daylight savings rounding error:
+    local_time->tm_hour = 5; 
     timestamp = mktime(local_time) + days_from_today * SECONDS_PER_DAY;
     return localtime(&timestamp);
 }
@@ -42,42 +40,36 @@ static bool is_us_federal_holiday(struct tm *t)
 	    (t->tm_mon == 10 && t->tm_mday >= 22 && t->tm_mday <= 28 && t->tm_wday == 4))   // Thanksgiving
         return true;
 
-	// Federal holidays that are on a specific day of the month, which get
+	// These remaining holidays are on a specific day of the month, which get
 	// moved if they fall on a weekend
-	switch(t->tm_wday) {
-	    // weekend that would otherwise contain the holiday does not
-	    case 0: case 6:
-		break;
-	    // Friday if it matches (normal day of holiday - 1)
-	    case 5:
-            if ((t->tm_mon == 11 && t->tm_mday == 31) || // New Years
-                (t->tm_mon == 6  && t->tm_mday == 3)  || // Independence Day
-                (t->tm_mon == 10 && t->tm_mday == 10) || // Veterans Day
-                (t->tm_mon == 11 && t->tm_mday == 24))   // Christmas
-            {
-                return true;
-            }
-            break;
-	    // Monday if the monday matches (normal day of holiday + 1)
-	    case 1:
-            if ((t->tm_mon == 0  && t->tm_mday == 2)  || // New Years
-                (t->tm_mon == 6  && t->tm_mday == 5)  || // Independence Day
-                (t->tm_mon == 10 && t->tm_mday == 12) || // Veterans Day
-                (t->tm_mon == 11 && t->tm_mday == 26))   // Christmas
-                return true;
-            break;
-	    default:
-            if ((t->tm_mon == 0  && t->tm_mday == 1)  || // New Years
-                (t->tm_mon == 6  && t->tm_mday == 4)  || // Independence Day
-                (t->tm_mon == 10 && t->tm_mday == 11) || // Veterans Day
-                (t->tm_mon == 11 && t->tm_mday == 25))   // Christmas
-                return true;
-            break;
-	}
+    
+    // Friday special cases
+    if (t->tm_wday == 5 && (
+        (t->tm_mon == 11 && t->tm_mday == 31) || // New Years
+        (t->tm_mon == 6  && t->tm_mday == 3)  || // Independence Day
+        (t->tm_mon == 10 && t->tm_mday == 10) || // Veterans Day
+        (t->tm_mon == 11 && t->tm_mday == 24)))  // Christmas
+        return true;
+    // Monday special cases
+    if (t->tm_wday == 1 && (
+        (t->tm_mon == 0  && t->tm_mday == 2)  || // New Years
+        (t->tm_mon == 6  && t->tm_mday == 5)  || // Independence Day
+        (t->tm_mon == 10 && t->tm_mday == 12) || // Veterans Day
+        (t->tm_mon == 11 && t->tm_mday == 26)))  // Christmas
+        return true;
+    // Non special cases
+    if ((t->tm_mon == 0  && t->tm_mday == 1)  || // New Years
+        (t->tm_mon == 6  && t->tm_mday == 4)  || // Independence Day
+        (t->tm_mon == 10 && t->tm_mday == 11) || // Veterans Day
+        (t->tm_mon == 11 && t->tm_mday == 25))   // Christmas
+        return true;
+    
+    // Default to no holiday
     return false;
 }
 
 static GColor date_color(struct tm *t) {
+    // Get color for a date, considering weekends and holidays
     if (is_us_federal_holiday(t))
         return g_config->color_us_federal;
     if (t->tm_wday == 0)
@@ -142,8 +134,9 @@ void calendar_layer_refresh() {
         char *buffer = s_calendar_box_buffers[i];
         struct tm *t = relative_tm(i - i_today);
         if (i == i_today) {
+            GColor background_color = PBL_IF_COLOR_ELSE(date_color(t), GColorWhite);
             text_layer_set_text_color(s_calendar_text_layers[i],
-                PBL_IF_COLOR_ELSE(gcolor_legible_over(config_today_color()), GColorBlack));
+                gcolor_legible_over(background_color));
             text_layer_set_font(s_calendar_text_layers[i],
                 fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
         }

@@ -64,6 +64,9 @@ function sendClaySettings() {
         "CLAY_SHOW_BT_DISCONNECT": app.settings.btIcons === "disconnected" || app.settings.btIcons === "both",
         "CLAY_VIBE": app.settings.vibe,
         "CLAY_SHOW_AM_PM": app.settings.timeShowAmPm,
+        "CLAY_COLOR_SUNDAY": app.settings.colorSunday,
+        "CLAY_COLOR_SATURDAY": app.settings.colorSaturday,
+        "CLAY_COLOR_US_FEDERAL": app.settings.colorUSFederal,
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));

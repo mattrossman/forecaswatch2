@@ -29,6 +29,9 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *clay_show_bt_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_SHOW_BT);
     Tuple *clay_show_bt_disconnect_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_SHOW_BT_DISCONNECT);
     Tuple *clay_show_am_pm_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_SHOW_AM_PM);
+    Tuple *clay_color_saturday = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_SATURDAY);
+    Tuple *clay_color_sunday = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_SUNDAY);
+    Tuple *clay_color_us_federal = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_US_FEDERAL);
 
     if(temp_trend_tuple && temp_trend_tuple && forecast_start_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
         // Weather data received
@@ -68,6 +71,9 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         bool show_am_pm = (bool) (clay_show_am_pm_tuple->value->int16);
         int16_t time_font = clay_time_font_tuple->value->int16;
         GColor color_today = GColorFromHEX(clay_color_today_tuple->value->int32);
+	bool color_saturday = (bool) (clay_color_saturday->value->int16);
+	bool color_sunday = (bool) (clay_color_sunday->value->int16);
+	bool color_us_federal = (bool) (clay_color_us_federal->value->int16);
         Config config = (Config) {
             .celsius = clay_celsius,
             .time_lead_zero = time_lead_zero,
@@ -79,7 +85,10 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
             .show_qt = show_qt,
             .show_bt = show_bt,
             .show_bt_disconnect = show_bt_disconnect,
-            .show_am_pm = show_am_pm
+            .show_am_pm = show_am_pm,
+	    .color_saturday = color_saturday,
+	    .color_sunday = color_sunday,
+	    .color_us_federal = color_us_federal,
         };
         persist_set_config(config);
         main_window_refresh();

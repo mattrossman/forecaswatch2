@@ -56,7 +56,8 @@ void persist_init() {
             .show_am_pm = false,
             .color_saturday = GColorWhite,	
             .color_sunday = GColorWhite,
-            .color_us_federal = GColorWhite
+            .color_us_federal = GColorWhite,
+            .color_time = GColorWhite
         };
         persist_set_config(config);
     }

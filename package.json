@@ -75,7 +75,8 @@
       "CLAY_SHOW_AM_PM",
       "CLAY_COLOR_SATURDAY",
       "CLAY_COLOR_SUNDAY",
-      "CLAY_COLOR_US_FEDERAL"
+      "CLAY_COLOR_US_FEDERAL",
+      "CLAY_COLOR_TIME"
     ]
   }
 }

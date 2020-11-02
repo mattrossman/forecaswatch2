@@ -32,6 +32,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *clay_color_saturday_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_SATURDAY);
     Tuple *clay_color_sunday_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_SUNDAY);
     Tuple *clay_color_us_federal_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_US_FEDERAL);
+    Tuple *clay_color_time_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_TIME);
 
     if(temp_trend_tuple && temp_trend_tuple && forecast_start_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
         // Weather data received
@@ -59,7 +60,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     }
     else if (clay_celsius_tuple && clay_axis_12h_tuple && clay_start_mon_tuple && clay_prev_week_tuple && clay_color_today_tuple
         && clay_show_qt_tuple && clay_show_bt_tuple && clay_show_bt_disconnect_tuple && clay_show_am_pm_tuple
-        && clay_color_saturday_tuple && clay_color_sunday_tuple && clay_color_us_federal_tuple) {
+        && clay_color_saturday_tuple && clay_color_sunday_tuple && clay_color_us_federal_tuple && clay_color_time_tuple) {
         // Clay config data received
         bool clay_celsius = (bool) (clay_celsius_tuple->value->int16);
         bool time_lead_zero = (bool) (clay_time_lead_zero_tuple->value->int16);
@@ -75,6 +76,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         GColor color_saturday = GColorFromHEX(clay_color_saturday_tuple->value->int32);
         GColor color_sunday = GColorFromHEX(clay_color_sunday_tuple->value->int32);
         GColor color_us_federal = GColorFromHEX(clay_color_us_federal_tuple->value->int32);
+        GColor color_time = GColorFromHEX(clay_color_time_tuple->value->int32);
         Config config = (Config) {
             .celsius = clay_celsius,
             .time_lead_zero = time_lead_zero,
@@ -90,6 +92,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
             .color_saturday = color_saturday,
             .color_sunday = color_sunday,
             .color_us_federal = color_us_federal,
+            .color_time = color_time
         };
         persist_set_config(config);
         main_window_refresh();

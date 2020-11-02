@@ -61,7 +61,15 @@ module.exports = [
                         "value": "bitham"
                     },
                 ]
-            }
+            },
+            {
+                "type": "color",
+                "label": "Main time color",
+                "messageKey": "colorTime",
+                "defaultValue": "#FFFFFF",
+                "sunlight": false,
+                "capabilities": ["COLOR"]
+            },
         ]
     },
     {

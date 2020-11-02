@@ -31,17 +31,21 @@ static int relative_day_of_month(int days_from_today) {
 
 static bool is_us_federal_holiday(struct tm *t)
 {
+    // No holidays on weekends (ensures we don't register a false positive for special cases)
+    if (t->tm_wday == 0 || t->tm_wday == 6)
+        return false;
+
     // These holidays are on a specific weekday, so no special cases
-	if ((t->tm_mon == 0  && t->tm_mday >= 15 && t->tm_mday <= 21 && t->tm_wday == 1) || // MLK Day
+    if ((t->tm_mon == 0  && t->tm_mday >= 15 && t->tm_mday <= 21 && t->tm_wday == 1) || // MLK Day
         (t->tm_mon == 1  && t->tm_mday >= 15 && t->tm_mday <= 21 && t->tm_wday == 1) || // Washington's Birthday
-	    (t->tm_mon == 4  && t->tm_mday >= 25 && t->tm_mday <= 31 && t->tm_wday == 1) || // Memorial Day
-	    (t->tm_mon == 8  && t->tm_mday >= 1  && t->tm_mday <= 7  && t->tm_wday == 1) || // Labor Day
-	    (t->tm_mon == 9  && t->tm_mday >= 8  && t->tm_mday <= 14 && t->tm_wday == 1) || // Columbus Day
-	    (t->tm_mon == 10 && t->tm_mday >= 22 && t->tm_mday <= 28 && t->tm_wday == 4))   // Thanksgiving
+        (t->tm_mon == 4  && t->tm_mday >= 25 && t->tm_mday <= 31 && t->tm_wday == 1) || // Memorial Day
+        (t->tm_mon == 8  && t->tm_mday >= 1  && t->tm_mday <= 7  && t->tm_wday == 1) || // Labor Day
+        (t->tm_mon == 9  && t->tm_mday >= 8  && t->tm_mday <= 14 && t->tm_wday == 1) || // Columbus Day
+        (t->tm_mon == 10 && t->tm_mday >= 22 && t->tm_mday <= 28 && t->tm_wday == 4))   // Thanksgiving
         return true;
 
-	// These remaining holidays are on a specific day of the month, which get
-	// moved if they fall on a weekend
+    // These remaining holidays are on a specific day of the month, which get
+    // moved if they fall on a weekend
     
     // Friday special cases
     if (t->tm_wday == 5 && (
@@ -141,7 +145,7 @@ void calendar_layer_refresh() {
                 fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
         }
         else {
-	        GColor text_color = PBL_IF_COLOR_ELSE(date_color(t), GColorWhite);
+            GColor text_color = PBL_IF_COLOR_ELSE(date_color(t), GColorWhite);
             text_layer_set_text_color(s_calendar_text_layers[i], text_color);
             text_layer_set_font(s_calendar_text_layers[i],
                 fonts_get_system_font(FONT_KEY_GOTHIC_18));

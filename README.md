@@ -35,6 +35,8 @@ The developer, RCY, is nowhere to be found in the Rebble era. I plan to continue
 * Next sunrise or sunset time
 * GPS or manual location entry
 * Fahrenheit and Celsius temperatures
+* Customize time font and color
+* Customize colors for Sundays, Saturdays, and US federal holidays
 * Offline configuration page
 
 *\* Using a hacky workaround*

@@ -57,7 +57,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         forecast_layer_refresh();
         weather_status_layer_refresh();
     }
-    if (clay_celsius_tuple && clay_axis_12h_tuple && clay_start_mon_tuple && clay_prev_week_tuple && clay_color_today_tuple
+    else if (clay_celsius_tuple && clay_axis_12h_tuple && clay_start_mon_tuple && clay_prev_week_tuple && clay_color_today_tuple
         && clay_show_qt_tuple && clay_show_bt_tuple && clay_show_bt_disconnect_tuple && clay_show_am_pm_tuple
         && clay_color_saturday_tuple && clay_color_sunday_tuple && clay_color_us_federal_tuple) {
         // Clay config data received
@@ -93,6 +93,9 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         };
         persist_set_config(config);
         main_window_refresh();
+    }
+    else {
+        APP_LOG(APP_LOG_LEVEL_WARNING, "Bad payload received in app_message.c");
     }
 }
 

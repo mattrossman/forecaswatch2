@@ -94,7 +94,11 @@ static void calendar_update_proc(Layer *layer, GContext *ctx) {
     const int i_today = config_n_today();
     struct tm *t = relative_tm(0);
 
-    GColor background_color = PBL_IF_COLOR_ELSE(date_color(t), GColorWhite);
+
+    GColor background_color = PBL_IF_COLOR_ELSE(
+        gcolor_equal(g_config->color_today, GColorBlack) ? date_color(t) : g_config->color_today,
+        GColorWhite
+    );
     graphics_context_set_fill_color(ctx, background_color);
     graphics_fill_rect(ctx,
         GRect((i_today % DAYS_PER_WEEK) * box_w, (i_today / DAYS_PER_WEEK) * box_h,

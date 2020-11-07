@@ -115,7 +115,8 @@ module.exports = [
                 "type": "color",
                 "label": "Today highlight",
                 "messageKey": "colorToday",
-                "defaultValue": "#FFFFFF",
+                "defaultValue": "#000000",
+                "description": "Black (default) means match date color, any other value overrides this.",
                 "sunlight": false,
                 "capabilities": ["COLOR"]
             },
@@ -140,6 +141,7 @@ module.exports = [
                 "label": "US federal holidays color",
                 "messageKey": "colorUSFederal",
                 "defaultValue": "#FFFFFF",
+                "description": "White (default) means disable",
                 "sunlight": false,
                 "capabilities": ["COLOR"]
             },

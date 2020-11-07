@@ -83,6 +83,15 @@ static GColor date_color(struct tm *t) {
     return GColorWhite;
 }
 
+static GColor today_color() {
+    // Either follow the date color or override to configured value
+    struct tm *t = relative_tm(0);
+    return PBL_IF_COLOR_ELSE(
+        gcolor_equal(g_config->color_today, GColorBlack) ? date_color(t) : g_config->color_today,
+        GColorWhite
+    );
+}
+
 static void calendar_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
     int w = bounds.size.w;
@@ -92,10 +101,8 @@ static void calendar_update_proc(Layer *layer, GContext *ctx) {
 
     // Calculate which box holds today's date
     const int i_today = config_n_today();
-    struct tm *t = relative_tm(0);
 
-    GColor background_color = PBL_IF_COLOR_ELSE(date_color(t), GColorWhite);
-    graphics_context_set_fill_color(ctx, background_color);
+    graphics_context_set_fill_color(ctx, today_color());
     graphics_fill_rect(ctx,
         GRect((i_today % DAYS_PER_WEEK) * box_w, (i_today / DAYS_PER_WEEK) * box_h,
         box_w, box_h), 1, GCornersAll);
@@ -138,9 +145,8 @@ void calendar_layer_refresh() {
         char *buffer = s_calendar_box_buffers[i];
         struct tm *t = relative_tm(i - i_today);
         if (i == i_today) {
-            GColor background_color = PBL_IF_COLOR_ELSE(date_color(t), GColorWhite);
             text_layer_set_text_color(s_calendar_text_layers[i],
-                gcolor_legible_over(background_color));
+                gcolor_legible_over(today_color()));
             text_layer_set_font(s_calendar_text_layers[i],
                 fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
         }

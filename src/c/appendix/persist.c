@@ -48,7 +48,7 @@ void persist_init() {
             .start_mon = false,
             .prev_week = true,
             .time_font = 0,
-            .color_today = GColorWhite,
+            .color_today = GColorBlack,
             .show_qt = true,
             .show_bt = true,
             .show_bt_disconnect = true,

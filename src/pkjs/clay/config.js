@@ -141,6 +141,7 @@ module.exports = [
                 "label": "US federal holidays color",
                 "messageKey": "colorUSFederal",
                 "defaultValue": "#FFFFFF",
+                "description": "White (default) means disable",
                 "sunlight": false,
                 "capabilities": ["COLOR"]
             },

@@ -144,18 +144,25 @@ void calendar_layer_refresh() {
     for (int i = 0; i < NUM_WEEKS * DAYS_PER_WEEK; ++i) {
         char *buffer = s_calendar_box_buffers[i];
         struct tm *t = relative_tm(i - i_today);
+        
+        // Set the text color
         if (i == i_today) {
-            text_layer_set_text_color(s_calendar_text_layers[i],
-                gcolor_legible_over(today_color()));
-            text_layer_set_font(s_calendar_text_layers[i],
-                fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
+            GColor text_color = gcolor_legible_over(today_color());
+            text_layer_set_text_color(s_calendar_text_layers[i], text_color);
         }
         else {
             GColor text_color = PBL_IF_COLOR_ELSE(date_color(t), GColorWhite);
             text_layer_set_text_color(s_calendar_text_layers[i], text_color);
-            text_layer_set_font(s_calendar_text_layers[i],
-                fonts_get_system_font(FONT_KEY_GOTHIC_18));
         }
+
+        // Use bold font for today, and holidays/weekends if colored
+        bool highlight_holiday = (config_highlight_holidays() && is_us_federal_holiday(t));
+        bool highlight_sunday = (config_highlight_sundays() && t->tm_wday == 0);
+        bool highlight_saturday = (config_highlight_saturdays() && t->tm_wday == 6);
+        bool bold = (i == i_today) || highlight_holiday || highlight_sunday || highlight_saturday;
+        text_layer_set_font(s_calendar_text_layers[i],
+            fonts_get_system_font(bold ? FONT_KEY_GOTHIC_18_BOLD : FONT_KEY_GOTHIC_18));
+
         snprintf(buffer, 4, "%d", t->tm_mday);  
         text_layer_set_text(s_calendar_text_layers[i], buffer);
     }

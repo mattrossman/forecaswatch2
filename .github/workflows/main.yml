@@ -42,3 +42,8 @@ jobs:
         run: if [ ! -d ~/.pebble-sdk ]; then mkdir -p ~/.pebble-sdk && touch ~/.pebble-sdk/NO_TRACKING && sdk/bin/pebble sdk install sdk/sdk-core-4.3.tar.bz2; fi
       - name: make 
         run: make travis_build
+      - name: Upload PBW
+        uses: actions/upload-artifact@v2
+        with:
+          name: App
+          path: ${{ github.workspace }}/build/*.pbw

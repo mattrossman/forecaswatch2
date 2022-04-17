@@ -183,6 +183,10 @@ module.exports = [
                     {
                         "label": "Dark Sky",
                         "value": "darksky"
+                    },
+                    {
+                        "label": "OpenWeatherMap",
+                        "value": "openweathermap"
                     }
                 ]
             },
@@ -191,6 +195,12 @@ module.exports = [
                 "label": "Dark Sky API key",
                 "messageKey": "darkSkyApiKey",
                 "description": "<a href='https://darksky.net/dev/register'>Register a Dark Sky developer account</a> and paste your secret key here"
+            },
+            {
+                "type": "input",
+                "label": "OpenWeatherMap API key",
+                "messageKey": "owmApiKey",
+                "description": "<a href='https://openweathermap.org/'>Register a OpenWeatherMap developer account</a> and paste your API key here"
             },
             {
                 "type": "toggle",

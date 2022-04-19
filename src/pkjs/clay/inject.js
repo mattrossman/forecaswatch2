@@ -53,6 +53,7 @@ module.exports = function (minified) {
         $('#main-form').on('submit', function () {
             if (clayProvider.get() !== initProvider
                 || clayDarkSkyApiKey.get() !== initDarkSkyApiKey
+                || clayOwmApiKey.get() !== initOwmApiKey
                 || clayLocation.get() !== initLocation) {
                 clayFetch.set(true);
             }

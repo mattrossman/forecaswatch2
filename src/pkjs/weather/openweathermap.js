@@ -9,61 +9,65 @@ function request(url, type, callback) {
     xhr.send();
 }
 
-var OpenWeatherMapProvider = function () {
-    var _this = this;
+var OpenWeatherMapProvider = function (apiKey) {
     this._super.call(this);
     this.name = 'OpenWeatherMap';
     this.id = 'openweathermap';
+    this.apiKey = apiKey;
+    this.weatherData = null;
+    console.log('Constructed with ' + apiKey);
 }
 
 OpenWeatherMapProvider.prototype = Object.create(WeatherProvider.prototype);
 OpenWeatherMapProvider.prototype.constructor = OpenWeatherMapProvider;
 OpenWeatherMapProvider.prototype._super = WeatherProvider;
 
-OpenWeatherMapProvider.prototype.withWundergroundForecast = function (lat, lon, callback) {
-    // callback(wundergroundResponse)
-    var url = 'https://api.weather.com/v1/geocode/' + lat + '/' + lon + '/forecast/hourly/48hour.json?apiKey=' + this.apiKey;
+OpenWeatherMapProvider.prototype.withOwmResponse = function (lat, lon, callback) {
+    var url = `https://api.openweathermap.org/data/2.5/onecall?appid=${this.apiKey}&lat=${lat}&lon=${lon}&exclude=alerts,minutely`;
+
     request(url, 'GET', function (response) {
         var weatherData = JSON.parse(response);
-        callback(weatherData.forecasts);
-    });
-}
-
-OpenWeatherMapProvider.prototype.withWundergroundCurrent = function (lat, lon, callback) {
-    // callback(wundergroundResponse)
-    var url = 'https://api.weather.com/v3/wx/observations/current?language=en-US&units=e&format=json'
-        + '&apiKey=' + this.apiKey
-        + '&geocode=' + lat + ',' + lon;
-    request(url, 'GET', function (response) {
-        var weatherData = JSON.parse(response);
-        callback(weatherData.temperature);
-    });
-}
-
-OpenWeatherMapProvider.withApiKey = function (callback) {
-    var url = "https://www.wunderground.com/";
-    request(url, 'GET', function (response) {
-        callback(response.match(/apiKey=([a-z0-9]*)/)[1]);
+        console.log('Found timezone: ' + weatherData.timezone);
+        callback(weatherData);
     });
 }
 
 // ============== IMPORTANT OVERRIDE ================
+OpenWeatherMapProvider.prototype.withSunEvents = function (lat, lon, callback) {
+
+    this.withOwmResponse(lat, lon, (function (owmResponse) {
+        // cache the weather response to provide the rest of the data later
+        this.weatherData = owmResponse;
+
+        var days = owmResponse.daily;
+        var sunEvents = [
+            { 'type': 'sunrise', 'date': new Date(days[0].sunrise * 1000) },
+            { 'type': 'sunset', 'date': new Date(days[0].sunset * 1000) },
+            { 'type': 'sunrise', 'date': new Date(days[1].sunrise * 1000) },
+            { 'type': 'sunset', 'date': new Date(days[1].sunset * 1000) }
+        ]
+        var now = new Date();
+        var nextSunEvents = sunEvents.filter(function (sunEvent) {
+            return sunEvent.date > now;
+        });
+        var next24HourSunEvents = nextSunEvents.slice(0, 2);
+        callback(next24HourSunEvents);
+    }).bind(this));
+}
 
 OpenWeatherMapProvider.prototype.withProviderData = function (lat, lon, callback) {
-    // callBack expects that this.hasValidData() will be true
-    this.withWundergroundCurrent(lat, lon, (function (currentTemp) {
-        this.withWundergroundForecast(lat, lon, (function (forecast) {
-            this.tempTrend = forecast.map(function (entry) {
-                return entry.temp;
-            })
-            this.precipTrend = forecast.map(function (entry) {
-                return entry.pop / 100.0
-            })
-            this.startTime = forecast[0].fcst_valid;
-            this.currentTemp = currentTemp;
-            callback();
-        }).bind(this));
-    }).bind(this))
+    if (this.weatherData !== null) {
+        this.tempTrend = owmResponse.hourly.map(function (entry) {
+            return entry.temp;
+        })
+        this.precipTrend = owmResponse.hourly.map(function (entry) {
+            return entry.pop;
+        })
+        this.startTime = owmResponse.hourly[0].dt;
+        this.currentTemp = owmResponse.current.temp;
+
+        callback();
+    }
 }
 
 module.exports = OpenWeatherMapProvider;

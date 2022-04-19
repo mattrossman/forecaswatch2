@@ -200,7 +200,7 @@ module.exports = [
                 "type": "input",
                 "label": "OpenWeatherMap API key",
                 "messageKey": "owmApiKey",
-                "description": "<a href='https://openweathermap.org/'>Register a OpenWeatherMap developer account</a> and paste your API key here"
+                "description": "<a href='https://openweathermap.org/'>Register an OpenWeatherMap account</a> and paste your API key here"
             },
             {
                 "type": "toggle",

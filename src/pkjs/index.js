@@ -86,6 +86,7 @@ function setProvider(providerId) {
     switch (providerId) {
         case 'openweathermap':
             app.provider = new OpenWeatherMapProvider(app.settings.owmApiKey);
+            break;
         case 'wunderground':
             app.provider = new WundergroundProvider();
             break;

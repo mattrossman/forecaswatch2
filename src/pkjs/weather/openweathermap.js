@@ -14,7 +14,7 @@ var OpenWeatherMapProvider = function (apiKey) {
     this.name = 'OpenWeatherMap';
     this.id = 'openweathermap';
     this.apiKey = apiKey;
-    this.weatherData = null;
+    this.weatherDataCache = null;
     console.log('Constructed with ' + apiKey);
 }
 
@@ -23,22 +23,30 @@ OpenWeatherMapProvider.prototype.constructor = OpenWeatherMapProvider;
 OpenWeatherMapProvider.prototype._super = WeatherProvider;
 
 OpenWeatherMapProvider.prototype.withOwmResponse = function (lat, lon, callback) {
-    var url = `https://api.openweathermap.org/data/2.5/onecall?appid=${this.apiKey}&lat=${lat}&lon=${lon}&exclude=alerts,minutely`;
-
+    var url = 'https://api.openweathermap.org/data/2.5/onecall?appid=' + this.apiKey + '&lat=' + lat + '&lon=' + lon + '&units=imperial&exclude=alerts,minutely';
     request(url, 'GET', function (response) {
         var weatherData = JSON.parse(response);
         console.log('Found timezone: ' + weatherData.timezone);
+        // cache weather data (use same request for sun events and weather forecast)
+        this.weatherDataCache = weatherData;
         callback(weatherData);
     });
 }
 
+OpenWeatherMapProvider.prototype.withWeatherData = function (lat, lon, callback) {
+    if (this.weatherDataCache === null) {
+        this.withOwmResponse(lat, lon, function (owmResponse) {
+            callback(owmResponse);
+        });
+    } else {
+        callback(this.weatherDataCache);
+    }
+}
+
 // ============== IMPORTANT OVERRIDE ================
 OpenWeatherMapProvider.prototype.withSunEvents = function (lat, lon, callback) {
-
+    console.log('This is the overridden implementation of withSunEvents')
     this.withOwmResponse(lat, lon, (function (owmResponse) {
-        // cache the weather response to provide the rest of the data later
-        this.weatherData = owmResponse;
-
         var days = owmResponse.daily;
         var sunEvents = [
             { 'type': 'sunrise', 'date': new Date(days[0].sunrise * 1000) },
@@ -51,23 +59,26 @@ OpenWeatherMapProvider.prototype.withSunEvents = function (lat, lon, callback) {
             return sunEvent.date > now;
         });
         var next24HourSunEvents = nextSunEvents.slice(0, 2);
+        console.log('The next ' + sunEvents[0].type + ' is at ' + sunEvents[0].date.toTimeString());
+        console.log('The next ' + sunEvents[1].type + ' is at ' + sunEvents[1].date.toTimeString());
         callback(next24HourSunEvents);
     }).bind(this));
 }
 
 OpenWeatherMapProvider.prototype.withProviderData = function (lat, lon, callback) {
-    if (this.weatherData !== null) {
-        this.tempTrend = owmResponse.hourly.map(function (entry) {
+    // callBack expects that this.hasValidData() will be true
+    console.log('This is the overridden implementation of withProviderData')
+    this.withWeatherData(lat, lon, (function (weatherData) {
+        this.tempTrend = weatherData.hourly.map(function (entry) {
             return entry.temp;
         })
-        this.precipTrend = owmResponse.hourly.map(function (entry) {
+        this.precipTrend = weatherData.hourly.map(function (entry) {
             return entry.pop;
         })
-        this.startTime = owmResponse.hourly[0].dt;
-        this.currentTemp = owmResponse.current.temp;
-
+        this.startTime = weatherData.hourly[0].dt;
+        this.currentTemp = weatherData.current.temp;
         callback();
-    }
+    }).bind(this))
 }
 
 module.exports = OpenWeatherMapProvider;

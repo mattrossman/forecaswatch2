@@ -8,14 +8,14 @@ var customClay = require('./clay/inject.js');
 var clay = new Clay(clayConfig, customClay, { autoHandleEvents: false });
 var app = {};  // Namespace for global app variables
 
-Pebble.addEventListener('showConfiguration', function (e) {
+Pebble.addEventListener('showConfiguration', function(e) {
     // Set the userData here rather than in the Clay() constructor so it's actually up to date
     clay.meta.userData.lastFetchSuccess = localStorage.getItem('lastFetchSuccess');
     Pebble.openURL(clay.generateUrl());
     console.log('Showing clay: ' + JSON.stringify(getClaySettings()));
 });
 
-Pebble.addEventListener('webviewclosed', function (e) {
+Pebble.addEventListener('webviewclosed', function(e) {
     if (e && !e.response) {
         return;
     }
@@ -70,9 +70,9 @@ function sendClaySettings() {
         "CLAY_COLOR_US_FEDERAL": app.settings.hasOwnProperty('colorUSFederal') ? app.settings.colorUSFederal : 16777215,
         "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : 16777215,
     }
-    Pebble.sendAppMessage(payload, function () {
+    Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));
-    }, function (e) {
+    }, function(e) {
         console.log('Message failed: ' + JSON.stringify(e));
     });
 }
@@ -146,15 +146,15 @@ function fetch(provider) {
         name: provider.name
     }
     localStorage.setItem('lastFetchAttempt', JSON.stringify(fetchStatus));
-    provider.fetch(function () {
+    provider.fetch(function() {
         // Sucess, update recent fetch time
         localStorage.setItem('lastFetchSuccess', JSON.stringify(fetchStatus));
         console.log('Successfully fetched weather!')
     },
-        function () {
-            // Failure
-            console.log('[!] Provider failed to update weather')
-        })
+    function() {
+        // Failure
+        console.log('[!] Provider failed to update weather')
+    })
 }
 
 function tryFetch(provider) {

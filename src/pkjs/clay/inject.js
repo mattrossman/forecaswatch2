@@ -2,7 +2,7 @@ module.exports = function (minified) {
     clayConfig = this;
     var $ = minified.$;
 
-    clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function () {
+    clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function() {
         var clayFetch = clayConfig.getItemByMessageKey('fetch');
         clayFetch.set(false);
 
@@ -25,7 +25,7 @@ module.exports = function (minified) {
         }
 
         // Configure logic for updating the provider section layout
-        clayProvider.on('change', function () {
+        clayProvider.on('change', function() {
             if (this.get() === 'darksky') {
                 clayDarkSkyApiKey.show();
             }
@@ -50,7 +50,7 @@ module.exports = function (minified) {
         }
 
         // Override submit handler to force re-fetch if provider config changed
-        $('#main-form').on('submit', function () {
+        $('#main-form').on('submit', function() {
             if (clayProvider.get() !== initProvider
                 || clayDarkSkyApiKey.get() !== initDarkSkyApiKey
                 || clayOwmApiKey.get() !== initOwmApiKey

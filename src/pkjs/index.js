@@ -1,6 +1,7 @@
 
 var DarkSkyProvider = require('./weather/darksky.js');
 var WundergroundProvider = require('./weather/wunderground.js');
+var OpenWeatherMapProvider = require('./weather/openweathermap.js')
 var Clay = require('./clay/_source.js');
 var clayConfig = require('./clay/config.js');
 var customClay = require('./clay/inject.js');
@@ -83,6 +84,9 @@ function refreshProvider() {
 
 function setProvider(providerId) {
     switch (providerId) {
+        case 'openweathermap':
+            app.provider = new OpenWeatherMapProvider(app.settings.owmApiKey);
+            break;
         case 'wunderground':
             app.provider = new WundergroundProvider();
             break;

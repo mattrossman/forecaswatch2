@@ -8,15 +8,20 @@ module.exports = function (minified) {
 
         // Save initial states to detect changes to provider
         var clayDarkSkyApiKey = clayConfig.getItemByMessageKey('darkSkyApiKey');
+        var clayOwmApiKey = clayConfig.getItemByMessageKey('owmApiKey');
         var clayProvider = clayConfig.getItemByMessageKey('provider');
         var clayLocation = clayConfig.getItemByMessageKey('location');
         var initProvider = clayProvider.get();
         var initDarkSkyApiKey = clayDarkSkyApiKey.get();
+        var initOwmApiKey = clayOwmApiKey.get();
         var initLocation = clayLocation.get();
 
         // Configure default provide section layout
         if (initProvider !== 'darksky') {
             clayDarkSkyApiKey.hide()
+        }
+        if (initProvider !== 'openweathermap') {
+            clayOwmApiKey.hide()
         }
 
         // Configure logic for updating the provider section layout
@@ -26,6 +31,12 @@ module.exports = function (minified) {
             }
             else {
                 clayDarkSkyApiKey.hide();
+            }
+            if (this.get() === 'openweathermap') {
+                clayOwmApiKey.show();
+            }
+            else {
+                clayOwmApiKey.hide();
             }
             console.log('Provider set to ' + this.get());
         })
@@ -42,6 +53,7 @@ module.exports = function (minified) {
         $('#main-form').on('submit', function() {
             if (clayProvider.get() !== initProvider
                 || clayDarkSkyApiKey.get() !== initDarkSkyApiKey
+                || clayOwmApiKey.get() !== initOwmApiKey
                 || clayLocation.get() !== initLocation) {
                 clayFetch.set(true);
             }

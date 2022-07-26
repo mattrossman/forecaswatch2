@@ -26,7 +26,7 @@ WeatherProvider.prototype.withSunEvents = function(lat, lon, callback) {
     /* The callback runs with an array of the next two sun events (i.e. 24 hours worth),
      * where each sun event contains a 'type' ('sunrise' or 'sunset') and a 'date' (of type Date)
      */
-    var urlToday = 'https://api.sunrise-sunset.org/json?formatted=0'
+    var urlToday = 'http://api.sunrise-sunset.org/json?formatted=0'
         + '&lat=' + lat
         + '&lng=' + lon;
     var urlTomorrow = urlToday + '&date=tomorrow';

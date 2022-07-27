@@ -73,7 +73,7 @@ WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
 
 WeatherProvider.prototype.withGeocodeCoordinates = function(callback) {
     // callback(lattitude, longtitude)
-    var url = 'https://us1.locationiq.com/v1/search.php?key=dd15eccc31178e'
+    var url = 'https://us1.locationiq.com/v1/search.php?key=pk.5a61972cde94491774bcfaa0705d5a0d'
         + '&q=' + this.location
         + '&format=json';
     request(url, 'GET', function (response) {

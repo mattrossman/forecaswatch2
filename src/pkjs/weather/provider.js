@@ -71,22 +71,41 @@ WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
     });
 }
 
+const r_lat_long = new RegExp(/([-+]?[\d\.]*),([-+]?[\d\.]*)/gm);
+
 WeatherProvider.prototype.withGeocodeCoordinates = function(callback) {
     // callback(lattitude, longtitude)
-    var url = 'https://us1.locationiq.com/v1/search.php?key=dd15eccc31178e'
+    var locationiq_key = 'dd15eccc31178e';  // TODO config or new key needed
+    var url = 'https://us1.locationiq.com/v1/search.php?key=' + locationiq_key
         + '&q=' + this.location
         + '&format=json';
-    request(url, 'GET', function (response) {
-        var locations = JSON.parse(response);
-        if (locations.length === 0) {
-            console.log('[!] No geocoding results')
-        }
-        else {
-            var closest = locations[0];
-            console.log('Query ' + this.location + ' geocoded to ' + closest.lat + ', ' + closest.lon);
-            callback(closest.lat, closest.lon);
-        }
-    });
+    var m = r_lat_long.exec(this.location);
+
+    console.log('WeatherProvider.prototype.withGeocodeCoordinates lets regex, this.location: ' + JSON.stringify(this.location));
+    if (m != null) {
+        var latitude = m[1];
+        var longitude = m[2];
+
+        console.log('regex matched, override is lat/long')
+        callback(latitude, longitude);
+    }
+    else {
+        console.log('regex failed, about to look up lat/long for override')
+        request(url, 'GET', function (response) {
+            var locations = JSON.parse(response);
+            if (locations.length === 0) {
+                console.log('[!] No geocoding results')
+            }
+            else {
+                var closest = locations[0];
+                console.log('Query ' + this.location + ' geocoded to ' + closest.lat + ', ' + closest.lon);
+                JSON.stringify('closest.lat ' + JSON.stringify(closest.lat));
+                JSON.stringify('closest ' + JSON.stringify(closest));
+                callback(closest.lat, closest.lon);
+            }
+        });
+    }
+
 }
 
 WeatherProvider.prototype.withGpsCoordinates = function(callback) {

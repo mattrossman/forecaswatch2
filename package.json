@@ -6,6 +6,9 @@
     "pebble-app"
   ],
   "private": true,
+  "scripts": {
+    "build": "docker run --rm --platform=linux/amd64 -v $PWD:/forecaswatch2 -w /forecaswatch2 rebble/pebble-sdk bash -c \"pebble build\""
+  },
   "dependencies": {
   },
   "pebble": {

@@ -212,7 +212,7 @@ module.exports = [
                 "type": "input",
                 "label": "Location override",
                 "messageKey": "location",
-                "description": "Example: \"Manhattan\" or \"123 Oak St Plainsville KY\".<br><a href=\"https://locationiq.com/#demo\">Click here</a> to test out your location query.<br>To use GPS, leave this blank and ensure GPS is enabled on your device.",
+                "description": "Example: \"Manhattan\" or \"123 Oak St Plainsville KY\".<br><a href=\"https://locationiq.com/demo\">Click here</a> to test out your location query.<br>To use GPS, leave this blank and ensure GPS is enabled on your device.",
                 "attributes": {
                     "placeholder": "Using GPS",
                 }

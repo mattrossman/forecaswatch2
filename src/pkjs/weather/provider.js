@@ -1,3 +1,5 @@
+const SunCalc = require('suncalc')
+
 function request(url, type, callback) {
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
@@ -26,37 +28,37 @@ WeatherProvider.prototype.withSunEvents = function(lat, lon, callback) {
     /* The callback runs with an array of the next two sun events (i.e. 24 hours worth),
      * where each sun event contains a 'type' ('sunrise' or 'sunset') and a 'date' (of type Date)
      */
-    var urlToday = 'https://api.sunrise-sunset.org/json?formatted=0'
-        + '&lat=' + lat
-        + '&lng=' + lon;
-    var urlTomorrow = urlToday + '&date=tomorrow';
+    const dateNow = new Date()
+    const dateTomorrow = new Date().setDate(dateNow.getDate() + 1)
+
+    const resultsToday = SunCalc.getTimes(dateNow, lat, lon)
+    const resultsTomorrow = SunCalc.getTimes(dateTomorrow, lat, lon)
+
+    /**
+     * @param {SunCalc.GetTimesResult} results 
+     * @returns {{ type: 'sunrise'|'sunset', date: Date }[]}
+     */
     var processResults = function(results) {
         return [
             {
                 'type': 'sunrise',
-                'date': new Date(results.sunrise)
+                'date': results.sunrise
             },
             {
                 'type': 'sunset',
-                'date': new Date(results.sunset)
+                'date': results.sunset
             }
         ]
     }
-    request(urlToday, 'GET', function (responseToday) {
-        var resultsToday = JSON.parse(responseToday).results;
-        request(urlTomorrow, 'GET', function (responseTomorrow) {
-            var resultsTomorrow = JSON.parse(responseTomorrow).results;
-            var sunEvents = processResults(resultsToday).concat(processResults(resultsTomorrow));
-            var now = new Date();
-            var nextSunEvents = sunEvents.filter(function (sunEvent) {
-                return sunEvent.date > now;
-            });
-            var next24HourSunEvents = nextSunEvents.slice(0, 2);
-            console.log('The next ' + sunEvents[0].type + ' is at ' + sunEvents[0].date.toTimeString());
-            console.log('The next ' + sunEvents[1].type + ' is at ' + sunEvents[1].date.toTimeString());
-            callback(next24HourSunEvents);
-        });
+
+    var sunEvents = processResults(resultsToday).concat(processResults(resultsTomorrow))
+    var nextSunEvents = sunEvents.filter(function (sunEvent) {
+        return sunEvent.date > dateNow;
     });
+    var next24HourSunEvents = nextSunEvents.slice(0, 2);
+    console.log('The next ' + sunEvents[0].type + ' is at ' + sunEvents[0].date.toTimeString());
+    console.log('The next ' + sunEvents[1].type + ' is at ' + sunEvents[1].date.toTimeString());
+    callback(next24HourSunEvents);
 }
 
 WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
@@ -131,7 +133,6 @@ WeatherProvider.prototype.fetch = function(onSuccess, onFailure) {
                     // then we can safely call this.getPayload()
                     if (this.hasValidData()) {
                         console.log('Lets get the payload for ' + cityName);
-                        console.log('Forecast start time: ' + this.startHour);
                         // Send to Pebble
                         this.cityName = cityName;
                         this.sunEvents = sunEvents;

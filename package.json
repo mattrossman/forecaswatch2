@@ -1,5 +1,5 @@
 {
-  "name": "ForecasWatch 2",
+  "name": "forecaswatch2",
   "author": "Matt Rossman",
   "version": "1.19.0",
   "keywords": [
@@ -7,9 +7,13 @@
   ],
   "private": true,
   "scripts": {
-    "build": "docker run --rm --platform=linux/amd64 -v $PWD:/forecaswatch2 -w /forecaswatch2 rebble/pebble-sdk bash -c \"pebble build\""
+    "start": "docker run -dit --name=forecaswatch2 --platform=linux/amd64 -v $PWD:/forecaswatch2 rebble/pebble-sdk",
+    "stop": "docker rm -f forecaswatch2",
+    "shell": "docker exec -it -w /forecaswatch2 forecaswatch2 bash",
+    "build": "docker exec -w /forecaswatch2 forecaswatch2 bash -c \"pebble build\""
   },
   "dependencies": {
+    "suncalc": "^1.9.0"
   },
   "pebble": {
     "displayName": "FCW2",

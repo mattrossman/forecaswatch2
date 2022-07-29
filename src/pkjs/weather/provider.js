@@ -1,3 +1,5 @@
+const SunCalc = require('suncalc')
+
 function request(url, type, callback) {
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
@@ -26,37 +28,37 @@ WeatherProvider.prototype.withSunEvents = function(lat, lon, callback) {
     /* The callback runs with an array of the next two sun events (i.e. 24 hours worth),
      * where each sun event contains a 'type' ('sunrise' or 'sunset') and a 'date' (of type Date)
      */
-    var urlToday = 'https://api.sunrise-sunset.org/json?formatted=0'
-        + '&lat=' + lat
-        + '&lng=' + lon;
-    var urlTomorrow = urlToday + '&date=tomorrow';
+    const dateNow = new Date()
+    const dateTomorrow = new Date().setDate(dateNow.getDate() + 1)
+
+    const resultsToday = SunCalc.getTimes(dateNow, lat, lon)
+    const resultsTomorrow = SunCalc.getTimes(dateTomorrow, lat, lon)
+
+    /**
+     * @param {SunCalc.GetTimesResult} results 
+     * @returns {{ type: 'sunrise'|'sunset', date: Date }[]}
+     */
     var processResults = function(results) {
         return [
             {
                 'type': 'sunrise',
-                'date': new Date(results.sunrise)
+                'date': results.sunrise
             },
             {
                 'type': 'sunset',
-                'date': new Date(results.sunset)
+                'date': results.sunset
             }
         ]
     }
-    request(urlToday, 'GET', function (responseToday) {
-        var resultsToday = JSON.parse(responseToday).results;
-        request(urlTomorrow, 'GET', function (responseTomorrow) {
-            var resultsTomorrow = JSON.parse(responseTomorrow).results;
-            var sunEvents = processResults(resultsToday).concat(processResults(resultsTomorrow));
-            var now = new Date();
-            var nextSunEvents = sunEvents.filter(function (sunEvent) {
-                return sunEvent.date > now;
-            });
-            var next24HourSunEvents = nextSunEvents.slice(0, 2);
-            console.log('The next ' + sunEvents[0].type + ' is at ' + sunEvents[0].date.toTimeString());
-            console.log('The next ' + sunEvents[1].type + ' is at ' + sunEvents[1].date.toTimeString());
-            callback(next24HourSunEvents);
-        });
+
+    var sunEvents = processResults(resultsToday).concat(processResults(resultsTomorrow))
+    var nextSunEvents = sunEvents.filter(function (sunEvent) {
+        return sunEvent.date > dateNow;
     });
+    var next24HourSunEvents = nextSunEvents.slice(0, 2);
+    console.log('The next ' + sunEvents[0].type + ' is at ' + sunEvents[0].date.toTimeString());
+    console.log('The next ' + sunEvents[1].type + ' is at ' + sunEvents[1].date.toTimeString());
+    callback(next24HourSunEvents);
 }
 
 WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
@@ -71,22 +73,42 @@ WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
     });
 }
 
+// https://github.com/mattrossman/forecaswatch2/issues/59#issue-1317582743
+const r_lat_long = new RegExp(/([-+]?[\d\.]*),([-+]?[\d\.]*)/gm);
+
 WeatherProvider.prototype.withGeocodeCoordinates = function(callback) {
     // callback(lattitude, longtitude)
-    var url = 'https://us1.locationiq.com/v1/search.php?key=dd15eccc31178e'
+    var locationiq_key = 'pk.5a61972cde94491774bcfaa0705d5a0d';
+    var url = 'https://us1.locationiq.com/v1/search.php?key=' + locationiq_key
         + '&q=' + this.location
         + '&format=json';
-    request(url, 'GET', function (response) {
-        var locations = JSON.parse(response);
-        if (locations.length === 0) {
-            console.log('[!] No geocoding results')
-        }
-        else {
-            var closest = locations[0];
-            console.log('Query ' + this.location + ' geocoded to ' + closest.lat + ', ' + closest.lon);
-            callback(closest.lat, closest.lon);
-        }
-    });
+    var m = r_lat_long.exec(this.location);
+
+    console.log('WeatherProvider.prototype.withGeocodeCoordinates lets regex, this.location: ' + JSON.stringify(this.location));
+    if (m != null) {
+        var latitude = m[1];
+        var longitude = m[2];
+
+        console.log('regex matched, override is lat/long')
+        callback(latitude, longitude);
+    }
+    else {
+        console.log('regex failed, about to look up lat/long for override')
+        request(url, 'GET', function (response) {
+            var locations = JSON.parse(response);
+            if (locations.length === 0) {
+                console.log('[!] No geocoding results')
+            }
+            else {
+                var closest = locations[0];
+                console.log('Query ' + this.location + ' geocoded to ' + closest.lat + ', ' + closest.lon);
+                JSON.stringify('closest.lat ' + JSON.stringify(closest.lat));
+                JSON.stringify('closest ' + JSON.stringify(closest));
+                callback(closest.lat, closest.lon);
+            }
+        });
+    }
+
 }
 
 WeatherProvider.prototype.withGpsCoordinates = function(callback) {
@@ -131,7 +153,6 @@ WeatherProvider.prototype.fetch = function(onSuccess, onFailure) {
                     // then we can safely call this.getPayload()
                     if (this.hasValidData()) {
                         console.log('Lets get the payload for ' + cityName);
-                        console.log('Forecast start time: ' + this.startHour);
                         // Send to Pebble
                         this.cityName = cityName;
                         this.sunEvents = sunEvents;

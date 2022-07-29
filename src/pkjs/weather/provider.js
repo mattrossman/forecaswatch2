@@ -73,6 +73,7 @@ WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
     });
 }
 
+// https://github.com/mattrossman/forecaswatch2/issues/59#issue-1317582743
 const r_lat_long = new RegExp(/([-+]?[\d\.]*),([-+]?[\d\.]*)/gm);
 
 WeatherProvider.prototype.withGeocodeCoordinates = function(callback) {

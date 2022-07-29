@@ -9,3 +9,4 @@ screenshot/*
 !screenshot/composite_bw.sh
 !screenshot/composite_color.sh
 !screenshot/**/
+node_modules

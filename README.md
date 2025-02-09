@@ -27,7 +27,7 @@ The developer, RCY, is nowhere to be found in the Rebble era. I plan to continue
 * 24 hour weather forecast (updates every 30 minutes)
 * Bluetooth connection indicator
 * Quiet time indicator
-* Multiple weather providers (Weather Underground*, DarkSky)
+* Multiple weather providers (Weather Underground*, OpenWeatherMap)
 * Current temperature
 * Temperature forecast (red line)
 * Precipitation probability forecast (blue area)
@@ -80,6 +80,6 @@ You can also use `npm run shell` to access other Pebble CLI commands.
 You can create a file `src/pkjs/dev-config.js` to set values for Clay keys (for convenience), e.g.
 
 ```javascript
-var darkSkyApiKey = 'abc123';
-module.exports.darkSkyApiKey = darkSkyApiKey;
+var owmApiKey = 'abc123';
+module.exports.owmApiKey = owmApiKey;
 ```

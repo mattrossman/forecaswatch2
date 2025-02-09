@@ -1,5 +1,4 @@
 
-var DarkSkyProvider = require('./weather/darksky.js');
 var WundergroundProvider = require('./weather/wunderground.js');
 var OpenWeatherMapProvider = require('./weather/openweathermap.js')
 var Clay = require('./clay/_source.js');
@@ -90,11 +89,10 @@ function setProvider(providerId) {
         case 'wunderground':
             app.provider = new WundergroundProvider();
             break;
-        case 'darksky':
-            app.provider = new DarkSkyProvider(app.settings.darkSkyApiKey);
-            break;
         default:
-            console.log('Error assigning provider in initProvider');
+            console.log('Unknown provider: "' + providerId + '", defaulting to wunderground');
+            clay.setSettings("provider", "wunderground");
+            app.provider = new WundergroundProvider();
     }
     console.log('Set provider: ' + app.provider.name);
 }

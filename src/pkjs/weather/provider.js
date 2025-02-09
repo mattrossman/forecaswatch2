@@ -139,16 +139,16 @@ WeatherProvider.prototype.withCoordinates = function(callback) {
     }
 }
 
-WeatherProvider.prototype.withProviderData = function(lat, lon, callback) {
+WeatherProvider.prototype.withProviderData = function(lat, lon, force, callback) {
     console.log('This is the fallback implementation of withProviderData')
     callback();
 }
 
-WeatherProvider.prototype.fetch = function(onSuccess, onFailure) {
+WeatherProvider.prototype.fetch = function(onSuccess, onFailure, force) {
     this.withCoordinates((function(lat, lon) {
         this.withCityName(lat, lon, (function(cityName) {
             this.withSunEvents(lat, lon, (function(sunEvents) {
-                this.withProviderData(lat, lon, (function() {
+                this.withProviderData(lat, lon, force, (function() {
                     // if `this` (the provider) contains valid weather details,
                     // then we can safely call this.getPayload()
                     if (this.hasValidData()) {

@@ -181,20 +181,10 @@ module.exports = [
                         "value": "wunderground"
                     },
                     {
-                        "label": "Dark Sky",
-                        "value": "darksky"
-                    },
-                    {
                         "label": "OpenWeatherMap",
                         "value": "openweathermap"
                     }
                 ]
-            },
-            {
-                "type": "input",
-                "label": "Dark Sky API key",
-                "messageKey": "darkSkyApiKey",
-                "description": "<a href='https://darksky.net/dev/register'>Register a Dark Sky developer account</a> and paste your secret key here"
             },
             {
                 "type": "input",

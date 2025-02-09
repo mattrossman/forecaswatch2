@@ -1,5 +1,4 @@
 
-var DarkSkyProvider = require('./weather/darksky.js');
 var WundergroundProvider = require('./weather/wunderground.js');
 var OpenWeatherMapProvider = require('./weather/openweathermap.js')
 var Clay = require('./clay/_source.js');
@@ -28,7 +27,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
     // Fetching goes last, after other settings have been handled
     if (app.settings.fetch === true) {
         console.log('Force fetch!');
-        fetch(app.provider);
+        fetch(app.provider, true);
     }
     console.log('Closing clay: ' + JSON.stringify(getClaySettings()));
 });
@@ -90,11 +89,10 @@ function setProvider(providerId) {
         case 'wunderground':
             app.provider = new WundergroundProvider();
             break;
-        case 'darksky':
-            app.provider = new DarkSkyProvider(app.settings.darkSkyApiKey);
-            break;
         default:
-            console.log('Error assigning provider in initProvider');
+            console.log('Unknown provider: "' + providerId + '", defaulting to wunderground');
+            clay.setSettings("provider", "wunderground");
+            app.provider = new WundergroundProvider();
     }
     console.log('Set provider: ' + app.provider.name);
 }
@@ -138,7 +136,12 @@ function getClaySettings() {
     return JSON.parse(localStorage.getItem('clay-settings'));
 }
 
-function fetch(provider) {
+/**
+ * @typedef {import("./weather/provider")} WeatherProvider
+ * @param {WeatherProvider} provider 
+ * @param {boolean} force 
+ */
+function fetch(provider, force = false) {
     console.log('Fetching from ' + provider.name);
     var fetchStatus = {
         time: new Date(),
@@ -146,15 +149,18 @@ function fetch(provider) {
         name: provider.name
     }
     localStorage.setItem('lastFetchAttempt', JSON.stringify(fetchStatus));
-    provider.fetch(function() {
-        // Sucess, update recent fetch time
-        localStorage.setItem('lastFetchSuccess', JSON.stringify(fetchStatus));
-        console.log('Successfully fetched weather!')
-    },
-    function() {
-        // Failure
-        console.log('[!] Provider failed to update weather')
-    })
+    provider.fetch(
+        function() {
+            // Sucess, update recent fetch time
+            localStorage.setItem('lastFetchSuccess', JSON.stringify(fetchStatus));
+            console.log('Successfully fetched weather!')
+        },
+        function() {
+            // Failure
+            console.log('[!] Provider failed to update weather')
+        },
+        force
+    )
 }
 
 function tryFetch(provider) {

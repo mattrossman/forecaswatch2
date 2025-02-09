@@ -65,7 +65,7 @@ OpenWeatherMapProvider.prototype.withSunEvents = function (lat, lon, callback) {
     }).bind(this));
 }
 
-OpenWeatherMapProvider.prototype.withProviderData = function (lat, lon, callback) {
+OpenWeatherMapProvider.prototype.withProviderData = function (lat, lon, force, callback) {
     // callBack expects that this.hasValidData() will be true
     console.log('This is the overridden implementation of withProviderData')
     this.withWeatherData(lat, lon, (function (weatherData) {

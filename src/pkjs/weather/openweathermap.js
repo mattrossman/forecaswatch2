@@ -23,7 +23,10 @@ OpenWeatherMapProvider.prototype.constructor = OpenWeatherMapProvider;
 OpenWeatherMapProvider.prototype._super = WeatherProvider;
 
 OpenWeatherMapProvider.prototype.withOwmResponse = function (lat, lon, callback) {
-    var url = 'https://api.openweathermap.org/data/2.5/onecall?appid=' + this.apiKey + '&lat=' + lat + '&lon=' + lon + '&units=imperial&exclude=alerts,minutely';
+    var url = 'https://api.openweathermap.org/data/3.0/onecall?appid=' + this.apiKey + '&lat=' + lat + '&lon=' + lon + '&units=imperial&exclude=alerts,minutely';
+
+    console.log("Requesting " + url)
+    
     request(url, 'GET', function (response) {
         var weatherData = JSON.parse(response);
         console.log('Found timezone: ' + weatherData.timezone);

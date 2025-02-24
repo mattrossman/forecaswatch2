@@ -1,0 +1,49 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master]
+  pull_request:
+    branches: [ master]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-18.04
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '2.7'
+      - name: apt-get
+        run: sudo apt-get -qq install -y wget python-pip python2.7-dev libsdl1.2debian libfdt1 libpixman-1-0 nodejs npm libfreetype6 libx11-6 rlwrap
+      - name: virtualenv
+        run: pip install virtualenv
+      - name: get sdk
+        run: if [ ! -d sdk ]; then mkdir sdk && wget -q -O - https://developer.rebble.io/s3.amazonaws.com/assets.getpebble.com/pebble-tool/pebble-sdk-4.5-linux64.tar.bz2 | tar xj --strip-components=1 -C sdk; fi
+      - name: requirements
+        run: if [ ! -d sdk/.env ]; then cd sdk && virtualenv .env && bash -c "source .env/bin/activate && pip install -r requirements.txt && deactivate" && cd ..; fi
+      - name: sdk-core
+        run: if [ ! -f sdk/sdk-core-4.3.tar.bz2 ]; then wget https://github.com/aveao/PebbleArchive/raw/master/SDKCores/sdk-core-4.3.tar.bz2 -O sdk/sdk-core-4.3.tar.bz2; fi
+      - name: install sdk
+        run: if [ ! -d ~/.pebble-sdk ]; then mkdir -p ~/.pebble-sdk && touch ~/.pebble-sdk/NO_TRACKING && sdk/bin/pebble sdk install sdk/sdk-core-4.3.tar.bz2; fi
+      - name: make 
+        run: make travis_build
+      - name: Upload PBW
+        uses: actions/upload-artifact@v2
+        with:
+          name: App
+          path: ${{ github.workspace }}/build/*.pbw

@@ -73,7 +73,11 @@ npm run build
 
 This will build the project inside a docker container containing the Pebble SDK. The `.pbw` output can be found in the `build` directory on the host machine.
 
-You can also use `npm run shell` to access other Pebble CLI commands.
+You can also use `npm run shell` to access other Pebble CLI commands, for instance during development I often use:
+
+```bash
+pebble clean && pebble build && pebble install --phone <IP>
+```
 
 ### Config
 You can create a file `src/pkjs/dev-config.js` to set values for Clay keys (for convenience), e.g.

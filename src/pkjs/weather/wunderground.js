@@ -21,7 +21,7 @@ WundergroundProvider.prototype._super = WeatherProvider;
 
 WundergroundProvider.prototype.withWundergroundForecast = function(lat, lon, apiKey, callback) {
     // callback(wundergroundResponse)
-    var url = 'https://api.weather.com/v1/geocode/' + lat + '/' + lon + '/forecast/hourly/48hour.json?apiKey=' + apiKey;
+    var url = 'https://api.weather.com/v1/geocode/' + lat + '/' + lon + '/forecast/hourly/48hour.json?apiKey=' + apiKey + '&language=en-US';
 
     console.log("Requesting " + url)
 

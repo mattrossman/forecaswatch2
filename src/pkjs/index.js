@@ -141,7 +141,7 @@ function getClaySettings() {
  * @param {WeatherProvider} provider 
  * @param {boolean} force 
  */
-function fetch(provider, force = false) {
+function fetch(provider, force) {
     console.log('Fetching from ' + provider.name);
     var fetchStatus = {
         time: new Date(),
@@ -165,7 +165,7 @@ function fetch(provider, force = false) {
 
 function tryFetch(provider) {
     if (needRefresh()) {
-        fetch(provider);
+        fetch(provider, false);
     };
 }
 

@@ -58,31 +58,22 @@ For more cutting-edge features, download the latest [`forecaswatch2.pbw`](https:
 
 ### Building
 
-Prerequisites: [Node.js](https://nodejs.org/en/) and [Docker Desktop](https://docs.docker.com/get-docker/)
+Install and use the rebbletool found under https://github.com/richinfante/rebbletool
 
-```bash
-# Install JS dependencies
-npm install
-
-# Start the detached docker container
-npm start
-
-# Build within the container
-npm run build
+Build with
+```
+rebblebuild
 ```
 
-This will build the project inside a docker container containing the Pebble SDK. The `.pbw` output can be found in the `build` directory on the host machine.
-
-You can also use `npm run shell` to access other Pebble CLI commands, for instance during development I often use:
-
-```bash
-pebble clean && pebble build && pebble install --phone <IP>
+Run with
+```
+rebble install --emulator basalt
 ```
 
-### Config
-You can create a file `src/pkjs/dev-config.js` to set values for Clay keys (for convenience), e.g.
-
-```javascript
-var owmApiKey = 'abc123';
-module.exports.owmApiKey = owmApiKey;
+If emulator does not go past the pebble screen kill emulator and do a 
 ```
+rebble wipe
+```
+
+The `.pbw` output can be found in the `build` directory on the host machine.
+

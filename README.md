@@ -70,6 +70,11 @@ Run with
 rebble install --emulator basalt
 ```
 
+Open app config with
+```
+rebble emu-app-config
+```
+
 If emulator does not go past the pebble screen kill emulator and do a 
 ```
 rebble wipe

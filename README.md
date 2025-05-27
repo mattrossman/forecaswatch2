@@ -22,7 +22,7 @@ The developer, RCY, is nowhere to be found in the Rebble era. I plan to continue
 
 * Current time
 * Battery indicator
-* 3 week calendar
+* 1 week calendar starting from current day
 * 24 hour weather forecast (updates every 30 minutes)
 * Bluetooth connection indicator
 * Quiet time indicator
@@ -62,7 +62,7 @@ Install and use the rebbletool found under https://github.com/richinfante/rebble
 
 Build with
 ```
-rebblebuild
+rebble build
 ```
 
 Run with

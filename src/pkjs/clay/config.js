@@ -177,10 +177,6 @@ module.exports = [
                 "defaultValue": "wunderground",
                 "options": [
                     {
-                        "label": "Weather Underground",
-                        "value": "wunderground"
-                    },
-                    {
                         "label": "OpenWeatherMap",
                         "value": "openweathermap"
                     }

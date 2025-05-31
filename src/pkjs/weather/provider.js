@@ -11,6 +11,7 @@ function request(url, type, callback) {
 
 var WeatherProvider = function() {
     this.numEntries = 24;
+    this.numDays = 7;
     this.name = 'Template';
     this.id = 'interface';
     this.location = null;  // Address query used for overriding the GPS
@@ -210,20 +211,37 @@ WeatherProvider.prototype.getPayload = function() {
     var temps = this.tempTrend.slice(0, this.numEntries).map(function(temperature) {
         return Math.round(temperature);
     });
+    var daysTemp = this.daysTemp.slice(0, this.numDays).map(function(temperature) {
+        return Math.round(temperature);
+    });
+    var daysIcons = this.daysIcon.slice(0, this.numDays).map(function(temperature) {
+        return temperature;
+    });
     var precips = this.precipTrend.slice(0, this.numEntries).map(function(probability) {
         return Math.round(probability * 100);
     });
+    var daysPrecips = this.daysPop.slice(0, this.numDays).map(function(probability) {
+        return Math.round(probability * 100);
+    });
     var tempsIntView = new Int16Array(temps);
+    var daysTempIntView = new Int16Array(daysTemp);
+    var daysIconsIntView = new Int16Array(daysIcons);
     var tempsByteArray = Array.prototype.slice.call(new Uint8Array(tempsIntView.buffer))
+    var daysTempsByteArray = Array.prototype.slice.call(new Uint8Array(daysTempIntView.buffer))
+    var daysIconByteArray = Array.prototype.slice.call(new Uint8Array(daysIconsIntView.buffer))
     var sunEventsIntView = new Int32Array(this.sunEvents.map(function(sunEvent) {
         return sunEvent.date.getTime() / 1000;  // Seconds since epoch
     }));
     var sunEventsByteArray = Array.prototype.slice.call(new Uint8Array(sunEventsIntView.buffer))
     var payload = {
         'TEMP_TREND_INT16': tempsByteArray,
+        'TEMP_DAYS_INT16' : daysTempsByteArray,
+        'ICON_DAYS_INT16' : daysIconByteArray,
+        'PRECIP_DAYS_UINT8' : daysPrecips,
         'PRECIP_TREND_UINT8': precips, // Holds values within [0,100]
         'FORECAST_START': this.startTime,
         'NUM_ENTRIES': this.numEntries,
+        'NUM_DAYS': this.numDays,
         'CURRENT_TEMP': Math.round(this.currentTemp),
         'CITY': this.cityName,
         // The first byte determines whether the list of events starts on a sunrise (0) or sunset (1)

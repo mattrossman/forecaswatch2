@@ -26,7 +26,7 @@ The developer, RCY, is nowhere to be found in the Rebble era. I plan to continue
 * 24 hour weather forecast (updates every 30 minutes)
 * Bluetooth connection indicator
 * Quiet time indicator
-* Multiple weather providers (Weather Underground*, OpenWeatherMap)
+* Weather provider OpenWeatherMap
 * Current temperature
 * Temperature forecast (red line)
 * Precipitation probability forecast (blue area)
@@ -38,21 +38,9 @@ The developer, RCY, is nowhere to be found in the Rebble era. I plan to continue
 * Customize colors for Sundays, Saturdays, and US federal holidays
 * Offline configuration page
 
-*\* Using a hacky workaround*
-
 ## Platforms
 
-All rectangular watches are supported (Classic, Steel, Time, Time Steel, Pebble 2).
-
-## Installation
-
-### Rebble
-
-A stable release is was made available on the Rebble store thanks to @joshua. [Click here for the store page.](https://apps.rebble.io/en_US/application/5dcdca6ac393f50cf6dbc264)
-
-### Manual install
-
-For more cutting-edge features, download the latest [`forecaswatch2.pbw`](https://github.com/mattrossman/forecaswatch2/releases/latest/download/forecaswatch2.pbw) release. On Android you can use [Cx File Explorer](https://play.google.com/store/apps/details?id=com.cxinventor.file.explorer) to open this file through the Pebble app.
+Only Time and Time Steel are supported.
 
 ## Developers
 

@@ -35,6 +35,9 @@ static void velo_update_proc(Layer *layer, GContext *ctx) {
         char *buffer = s_calendar_box_buffers[i];
         
         GColor text_color = GColorWhite;
+        if (precips[i]>50) {
+            text_color = GColorBlue;
+        }
         text_layer_set_text_color(s_calendar_text_layers[i], text_color);
 
         // Use bold font for today, and holidays/weekends if colored

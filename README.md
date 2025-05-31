@@ -7,15 +7,13 @@
 [![Tip jar](https://img.shields.io/badge/%24%20tip%20jar-PayPal-253B80)](https://paypal.me/mttrssmn)
 
 
-Once upon a time I relied on *ForecasWatch* as the daily driver watchface on my beloved red Pebble Time. Recently, the free tier of the Weather Underground API on which the watchface relied was discontinued, making a huge portion of the watchface unusable.
-
-The developer, RCY, is nowhere to be found in the Rebble era. I plan to continue using my Pebble(s) for years to come, so this is my attempt to revive this wonderful watchface—and this time it's open source!
+Heavily based on the awesome ForcasWatch2 watchface https://github.com/mattrossman/forecaswatch2
+This watchface adds in addition a weekly forecast.
 
 ## Screenshots
 
 <div>
     <img src="screenshot/v1.14.0/color-composite.png" alt="Color screenshot" style="display:inline-block;vertical-align: middle;">
-    <img src="screenshot/v1.14.0/bw-composite.png" alt="Black and white screenshot" style="display:inline-block;vertical-align: middle;">
 </div>
 
 ## Features

@@ -2,7 +2,7 @@ var meta = require('../../../package.json');
 module.exports = [
     {
         "type": "heading",
-        "defaultValue": "ForecasWatch2"
+        "defaultValue": "VeloWatch"
     },
     {
         "type": "text",
@@ -145,6 +145,27 @@ module.exports = [
                 "sunlight": false,
                 "capabilities": ["COLOR"]
             },
+        ]
+    },
+    {
+        "type": "section",
+        "items": [
+            {
+                "type": "heading",
+                "defaultValue": "RiDuck"
+            },
+            {
+                "type": "input",
+                "label": "Username",
+                "messageKey": "riDuckUsername",
+                "description": "Paste your RiDuck username here"
+            },
+            {
+                "type": "input",
+                "label": "Password",
+                "messageKey": "riDuckPassword",
+                "description": "Paste your RiDuck password here"
+            }
         ]
     },
     {

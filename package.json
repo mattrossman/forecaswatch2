@@ -1,29 +1,21 @@
 {
-  "name": "forecaswatch2",
-  "author": "Matt Rossman",
+  "name": "velowatch",
+  "author": "Alexander Paersch",
   "version": "1.24.0",
   "keywords": [
     "pebble-app"
   ],
   "private": true,
-  "scripts": {
-    "start": "docker run -dit --name=forecaswatch2 --platform=linux/amd64 -v $PWD:/forecaswatch2 rebble/pebble-sdk",
-    "stop": "docker rm -f forecaswatch2",
-    "shell": "docker exec -it -w /forecaswatch2 forecaswatch2 bash",
-    "build": "docker exec -w /forecaswatch2 forecaswatch2 bash -c \"pebble build\""
-  },
   "dependencies": {
     "suncalc": "^1.9.0"
   },
   "pebble": {
-    "displayName": "FCW2",
-    "uuid": "7ed9b053-1521-4e49-be8b-6e12c68978ae",
+    "displayName": "VW",
+    "uuid": "f8b286b0-fef5-46ce-b9fa-a7d16f90b206",
     "sdkVersion": "3",
     "enableMultiJS": true,
     "targetPlatforms": [
-      "aplite",
-      "basalt",
-      "diorite"
+      "basalt"
     ],
     "watchapp": {
       "watchface": true
@@ -53,6 +45,42 @@
           "name": "IMAGE_BT_CONNECT",
           "file": "img/bt.png",
           "memoryFormat": "1BitPalette"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_CLOUDY",
+          "file": "img/cloudy.png",
+          "memoryFormat": "1BitPalette"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_PARTIAL_SUNNY",
+          "file": "img/partial_sunny.png",
+          "memoryFormat": "1BitPalette"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_RAINY",
+          "file": "img/rainy.png",
+          "memoryFormat": "1BitPalette"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_SNOWY",
+          "file": "img/snowy.png",
+          "memoryFormat": "1BitPalette"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_SUNNY",
+          "file": "img/sunny.png",
+          "memoryFormat": "1BitPalette"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_THUNDER",
+          "file": "img/thunder.png",
+          "memoryFormat": "1BitPalette"
         }
       ]
     },
@@ -62,9 +90,13 @@
     ],
     "messageKeys": [
       "TEMP_TREND_INT16",
+      "TEMP_DAYS_INT16",
+      "ICON_DAYS_INT16",
+      "PRECIP_DAYS_UINT8",
       "PRECIP_TREND_UINT8",
       "FORECAST_START",
       "NUM_ENTRIES",
+      "NUM_DAYS",
       "CURRENT_TEMP",
       "CITY",
       "SUN_EVENTS",

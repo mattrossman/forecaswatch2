@@ -1,5 +1,4 @@
 
-var WundergroundProvider = require('./weather/wunderground.js');
 var OpenWeatherMapProvider = require('./weather/openweathermap.js')
 var Clay = require('./clay/_source.js');
 var clayConfig = require('./clay/config.js');
@@ -86,13 +85,10 @@ function setProvider(providerId) {
         case 'openweathermap':
             app.provider = new OpenWeatherMapProvider(app.settings.owmApiKey);
             break;
-        case 'wunderground':
-            app.provider = new WundergroundProvider();
-            break;
         default:
-            console.log('Unknown provider: "' + providerId + '", defaulting to wunderground');
-            clay.setSettings("provider", "wunderground");
-            app.provider = new WundergroundProvider();
+            console.log('Unknown provider: "' + providerId + '", defaulting to openweathermap');
+            clay.setSettings("provider", "openweathermap");
+            app.provider = new OpenWeatherMapProvider(app.settings.owmApiKey);
     }
     console.log('Set provider: ' + app.provider.name);
 }
@@ -105,7 +101,7 @@ function clayTryDefaults() {
     if (persistClay === null) {
         console.log('No clay settings found, setting defaults');
         persistClay = {
-            provider: 'wunderground',
+            provider: 'openweathermap',
             location: ''
         }
         localStorage.setItem('clay-settings', JSON.stringify(persistClay));

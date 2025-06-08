@@ -10,9 +10,13 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     APP_LOG(APP_LOG_LEVEL_INFO, "Message received!");
     // Weather data
     Tuple *temp_trend_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_TREND_INT16);
+    Tuple *temp_days_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_DAYS_INT16);
+    Tuple *icon_days_tuple = dict_find(iterator, MESSAGE_KEY_ICON_DAYS_INT16);
+    Tuple *percip_days_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_DAYS_UINT8);
     Tuple *precip_trend_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_TREND_UINT8);
     Tuple *forecast_start_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_START);
     Tuple *num_entries_tuple = dict_find(iterator, MESSAGE_KEY_NUM_ENTRIES);
+    Tuple *num_days_tuple = dict_find(iterator, MESSAGE_KEY_NUM_DAYS);
     Tuple *current_temp_tuple = dict_find(iterator, MESSAGE_KEY_CURRENT_TEMP);
     Tuple *city_tuple = dict_find(iterator, MESSAGE_KEY_CITY);
     Tuple *sun_events_tuple = dict_find(iterator, MESSAGE_KEY_SUN_EVENTS);
@@ -35,14 +39,26 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *clay_color_us_federal_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_US_FEDERAL);
     Tuple *clay_color_time_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_TIME);
 
-    if(temp_trend_tuple && temp_trend_tuple && forecast_start_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
+    if(temp_trend_tuple && temp_days_tuple && icon_days_tuple && percip_days_tuple && num_days_tuple && temp_trend_tuple && forecast_start_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
         // Weather data received
         APP_LOG(APP_LOG_LEVEL_INFO, "All tuples received!");
         persist_set_forecast_start((time_t)forecast_start_tuple->value->int32);
         const int num_entries = ((int)num_entries_tuple->value->int32);
+        const int num_days = ((int)num_days_tuple->value->int32);
         persist_set_num_entries(num_entries);
+        persist_set_num_days(num_days);
         int16_t *temp_data = (int16_t*) temp_trend_tuple->value->data;
         persist_set_temp_trend(temp_data, num_entries);
+
+        int16_t *days_data = (int16_t*) temp_days_tuple->value->data;
+        persist_set_days_trend(days_data, num_days);
+
+        int16_t *days_icon = (int16_t*) icon_days_tuple->value->data;
+        persist_set_days_icon(days_icon, num_days);
+
+        uint8_t *precip_days = (uint8_t*) percip_days_tuple->value->data;
+        persist_set_precip_days(precip_days, num_days);
+
         uint8_t *precip_data = (uint8_t*) precip_trend_tuple->value->data;
         persist_set_precip_trend(precip_data, num_entries);
         persist_set_city((char*)city_tuple->value->cstring);

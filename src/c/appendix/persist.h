@@ -12,11 +12,19 @@ int persist_get_temp_hi();
 
 int persist_get_temp_trend(int16_t *buffer, const size_t buffer_size);
 
+int persist_get_days_trend(int16_t *buffer, const size_t buffer_size);
+
+int persist_get_days_icon(int16_t *buffer, const size_t buffer_size);
+
+int persist_get_precip_days(uint8_t *buffer, const size_t buffer_size);
+
 int persist_get_precip_trend(uint8_t *buffer, const size_t buffer_size);
 
 time_t persist_get_forecast_start();
 
 int persist_get_num_entries();
+
+int persist_get_num_days();
 
 int persist_get_current_temp();
 
@@ -34,11 +42,19 @@ void persist_set_temp_hi(int val);
 
 void persist_set_temp_trend(int16_t *data, const size_t size);
 
+void persist_set_days_trend(int16_t *data, const size_t size);
+
+void persist_set_days_icon(int16_t *data, const size_t size);
+
+void persist_set_precip_days(uint8_t *data, const size_t size);
+
 void persist_set_precip_trend(uint8_t *data, const size_t size);
 
 void persist_set_forecast_start(time_t val);
 
 void persist_set_num_entries(int val);
+
+void persist_set_num_days(int val);
 
 void persist_set_current_temp(int val);
 

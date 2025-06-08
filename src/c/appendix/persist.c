@@ -2,8 +2,8 @@
 #include "config.h"
 
 enum key {
-    TEMP_LO, TEMP_HI, TEMP_TREND, PRECIP_TREND, FORECAST_START, CITY, SUN_EVENT_START_TYPE, SUN_EVENT_TIMES, NUM_ENTRIES,
-    CURRENT_TEMP, BATTERY_LEVEL, CONFIG
+    TEMP_LO, TEMP_HI, TEMP_TREND, DAYS_TREND, DAYS_ICON, PRECIP_DAYS, PRECIP_TREND, FORECAST_START, CITY, SUN_EVENT_START_TYPE, SUN_EVENT_TIMES, NUM_ENTRIES,
+    NUM_DAYS, CURRENT_TEMP, BATTERY_LEVEL, CONFIG
 }; // Deprecated: BATTERY_LEVEL
 
 void persist_init() {
@@ -17,15 +17,30 @@ void persist_init() {
         int16_t data[] = {2, 2, 2, 4, 7, 9, 11, 12, 12, 12, 11, 9};
         persist_write_data(TEMP_TREND, (void*) data, 12*sizeof(int16_t));
     }
+    if (!persist_exists(DAYS_TREND)) {
+        int16_t data[] = {2, 2, 2, 4, 7, 9, 11};
+        persist_write_data(DAYS_TREND, (void*) data, 7*sizeof(int16_t));
+    }
+    if (!persist_exists(DAYS_ICON)) {
+        int16_t data[] = {2, 2, 2, 4, 7, 9, 11};
+        persist_write_data(DAYS_ICON, (void*) data, 7*sizeof(int16_t));
+    }
+    if (!persist_exists(PRECIP_DAYS)) {
+        uint8_t data[] = {0, 0, 0, 0, 0, 0, 0};
+        persist_write_data(PRECIP_DAYS, (void*) data, 7*sizeof(uint8_t));
+    }
     if (!persist_exists(PRECIP_TREND)) {
         uint8_t data[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        persist_write_data(TEMP_TREND, (void*) data, 12*sizeof(uint8_t));
+        persist_write_data(PRECIP_TREND, (void*) data, 12*sizeof(uint8_t));
     }
     if (!persist_exists(FORECAST_START)) {
         persist_write_int(FORECAST_START, 0);
     }
     if (!persist_exists(NUM_ENTRIES)) {
         persist_write_int(NUM_ENTRIES, 12);
+    }
+    if (!persist_exists(NUM_DAYS)) {
+        persist_write_int(NUM_DAYS, 7);
     }
     if (!persist_exists(CURRENT_TEMP)) {
         persist_write_int(CURRENT_TEMP, 1);
@@ -75,6 +90,18 @@ int persist_get_temp_trend(int16_t *buffer, const size_t buffer_size) {
     return persist_read_data(TEMP_TREND, (void*) buffer, buffer_size * sizeof(int16_t));
 }
 
+int persist_get_days_trend(int16_t *buffer, const size_t buffer_size) {
+    return persist_read_data(DAYS_TREND, (void*) buffer, buffer_size * sizeof(int16_t));
+}
+
+int persist_get_days_icon(int16_t *buffer, const size_t buffer_size) {
+    return persist_read_data(DAYS_ICON, (void*) buffer, buffer_size * sizeof(int16_t));
+}
+
+int persist_get_precip_days(uint8_t *buffer, const size_t buffer_size) {
+    return persist_read_data(PRECIP_DAYS, (void*) buffer, buffer_size * sizeof(uint8_t));
+}
+
 int persist_get_precip_trend(uint8_t *buffer, const size_t buffer_size) {
     return persist_read_data(PRECIP_TREND, (void*) buffer, buffer_size * sizeof(uint8_t));
 }
@@ -85,6 +112,10 @@ time_t persist_get_forecast_start() {
 
 int persist_get_num_entries() {
     return persist_read_int(NUM_ENTRIES);
+}
+
+int persist_get_num_days() {
+    return persist_read_int(NUM_DAYS);
 }
 
 int persist_get_current_temp() {
@@ -119,6 +150,18 @@ void persist_set_temp_trend(int16_t *data, const size_t size) {
     persist_write_data(TEMP_TREND, (void*) data, size * sizeof(int16_t));
 }
 
+void persist_set_days_trend(int16_t *data, const size_t size) {
+    persist_write_data(DAYS_TREND, (void*) data, size * sizeof(int16_t));
+}
+
+void persist_set_days_icon(int16_t *data, const size_t size) {
+    persist_write_data(DAYS_ICON, (void*) data, size * sizeof(int16_t));
+}
+
+void persist_set_precip_days(uint8_t *data, const size_t size) {
+    persist_write_data(PRECIP_DAYS, (void*) data, size * sizeof(uint8_t));
+}
+
 void persist_set_precip_trend(uint8_t *data, const size_t size) {
     persist_write_data(PRECIP_TREND, (void*) data, size * sizeof(uint8_t));
 }
@@ -129,6 +172,10 @@ void persist_set_forecast_start(time_t val) {
 
 void persist_set_num_entries(int val) {
     persist_write_int(NUM_ENTRIES, val);
+}
+
+void persist_set_num_days(int val) {
+    persist_write_int(NUM_DAYS, val);
 }
 
 void persist_set_current_temp(int val) {

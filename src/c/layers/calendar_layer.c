@@ -102,10 +102,10 @@ static void calendar_update_proc(Layer *layer, GContext *ctx) {
     // Calculate which box holds today's date
     const int i_today = config_n_today();
 
-    graphics_context_set_fill_color(ctx, today_color());
-    graphics_fill_rect(ctx,
-        GRect((i_today % DAYS_PER_WEEK) * box_w, (i_today / DAYS_PER_WEEK) * box_h,
-        box_w, box_h), 1, GCornersAll);
+    //graphics_context_set_fill_color(ctx, today_color());
+    //graphics_fill_rect(ctx,
+    //    GRect((i_today % DAYS_PER_WEEK) * box_w, (i_today / DAYS_PER_WEEK) * box_h,
+    //    box_w, box_h), 1, GCornersAll);
 }
 
 void calendar_layer_create(Layer* parent_layer, GRect frame) {

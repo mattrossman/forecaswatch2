@@ -1,6 +1,7 @@
 #include "main_window.h"
 #include "c/layers/time_layer.h"
 #include "c/layers/forecast_layer.h"
+#include "c/layers/velo_layer.h"
 #include "c/layers/weather_status_layer.h"
 #include "c/layers/calendar_layer.h"
 #include "c/layers/calendar_status_layer.h"
@@ -8,9 +9,10 @@
 #include "c/appendix/persist.h"
 
 #define FORECAST_HEIGHT 51
+#define VELO_HEIGHT 20
 #define WEATHER_STATUS_HEIGHT 14
 #define TIME_HEIGHT 45
-#define CALENDAR_HEIGHT 45
+#define CALENDAR_HEIGHT 17
 #define CALENDAR_STATUS_HEIGHT 13
 
 static Window *s_main_window;
@@ -25,6 +27,8 @@ static void main_window_load(Window *window) {
 
     forecast_layer_create(window_layer,
             GRect(0, h - FORECAST_HEIGHT, w, FORECAST_HEIGHT));
+    velo_layer_create(window_layer,
+            GRect(0, CALENDAR_STATUS_HEIGHT + CALENDAR_HEIGHT, w, VELO_HEIGHT));
     weather_status_layer_create(window_layer,
             GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, w, WEATHER_STATUS_HEIGHT));
     time_layer_create(window_layer,
@@ -43,6 +47,7 @@ static void main_window_unload(Window *window) {
     time_layer_destroy();
     weather_status_layer_destroy();
     forecast_layer_destroy();
+    velo_layer_destroy();
     calendar_layer_destroy();
     calendar_status_layer_destroy();
     loading_layer_destroy();
@@ -84,6 +89,7 @@ void main_window_refresh() {
     time_layer_refresh();
     weather_status_layer_refresh();
     forecast_layer_refresh();
+    velo_layer_refresh();
     calendar_layer_refresh();
     calendar_status_layer_refresh();
 }

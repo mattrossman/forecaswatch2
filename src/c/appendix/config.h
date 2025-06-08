@@ -14,6 +14,7 @@ typedef struct {
     bool vibe;
     bool show_am_pm;
     int16_t time_font;
+    char advice[30];
     GColor color_today;
     GColor color_saturday;
     GColor color_sunday;

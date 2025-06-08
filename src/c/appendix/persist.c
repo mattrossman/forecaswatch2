@@ -3,7 +3,7 @@
 
 enum key {
     TEMP_LO, TEMP_HI, TEMP_TREND, DAYS_TREND, DAYS_ICON, PRECIP_DAYS, PRECIP_TREND, FORECAST_START, CITY, SUN_EVENT_START_TYPE, SUN_EVENT_TIMES, NUM_ENTRIES,
-    NUM_DAYS, CURRENT_TEMP, BATTERY_LEVEL, CONFIG
+    NUM_DAYS, CURRENT_TEMP, BATTERY_LEVEL, CONFIG, ADVICE
 }; // Deprecated: BATTERY_LEVEL
 
 void persist_init() {
@@ -32,6 +32,10 @@ void persist_init() {
     if (!persist_exists(PRECIP_TREND)) {
         uint8_t data[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         persist_write_data(PRECIP_TREND, (void*) data, 12*sizeof(uint8_t));
+    }
+    if (!persist_exists(ADVICE)) {
+        uint8_t data[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0, 0};
+        persist_write_data(ADVICE, (void*) data, 30*sizeof(uint8_t));
     }
     if (!persist_exists(FORECAST_START)) {
         persist_write_int(FORECAST_START, 0);
@@ -102,6 +106,10 @@ int persist_get_precip_days(uint8_t *buffer, const size_t buffer_size) {
     return persist_read_data(PRECIP_DAYS, (void*) buffer, buffer_size * sizeof(uint8_t));
 }
 
+int persist_get_advice(char *buffer, const size_t buffer_size) {
+    return persist_read_data(ADVICE, (void*) buffer, buffer_size * sizeof(uint8_t));
+}
+
 int persist_get_precip_trend(uint8_t *buffer, const size_t buffer_size) {
     return persist_read_data(PRECIP_TREND, (void*) buffer, buffer_size * sizeof(uint8_t));
 }
@@ -164,6 +172,10 @@ void persist_set_precip_days(uint8_t *data, const size_t size) {
 
 void persist_set_precip_trend(uint8_t *data, const size_t size) {
     persist_write_data(PRECIP_TREND, (void*) data, size * sizeof(uint8_t));
+}
+
+void persist_set_advice(uint8_t *data, const size_t size) {
+    persist_write_data(ADVICE, (void*) data, size * sizeof(uint8_t));
 }
 
 void persist_set_forecast_start(time_t val) {

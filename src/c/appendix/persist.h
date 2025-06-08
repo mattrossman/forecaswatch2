@@ -20,6 +20,10 @@ int persist_get_precip_days(uint8_t *buffer, const size_t buffer_size);
 
 int persist_get_precip_trend(uint8_t *buffer, const size_t buffer_size);
 
+void persist_set_advice(uint8_t *buffer, const size_t size);
+
+int persist_get_advice(char *buffer, const size_t size);
+
 time_t persist_get_forecast_start();
 
 int persist_get_num_entries();

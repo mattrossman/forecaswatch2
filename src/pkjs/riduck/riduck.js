@@ -17,7 +17,11 @@ function request(url, type, callback, body = null, headers = {}) {
     xhr.send(body);
 }
 
-function login(username, password, callback) {
+var RiDuckProvider = function() {
+}
+
+
+RiDuckProvider.prototype.login = function (username, password, callback) {
     var url = "https://rest.riduck.com/api/aam/v2/authenticate";
     var payload = JSON.stringify({
         rememberMe: true,
@@ -51,7 +55,7 @@ function login(username, password, callback) {
     }, payload, headers);
 }
 
-function fetchDashboard(jwtToken) {
+RiDuckProvider.prototype.fetchAdvice = function (jwtToken, callback) {
     var url = "https://rest.riduck.com/json-api/dashboard.php?order=get_dashboard&days=84";
 
     var headers = {
@@ -69,8 +73,7 @@ function fetchDashboard(jwtToken) {
                              data.summary_data.tss_table.advice;
                 console.log("✅ Dashboard received.");
                 console.log("🧠 Advice: " + advice);
-                // Optionally, send to watch:
-                // Pebble.sendAppMessage({ "advice": advice });
+                callback(advice);
             } catch (e) {
                 console.log("❌ JSON parse error:", e.message);
             }
@@ -80,7 +83,4 @@ function fetchDashboard(jwtToken) {
     }, null, headers);
 }
 
-// Start the flow (trigger this based on Pebble event or config screen)
-login("your_username", "your_password", function (token) {
-    fetchDashboard(token);
-});
+module.exports = RiDuckProvider;

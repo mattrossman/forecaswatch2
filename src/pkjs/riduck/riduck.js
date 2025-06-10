@@ -55,6 +55,28 @@ RiDuckProvider.prototype.login = function (username, password, callback) {
     }, payload, headers);
 }
 
+function findStatus(input) {
+  input = input.toLowerCase();
+
+  if (input.includes("need more training")) {
+    return 0;
+  } else if (input.includes("fresh condition")) {
+    return 1;
+  } else if (input.includes("keeping it steady")) {
+    return 2;
+  } else if (input.includes("gradually improving")) {
+    return 3;
+  } else if (input.includes("best training status")) {
+    return 4;
+  } else if (input.includes("slightly overtrained")) {
+    return 5;
+  } else if (input.includes("overtraining warning")) {
+    return 6;
+  } else {
+    return 255; // Not found
+  }
+}
+
 RiDuckProvider.prototype.fetchAdvice = function (jwtToken, callback) {
     var url = "https://rest.riduck.com/json-api/dashboard.php?order=get_dashboard&days=84";
 
@@ -73,7 +95,8 @@ RiDuckProvider.prototype.fetchAdvice = function (jwtToken, callback) {
                              data.summary_data.tss_table.advice;
                 console.log("✅ Dashboard received.");
                 console.log("🧠 Advice: " + advice);
-                callback(advice);
+                adviceNumber = findStatus(advice);
+                callback(adviceNumber);
             } catch (e) {
                 console.log("❌ JSON parse error:", e.message);
             }

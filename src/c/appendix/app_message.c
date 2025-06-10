@@ -13,7 +13,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *temp_days_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_DAYS_INT16);
     Tuple *icon_days_tuple = dict_find(iterator, MESSAGE_KEY_ICON_DAYS_INT16);
     Tuple *percip_days_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_DAYS_UINT8);
-    Tuple *advice_tuple = dict_find(iterator, MESSAGE_KEY_ADVICE_UINT8);
+    Tuple *advice_tuple = dict_find(iterator, MESSAGE_KEY_ADVICE);
     Tuple *precip_trend_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_TREND_UINT8);
     Tuple *forecast_start_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_START);
     Tuple *num_entries_tuple = dict_find(iterator, MESSAGE_KEY_NUM_ENTRIES);
@@ -57,8 +57,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         int16_t *days_icon = (int16_t*) icon_days_tuple->value->data;
         persist_set_days_icon(days_icon, num_days);
 
-        uint8_t *advice_data = (uint8_t*) advice_tuple->value->data;
-        persist_set_advice(advice_data,30);
+        const int advice_data = ((int) advice_tuple->value->int32);
+        persist_set_advice(advice_data);
 
         uint8_t *precip_days = (uint8_t*) percip_days_tuple->value->data;
         persist_set_precip_days(precip_days, num_days);

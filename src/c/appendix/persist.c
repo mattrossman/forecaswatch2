@@ -106,8 +106,8 @@ int persist_get_precip_days(uint8_t *buffer, const size_t buffer_size) {
     return persist_read_data(PRECIP_DAYS, (void*) buffer, buffer_size * sizeof(uint8_t));
 }
 
-int persist_get_advice(char *buffer, const size_t buffer_size) {
-    return persist_read_data(ADVICE, (void*) buffer, buffer_size * sizeof(uint8_t));
+int persist_get_advice() {
+    return persist_read_int(ADVICE);
 }
 
 int persist_get_precip_trend(uint8_t *buffer, const size_t buffer_size) {
@@ -174,8 +174,8 @@ void persist_set_precip_trend(uint8_t *data, const size_t size) {
     persist_write_data(PRECIP_TREND, (void*) data, size * sizeof(uint8_t));
 }
 
-void persist_set_advice(uint8_t *data, const size_t size) {
-    persist_write_data(ADVICE, (void*) data, size * sizeof(uint8_t));
+void persist_set_advice(int val) {
+    persist_write_int(ADVICE, val);
 }
 
 void persist_set_forecast_start(time_t val) {

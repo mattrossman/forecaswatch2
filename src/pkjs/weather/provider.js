@@ -241,6 +241,7 @@ WeatherProvider.prototype.getPayload = function() {
         'PRECIP_TREND_UINT8': precips, // Holds values within [0,100]
         'FORECAST_START': this.startTime,
         'NUM_ENTRIES': this.numEntries,
+        'ADVICE': 0,
         'NUM_DAYS': this.numDays,
         'CURRENT_TEMP': Math.round(this.currentTemp),
         'CITY': this.cityName,

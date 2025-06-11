@@ -34,8 +34,7 @@ void persist_init() {
         persist_write_data(PRECIP_TREND, (void*) data, 12*sizeof(uint8_t));
     }
     if (!persist_exists(ADVICE)) {
-        uint8_t data[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0, 0};
-        persist_write_data(ADVICE, (void*) data, 30*sizeof(uint8_t));
+        persist_write_int(ADVICE, 0);
     }
     if (!persist_exists(FORECAST_START)) {
         persist_write_int(FORECAST_START, 0);

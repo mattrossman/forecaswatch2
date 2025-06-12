@@ -9,10 +9,10 @@
 #include "c/appendix/persist.h"
 
 #define FORECAST_HEIGHT 51
-#define VELO_HEIGHT 20
+#define VELO_HEIGHT 36
 #define WEATHER_STATUS_HEIGHT 14
 #define TIME_HEIGHT 45
-#define CALENDAR_HEIGHT 17
+#define CALENDAR_HEIGHT 18
 #define CALENDAR_STATUS_HEIGHT 13
 
 static Window *s_main_window;
@@ -58,6 +58,9 @@ static void minute_handler(struct tm *tick_time, TimeUnits units_changed) {
     if (tick_time->tm_hour == 0) {
         calendar_layer_refresh();
         calendar_status_layer_refresh();
+    }
+    if (tick_time->tm_min % 10 == 0) {
+        velo_layer_refresh();
     }
     status_icons_refresh();
     loading_layer_refresh();

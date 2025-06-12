@@ -78,6 +78,8 @@ function sendClaySettings() {
 function refreshProvider() {
     setProvider(app.settings.provider);
     app.provider.location = app.settings.location === '' ? null : app.settings.location
+    app.provider.riduckUser = app.settings.riDuckUsername;
+    app.provider.riduckPassword = app.settings.riDuckPassword;
 }
 
 function setProvider(providerId) {

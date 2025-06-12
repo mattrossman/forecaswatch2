@@ -1,4 +1,5 @@
 const SunCalc = require('suncalc')
+const RiDuck = require('../riduck/riduck')
 
 function request(url, type, callback) {
     var xhr = new XMLHttpRequest();
@@ -14,7 +15,10 @@ var WeatherProvider = function() {
     this.numDays = 7;
     this.name = 'Template';
     this.id = 'interface';
+    this.advice = 0;
     this.location = null;  // Address query used for overriding the GPS
+    this.riduckUser = '';
+    this.riduckPassword = '';
 }
 
 WeatherProvider.prototype.gpsEnable = function() {
@@ -129,6 +133,31 @@ WeatherProvider.prototype.withGpsCoordinates = function(callback) {
     navigator.geolocation.getCurrentPosition(success, error, options);
 }
 
+WeatherProvider.prototype.withRiDuck = function(callback) {
+    console.log('Trying to connect to RiDuck');
+    if (this.riduckPassword === '' || this.riduckUser === '') {
+        console.log('No RiDuck credentials');
+        callback(0);
+    }
+    else
+    {
+        var riduck = new RiDuck();
+        riduck.login(this.riduckUser, this.riduckPassword, function (token) {
+            if (token === '')
+            {
+                console.log('Did not get RiDukc JWT');
+                callback(0);
+            }
+            else
+            {
+                riduck.fetchAdvice(token, function (advice) {
+                    callback(advice);
+                }.bind(this));
+            }
+        }.bind(this));
+    }
+}
+
 WeatherProvider.prototype.withCoordinates = function(callback) {
     if (this.location === null) {
         console.log('Using GPS')
@@ -148,6 +177,7 @@ WeatherProvider.prototype.withProviderData = function(lat, lon, force, callback)
 WeatherProvider.prototype.fetch = function(onSuccess, onFailure, force) {
     this.withCoordinates((function(lat, lon) {
         this.withCityName(lat, lon, (function(cityName) {
+            this.withRiDuck((function(advice) {
             this.withSunEvents(lat, lon, (function(sunEvents) {
                 this.withProviderData(lat, lon, force, (function() {
                     // if `this` (the provider) contains valid weather details,
@@ -157,6 +187,7 @@ WeatherProvider.prototype.fetch = function(onSuccess, onFailure, force) {
                         // Send to Pebble
                         this.cityName = cityName;
                         this.sunEvents = sunEvents;
+                        this.advice = advice;
                         payload = this.getPayload();
                         Pebble.sendAppMessage(payload,
                             function (e) {
@@ -173,6 +204,7 @@ WeatherProvider.prototype.fetch = function(onSuccess, onFailure, force) {
                         console.log('Fetch cancelled: insufficient data.')
                         onFailure();
                     }
+                }).bind(this));
                 }).bind(this));
             }).bind(this));
         }).bind(this));
@@ -240,8 +272,8 @@ WeatherProvider.prototype.getPayload = function() {
         'PRECIP_DAYS_UINT8' : daysPrecips,
         'PRECIP_TREND_UINT8': precips, // Holds values within [0,100]
         'FORECAST_START': this.startTime,
+        'ADVICE': this.advice,
         'NUM_ENTRIES': this.numEntries,
-        'ADVICE': 0,
         'NUM_DAYS': this.numDays,
         'CURRENT_TEMP': Math.round(this.currentTemp),
         'CITY': this.cityName,

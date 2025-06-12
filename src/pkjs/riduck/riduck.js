@@ -45,12 +45,15 @@ RiDuckProvider.prototype.login = function (username, password, callback) {
                     callback(token);
                 } else {
                     console.log("⚠️ Token not found.");
+                    callback('');
                 }
             } catch (e) {
                 console.log("❌ JSON parse error:", e.message);
+                callback('');
             }
         } else {
             console.log("❌ Login failed: " + xhr.status);
+            callback('');
         }
     }, payload, headers);
 }
@@ -59,21 +62,21 @@ function findStatus(input) {
   input = input.toLowerCase();
 
   if (input.includes("need more training")) {
-    return 0;
-  } else if (input.includes("fresh condition")) {
     return 1;
-  } else if (input.includes("keeping it steady")) {
+  } else if (input.includes("fresh condition")) {
     return 2;
-  } else if (input.includes("gradually improving")) {
+  } else if (input.includes("keeping it steady")) {
     return 3;
-  } else if (input.includes("best training status")) {
+  } else if (input.includes("gradually improving")) {
     return 4;
-  } else if (input.includes("slightly overtrained")) {
+  } else if (input.includes("best training status")) {
     return 5;
-  } else if (input.includes("overtraining warning")) {
+  } else if (input.includes("slightly overtrained")) {
     return 6;
+  } else if (input.includes("overtraining warning")) {
+    return 7;
   } else {
-    return 255; // Not found
+    return 0; // Not found
   }
 }
 
@@ -99,9 +102,11 @@ RiDuckProvider.prototype.fetchAdvice = function (jwtToken, callback) {
                 callback(adviceNumber);
             } catch (e) {
                 console.log("❌ JSON parse error:", e.message);
+                callback(0);
             }
         } else {
             console.log("❌ Dashboard fetch failed: " + xhr.status);
+            callback(0);
         }
     }, null, headers);
 }

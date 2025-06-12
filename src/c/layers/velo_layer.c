@@ -110,7 +110,7 @@ void velo_layer_create(Layer *parent_layer, GRect frame) {
     }
     {
         s_advice_text_layer = text_layer_create(
-            GRect(0, 1 * box_h - FONT_OFFSET -1,
+            GRect(0, 1 * box_h - FONT_OFFSET -3,
                   w, box_h + FONT_OFFSET));
         text_layer_set_background_color(s_advice_text_layer, GColorClear);
         text_layer_set_text_alignment(s_advice_text_layer, GTextAlignmentCenter);

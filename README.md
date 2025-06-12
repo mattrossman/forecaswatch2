@@ -12,7 +12,7 @@ This watchface adds in addition a weekly forecast.
 ## Screenshots
 
 <div>
-    <img src="screenshot/v1.14.0/color-composite.png" alt="Color screenshot" style="display:inline-block;vertical-align: middle;">
+    <img src="screenshot/composite.png" alt="Color screenshot" style="display:inline-block;vertical-align: middle;">
 </div>
 
 ## Features
@@ -58,6 +58,12 @@ rebble install --emulator basalt
 Open app config with
 ```
 rebble emu-app-config
+```
+
+If app config does not work, you can create the file src/pkjs/dev-config.js to set values for Clay keys (for convenience), e.g.
+```
+var owmApiKey = 'abc123';
+module.exports.owmApiKey = owmApiKey;
 ```
 
 If emulator does not go past the pebble screen kill emulator and do a 

@@ -26,8 +26,6 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *clay_celsius_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_CELSIUS);
     Tuple *clay_time_lead_zero_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_TIME_LEAD_ZERO);
     Tuple *clay_axis_12h_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_AXIS_12H);
-    Tuple *clay_start_mon_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_START_MON);
-    Tuple *clay_prev_week_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_PREV_WEEK);
     Tuple *clay_color_today_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_TODAY);
     Tuple *clay_time_font_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_TIME_FONT);
     Tuple *clay_vibe_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_VIBE);
@@ -78,15 +76,13 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         forecast_layer_refresh();
         weather_status_layer_refresh();
     }
-    else if (clay_celsius_tuple && clay_axis_12h_tuple && clay_start_mon_tuple && clay_prev_week_tuple && clay_color_today_tuple
+    else if (clay_celsius_tuple && clay_axis_12h_tuple  && clay_color_today_tuple
         && clay_vibe_tuple && clay_show_qt_tuple && clay_show_bt_tuple && clay_show_bt_disconnect_tuple && clay_show_am_pm_tuple
         && clay_color_saturday_tuple && clay_color_sunday_tuple && clay_color_us_federal_tuple && clay_color_time_tuple) {
         // Clay config data received
         bool clay_celsius = (bool) (clay_celsius_tuple->value->int16);
         bool time_lead_zero = (bool) (clay_time_lead_zero_tuple->value->int16);
         bool axis_12h = (bool) (clay_axis_12h_tuple->value->int16);
-        bool start_mon = (bool) (clay_start_mon_tuple->value->int16);
-        bool prev_week = (bool) (clay_prev_week_tuple->value->int16);
         bool vibe = (bool) (clay_vibe_tuple->value->int16);
         bool show_qt = (bool) (clay_show_qt_tuple->value->int16);
         bool show_bt = (bool) (clay_show_bt_tuple->value->int16);
@@ -102,8 +98,6 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
             .celsius = clay_celsius,
             .time_lead_zero = time_lead_zero,
             .axis_12h = axis_12h,
-            .start_mon = start_mon,
-            .prev_week = prev_week,
             .time_font = time_font,
             .color_today = color_today,
             .vibe = vibe,

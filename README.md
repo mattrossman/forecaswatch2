@@ -37,7 +37,7 @@ This watchface adds in addition a weekly forecast, and a connection to [RiDuck](
 * Customize colors for Sundays, Saturdays, and US federal holidays
 * Offline configuration page
 
-## Future Features
+## Planned Features
 
 * Add wind prediction in graph
 * Add line under advice to show where you are in the advice range

@@ -41,6 +41,8 @@ This watchface adds in addition a weekly forecast, and a connection to [RiDuck](
 
 * Add wind prediction in graph
 * Add line under advice to show where you are in the advice range
+* Add color indicator for current temperature showing the current uv-index
+* Add public holiday API and use same color as for Sunday. Add setting for country and region for holiday API.
 
 ## Platforms
 

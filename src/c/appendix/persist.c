@@ -3,7 +3,7 @@
 
 enum key {
     TEMP_LO, TEMP_HI, TEMP_TREND, DAYS_TREND, DAYS_ICON, PRECIP_DAYS, PRECIP_TREND, FORECAST_START, CITY, SUN_EVENT_START_TYPE, SUN_EVENT_TIMES, NUM_ENTRIES,
-    NUM_DAYS, CURRENT_TEMP, BATTERY_LEVEL, CONFIG, ADVICE
+    NUM_DAYS, CURRENT_TEMP, BATTERY_LEVEL, CONFIG, ADVICE, HOLIDAYS
 }; // Deprecated: BATTERY_LEVEL
 
 void persist_init() {
@@ -35,6 +35,9 @@ void persist_init() {
     }
     if (!persist_exists(ADVICE)) {
         persist_write_int(ADVICE, 0);
+    }
+    if (!persist_exists(HOLIDAYS)) {
+        persist_write_int(HOLIDAYS, 0);
     }
     if (!persist_exists(FORECAST_START)) {
         persist_write_int(FORECAST_START, 0);
@@ -109,6 +112,10 @@ int persist_get_advice() {
     return persist_read_int(ADVICE);
 }
 
+int persist_get_holidays() {
+    return persist_read_int(HOLIDAYS);
+}
+
 int persist_get_precip_trend(uint8_t *buffer, const size_t buffer_size) {
     return persist_read_data(PRECIP_TREND, (void*) buffer, buffer_size * sizeof(uint8_t));
 }
@@ -175,6 +182,10 @@ void persist_set_precip_trend(uint8_t *data, const size_t size) {
 
 void persist_set_advice(int val) {
     persist_write_int(ADVICE, val);
+}
+
+void persist_set_holidays(int val) {
+    persist_write_int(HOLIDAYS, val);
 }
 
 void persist_set_forecast_start(time_t val) {

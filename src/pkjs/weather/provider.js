@@ -1,5 +1,6 @@
 const SunCalc = require('suncalc')
 const RiDuck = require('../riduck/riduck')
+const RiDuck = require('../openholidaysapi/openholidaysapi')
 
 function request(url, type, callback) {
     var xhr = new XMLHttpRequest();
@@ -19,6 +20,8 @@ var WeatherProvider = function() {
     this.location = null;  // Address query used for overriding the GPS
     this.riduckUser = '';
     this.riduckPassword = '';
+    this.openHolidaysCountry = '';
+    this.openHolidaysRegion = '';
 }
 
 WeatherProvider.prototype.gpsEnable = function() {

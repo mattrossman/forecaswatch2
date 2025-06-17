@@ -80,6 +80,8 @@ function refreshProvider() {
     app.provider.location = app.settings.location === '' ? null : app.settings.location
     app.provider.riduckUser = app.settings.riDuckUsername;
     app.provider.riduckPassword = app.settings.riDuckPassword;
+    app.openHolidaysCountry = app.settings.openHolidaysCountry;
+    app.openHolidaysRegion = app.settings.openHolidaysRegion;
 }
 
 function setProvider(providerId) {

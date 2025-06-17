@@ -96,6 +96,7 @@
       "PRECIP_TREND_UINT8",
       "FORECAST_START",
       "ADVICE",
+      "HOLIDAYS",
       "NUM_ENTRIES",
       "NUM_DAYS",
       "CURRENT_TEMP",

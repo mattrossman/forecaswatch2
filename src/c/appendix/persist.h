@@ -22,7 +22,11 @@ int persist_get_precip_trend(uint8_t *buffer, const size_t buffer_size);
 
 void persist_set_advice(int val);
 
+void persist_set_holidays(int val);
+
 int persist_get_advice();
+
+int persist_get_holidays();
 
 time_t persist_get_forecast_start();
 

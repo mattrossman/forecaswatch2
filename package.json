@@ -119,5 +119,12 @@
       "CLAY_COLOR_US_FEDERAL",
       "CLAY_COLOR_TIME"
     ]
+  },
+  "devDependencies": {
+    "jest": "^30.0.2",
+    "xhr2": "^0.2.1"
+  },
+  "scripts": {
+    "test": "jest"
   }
 }

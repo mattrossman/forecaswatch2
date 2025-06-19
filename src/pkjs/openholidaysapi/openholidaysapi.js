@@ -45,7 +45,7 @@ OpenHolidaysProvider.prototype.getHolidayBitmask = function (countryIsoCode, reg
                     checkDate.setDate(today.getDate() + i);
                     const checkDateStr = checkDate.toISOString().split('T')[0];
 
-                    const isHoliday = holidays.some(h => h.date === checkDateStr);
+                    const isHoliday = holidays.some(h => h.startDate === checkDateStr && h.type =="Public");
                     if (isHoliday) {
                         bitmask |= (1 << i);
                     }

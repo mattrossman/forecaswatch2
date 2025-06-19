@@ -1,5 +1,6 @@
 #include "calendar_layer.h"
 #include "c/appendix/config.h"
+#include "c/appendix/persist.h"
 #include <time.h>
 
 #define NUM_WEEKS 1
@@ -29,67 +30,15 @@ static int relative_day_of_month(int days_from_today) {
     return local_time->tm_mday;
 }
 
-static bool is_us_federal_holiday(struct tm *t)
-{
-    // No holidays on weekends (ensures we don't register a false positive for special cases)
-    if (t->tm_wday == 0 || t->tm_wday == 6)
-        return false;
-
-    // These holidays are on a specific weekday, so no special cases
-    if ((t->tm_mon == 0  && t->tm_mday >= 15 && t->tm_mday <= 21 && t->tm_wday == 1) || // MLK Day
-        (t->tm_mon == 1  && t->tm_mday >= 15 && t->tm_mday <= 21 && t->tm_wday == 1) || // Washington's Birthday
-        (t->tm_mon == 4  && t->tm_mday >= 25 && t->tm_mday <= 31 && t->tm_wday == 1) || // Memorial Day
-        (t->tm_mon == 8  && t->tm_mday >= 1  && t->tm_mday <= 7  && t->tm_wday == 1) || // Labor Day
-        (t->tm_mon == 9  && t->tm_mday >= 8  && t->tm_mday <= 14 && t->tm_wday == 1) || // Columbus Day
-        (t->tm_mon == 10 && t->tm_mday >= 22 && t->tm_mday <= 28 && t->tm_wday == 4))   // Thanksgiving
-        return true;
-
-    // These remaining holidays are on a specific day of the month, which get
-    // moved if they fall on a weekend
-    
-    // Friday special cases
-    if (t->tm_wday == 5 && (
-        (t->tm_mon == 11 && t->tm_mday == 31) || // New Years
-        (t->tm_mon == 6  && t->tm_mday == 3)  || // Independence Day
-        (t->tm_mon == 10 && t->tm_mday == 10) || // Veterans Day
-        (t->tm_mon == 11 && t->tm_mday == 24)))  // Christmas
-        return true;
-    // Monday special cases
-    if (t->tm_wday == 1 && (
-        (t->tm_mon == 0  && t->tm_mday == 2)  || // New Years
-        (t->tm_mon == 6  && t->tm_mday == 5)  || // Independence Day
-        (t->tm_mon == 10 && t->tm_mday == 12) || // Veterans Day
-        (t->tm_mon == 11 && t->tm_mday == 26)))  // Christmas
-        return true;
-    // Non special cases
-    if ((t->tm_mon == 0  && t->tm_mday == 1)  || // New Years
-        (t->tm_mon == 6  && t->tm_mday == 4)  || // Independence Day
-        (t->tm_mon == 10 && t->tm_mday == 11) || // Veterans Day
-        (t->tm_mon == 11 && t->tm_mday == 25))   // Christmas
-        return true;
-    
-    // Default to no holiday
-    return false;
-}
-
-static GColor date_color(struct tm *t) {
+static GColor date_color(struct tm *t, int i) {
     // Get color for a date, considering weekends and holidays
-    if (is_us_federal_holiday(t))
+    if (((persist_get_holidays() >> i) && 0x01)==1)
         return g_config->color_us_federal;
     if (t->tm_wday == 0)
         return g_config->color_sunday;
     if (t->tm_wday == 6)
         return g_config->color_saturday;
     return GColorWhite;
-}
-
-static GColor today_color() {
-    // Either follow the date color or override to configured value
-    struct tm *t = relative_tm(0);
-    return PBL_IF_COLOR_ELSE(
-        gcolor_equal(g_config->color_today, GColorBlack) ? date_color(t) : g_config->color_today,
-        GColorWhite
-    );
 }
 
 static void calendar_update_proc(Layer *layer, GContext *ctx) {
@@ -101,11 +50,6 @@ static void calendar_update_proc(Layer *layer, GContext *ctx) {
 
     // Calculate which box holds today's date
     const int i_today = config_n_today();
-
-    //graphics_context_set_fill_color(ctx, today_color());
-    //graphics_fill_rect(ctx,
-    //    GRect((i_today % DAYS_PER_WEEK) * box_w, (i_today / DAYS_PER_WEEK) * box_h,
-    //    box_w, box_h), 1, GCornersAll);
 }
 
 void calendar_layer_create(Layer* parent_layer, GRect frame) {
@@ -142,11 +86,11 @@ void calendar_layer_refresh() {
         char *buffer = s_calendar_box_buffers[i];
         struct tm *t = relative_tm(i);
         
-            GColor text_color = PBL_IF_COLOR_ELSE(date_color(t), GColorWhite);
-            text_layer_set_text_color(s_calendar_text_layers[i], text_color);
+        GColor text_color = PBL_IF_COLOR_ELSE(date_color(t,i), GColorWhite);
+        text_layer_set_text_color(s_calendar_text_layers[i], text_color);
 
         // Use bold font for today, and holidays/weekends if colored
-        bool highlight_holiday = (config_highlight_holidays() && is_us_federal_holiday(t));
+        bool highlight_holiday = (config_highlight_holidays() && (((persist_get_holidays() >> i) && 0x01)==1));
         bool highlight_sunday = (config_highlight_sundays() && t->tm_wday == 0);
         bool highlight_saturday = (config_highlight_saturdays() && t->tm_wday == 6);
         bool bold = highlight_holiday || highlight_sunday || highlight_saturday;

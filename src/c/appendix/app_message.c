@@ -50,7 +50,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         const int advice_data = ((int) advice_tuple->value->int32);
         const int holidays_data = ((int) holidays_tuple->value->int32);
         persist_set_advice(advice_data);
-        persist_set_advice(holidays_data);
+        persist_set_holidays(holidays_data);
         persist_set_num_entries(num_entries);
         persist_set_num_days(num_days);
         int16_t *temp_data = (int16_t*) temp_trend_tuple->value->data;

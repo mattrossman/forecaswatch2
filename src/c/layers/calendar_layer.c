@@ -47,9 +47,6 @@ static void calendar_update_proc(Layer *layer, GContext *ctx) {
     int h = bounds.size.h;
     float box_w = (float) w / DAYS_PER_WEEK;
     float box_h = (float) h / NUM_WEEKS;
-
-    // Calculate which box holds today's date
-    const int i_today = config_n_today();
 }
 
 void calendar_layer_create(Layer* parent_layer, GRect frame) {

@@ -55,8 +55,6 @@ function sendClaySettings() {
         "CLAY_TIME_LEAD_ZERO": app.settings.timeLeadingZero,
         "CLAY_AXIS_12H": app.settings.axisTimeFormat === '12h',
         "CLAY_COLOR_TODAY": app.settings.hasOwnProperty('colorToday') ? app.settings.colorToday : 16777215,
-        "CLAY_START_MON": app.settings.weekStartDay === 'mon',
-        "CLAY_PREV_WEEK": app.settings.firstWeek === 'prev',
         "CLAY_TIME_FONT": ['roboto', 'leco', 'bitham'].indexOf(app.settings.timeFont),
         "CLAY_SHOW_QT": app.settings.showQt,
         "CLAY_SHOW_BT": app.settings.btIcons === "connected" || app.settings.btIcons === "both",

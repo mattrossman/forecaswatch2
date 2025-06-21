@@ -1,7 +1,7 @@
 {
   "name": "velowatch",
   "author": "Alexander Paersch",
-  "version": "1.25.0",
+  "version": "1.26.0",
   "keywords": [
     "pebble-app"
   ],
@@ -45,42 +45,6 @@
           "name": "IMAGE_BT_CONNECT",
           "file": "img/bt.png",
           "memoryFormat": "1BitPalette"
-        },
-        {
-          "type": "bitmap",
-          "name": "IMAGE_CLOUDY",
-          "file": "img/cloudy.png",
-          "memoryFormat": "1BitPalette"
-        },
-        {
-          "type": "bitmap",
-          "name": "IMAGE_PARTIAL_SUNNY",
-          "file": "img/partial_sunny.png",
-          "memoryFormat": "1BitPalette"
-        },
-        {
-          "type": "bitmap",
-          "name": "IMAGE_RAINY",
-          "file": "img/rainy.png",
-          "memoryFormat": "1BitPalette"
-        },
-        {
-          "type": "bitmap",
-          "name": "IMAGE_SNOWY",
-          "file": "img/snowy.png",
-          "memoryFormat": "1BitPalette"
-        },
-        {
-          "type": "bitmap",
-          "name": "IMAGE_SUNNY",
-          "file": "img/sunny.png",
-          "memoryFormat": "1BitPalette"
-        },
-        {
-          "type": "bitmap",
-          "name": "IMAGE_THUNDER",
-          "file": "img/thunder.png",
-          "memoryFormat": "1BitPalette"
         }
       ]
     },
@@ -105,9 +69,7 @@
       "CLAY_CELSIUS",
       "CLAY_TIME_LEAD_ZERO",
       "CLAY_AXIS_12H",
-      "CLAY_START_MON",
       "CLAY_COLOR_TODAY",
-      "CLAY_PREV_WEEK",
       "CLAY_TIME_FONT",
       "CLAY_SHOW_QT",
       "CLAY_SHOW_BT",

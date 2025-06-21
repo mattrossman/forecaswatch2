@@ -66,8 +66,6 @@ void persist_init() {
             .celsius = false,
             .time_lead_zero = false,
             .axis_12h = false,
-            .start_mon = false,
-            .prev_week = true,
             .time_font = 0,
             .color_today = GColorBlack,
             .show_qt = true,

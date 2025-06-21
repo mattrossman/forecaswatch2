@@ -26,7 +26,7 @@ static void velo_update_proc(Layer *layer, GContext *ctx) {
     int16_t icons[num_days];
     uint8_t precips[num_days];
     static char s_calendar_box_buffers[NUM_WEEKS * DAYS_PER_WEEK][4];
-    static char s_advice_box_buffer[20];
+    static char s_advice_box_buffer[26];
 
     persist_get_days_trend(temps, num_days);
     persist_get_days_icon(icons, num_days);
@@ -72,12 +72,15 @@ static void velo_update_proc(Layer *layer, GContext *ctx) {
                     snprintf(s_advice_box_buffer, 19, "%s", "Improving!");
                     break;
             case 5:
-                    snprintf(s_advice_box_buffer, 19, "%s", "Slightly overtrained!");
+                    snprintf(s_advice_box_buffer, 22, "%s", "Best training status!");
                     break;
             case 6:
-                    snprintf(s_advice_box_buffer, 19, "%s", "Overtraining warning!");
+                    snprintf(s_advice_box_buffer, 22, "%s", "Slightly overtrained!");
                     break;
             case 7:
+                    snprintf(s_advice_box_buffer, 22, "%s", "Overtraining warning!");
+                    break;
+            case 8:
                     snprintf(s_advice_box_buffer, 19, "%s", "No RiDuck data!");
                     break;          
             default:

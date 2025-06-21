@@ -11,7 +11,7 @@ git push --atomic origin master v1.0.0
 
 Clear `build/` folder before running build to prevent stale version appearing on config page.
 
-Watchface file is found at `build/forecaswatch2.pbw`
+Watchface file is found at `build/velowatch.pbw`
 
 To upload to Rebble store:
 https://dev-portal.rebble.io/

@@ -6,7 +6,7 @@ module.exports = [
     },
     {
         "type": "text",
-        "defaultValue": "Contribute on <a href=\"https://github.com/mattrossman/forecaswatch2\">GitHub!</a>"
+        "defaultValue": "Contribute on <a href=\"https://github.com/genko/velowatch\">GitHub!</a>"
     },
     {
         "type": "section",
@@ -78,38 +78,6 @@ module.exports = [
             {
                 "type": "heading",
                 "defaultValue": "Calendar",
-            },
-            {
-                "type": "select",
-                "label": "Start week on",
-                "messageKey": "weekStartDay",
-                "defaultValue": "sun",
-                "options": [
-                    {
-                        "label": "Sunday",
-                        "value": "sun"
-                    },
-                    {
-                        "label": "Monday",
-                        "value": "mon"
-                    }
-                ]
-            },
-            {
-                "type": "select",
-                "label": "First week to display",
-                "messageKey": "firstWeek",
-                "defaultValue": "prev",
-                "options": [
-                    {
-                        "label": "Previous week",
-                        "value": "prev"
-                    },
-                    {
-                        "label": "Current week",
-                        "value": "curr"
-                    }
-                ]
             },
             {
                 "type": "color",

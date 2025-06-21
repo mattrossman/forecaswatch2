@@ -16,6 +16,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *precip_trend_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_TREND_UINT8);
     Tuple *forecast_start_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_START);
     Tuple *advice_tuple = dict_find(iterator, MESSAGE_KEY_ADVICE);
+    Tuple *holidays_tuple = dict_find(iterator, MESSAGE_KEY_HOLIDAYS);
     Tuple *num_entries_tuple = dict_find(iterator, MESSAGE_KEY_NUM_ENTRIES);
     Tuple *num_days_tuple = dict_find(iterator, MESSAGE_KEY_NUM_DAYS);
     Tuple *current_temp_tuple = dict_find(iterator, MESSAGE_KEY_CURRENT_TEMP);
@@ -38,14 +39,16 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *clay_color_us_federal_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_US_FEDERAL);
     Tuple *clay_color_time_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_TIME);
 
-    if(temp_trend_tuple && temp_days_tuple && icon_days_tuple && percip_days_tuple && num_days_tuple && temp_trend_tuple && forecast_start_tuple && advice_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
+    if(temp_trend_tuple && temp_days_tuple && icon_days_tuple && percip_days_tuple && num_days_tuple && temp_trend_tuple && forecast_start_tuple && advice_tuple && holidays_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
         // Weather data received
         APP_LOG(APP_LOG_LEVEL_INFO, "All tuples received!");
         persist_set_forecast_start((time_t)forecast_start_tuple->value->int32);
         const int num_entries = ((int)num_entries_tuple->value->int32);
         const int num_days = ((int)num_days_tuple->value->int32);
         const int advice_data = ((int) advice_tuple->value->int32);
+        const int holidays_data = ((int) holidays_tuple->value->int32);
         persist_set_advice(advice_data);
+        persist_set_holidays(holidays_data);
         persist_set_num_entries(num_entries);
         persist_set_num_days(num_days);
         int16_t *temp_data = (int16_t*) temp_trend_tuple->value->data;

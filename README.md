@@ -7,7 +7,11 @@
 
 Heavily based on the awesome ForcasWatch2 watchface by Matt Rossman https://github.com/mattrossman/forecaswatch2 , thank you very much for your great work and releasing it under open source!
 
-This watchface adds in addition a weekly forecast, and a connection to [RiDuck](https://riduck.com/) to get current training advice.
+This watchface adds in addition:
+* Weekly weather forecast using OpenWeaterMapAPI, API key needs to be set in settings.
+* Connection to [RiDuck](https://riduck.com/) to get current training advice. Username and password for account need to be set in settings.
+* Connection to OpenHolidaysAPI to fetch public holidays,
+country and region needs to be set in settings.
 
 ## Screenshots
 
@@ -21,7 +25,7 @@ This watchface adds in addition a weekly forecast, and a connection to [RiDuck](
 * Battery indicator
 * 1 week calendar starting from current day
 * 1 week weather forecast with max temperature and colored blue if rain is expected
-* Connects to [RiDuck](https://riduck.com/) and shows traiing advice if login credentials are given in settings
+* Connects to [RiDuck](https://riduck.com/) and shows training advice if login credentials are given in settings
 * 24 hour weather forecast (updates every 30 minutes)
 * Bluetooth connection indicator
 * Quiet time indicator
@@ -34,7 +38,7 @@ This watchface adds in addition a weekly forecast, and a connection to [RiDuck](
 * GPS or manual location entry
 * Fahrenheit and Celsius temperatures
 * Customize time font and color
-* Customize colors for Sundays, Saturdays, and US federal holidays
+* Customize colors for Sundays, Saturdays, and public holidays from OpenHolidaysAPI
 * Offline configuration page
 
 ## Planned Features

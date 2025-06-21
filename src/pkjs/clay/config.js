@@ -141,6 +141,27 @@ module.exports = [
         "items": [
             {
                 "type": "heading",
+                "defaultValue": "OpenHolidaysAPI"
+            },
+            {
+                "type": "input",
+                "label": "Country ISO code",
+                "messageKey": "openHolidayCountry",
+                "description": "Enter the country ISO code to fetch public holidays"
+            },
+            {
+                "type": "input",
+                "label": "Country regional ISO code",
+                "messageKey": "openHolidayRegional",
+                "description": "If needed enter the country regional ISO code to fetch public holidays"
+            }
+        ]
+    },
+    {
+        "type": "section",
+        "items": [
+            {
+                "type": "heading",
                 "defaultValue": "Weather"
             },
             {

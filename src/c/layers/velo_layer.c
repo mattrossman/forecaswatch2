@@ -84,7 +84,7 @@ static void velo_update_proc(Layer *layer, GContext *ctx) {
                     snprintf(s_advice_box_buffer, 19, "%s", "No RiDuck data!");
                     break;          
             default:
-                    snprintf(s_advice_box_buffer, 19, "%d", advice);
+                    snprintf(s_advice_box_buffer, 19, " ");
                     break;
         } 
         text_layer_set_text(s_advice_text_layer, s_advice_box_buffer);

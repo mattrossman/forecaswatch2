@@ -57,7 +57,7 @@ static void velo_update_proc(Layer *layer, GContext *ctx) {
 
         text_layer_set_font(s_advice_text_layer,fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
 
-        switch (advice)
+        switch (advice/1000)
         {
             case 1:
                     snprintf(s_advice_box_buffer, 19, "%s", "Need more training!");
@@ -86,7 +86,11 @@ static void velo_update_proc(Layer *layer, GContext *ctx) {
             default:
                     snprintf(s_advice_box_buffer, 19, " ");
                     break;
-        } 
+        }
+        int h = bounds.size.h-18;
+        graphics_context_set_fill_color(ctx, GColorBlue);
+        graphics_fill_rect(ctx,
+            GRect(bounds.origin.x, h -3, (((double)bounds.size.w)/100.0)*(advice%100), h + FONT_OFFSET -6), 1, GCornersAll);
         text_layer_set_text(s_advice_text_layer, s_advice_box_buffer);
     }
 

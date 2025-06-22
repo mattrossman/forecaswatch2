@@ -87,9 +87,10 @@ static void velo_update_proc(Layer *layer, GContext *ctx) {
                     snprintf(s_advice_box_buffer, 19, " ");
                     break;
         }
+        int h = bounds.size.h-18;
         graphics_context_set_fill_color(ctx, GColorBlue);
         graphics_fill_rect(ctx,
-            GRect(bounds.origin.x, bounds.origin.y, (((double)bounds.size.w)/100.0)*(advice%100), bounds.size.h), 1, GCornersAll);
+            GRect(bounds.origin.x, h -3, (((double)bounds.size.w)/100.0)*(advice%100), h + FONT_OFFSET -6), 1, GCornersAll);
         text_layer_set_text(s_advice_text_layer, s_advice_box_buffer);
     }
 

@@ -1,7 +1,7 @@
 {
   "name": "velowatch",
   "author": "Alexander Paersch",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "keywords": [
     "pebble-app"
   ],
@@ -10,7 +10,7 @@
     "suncalc": "^1.9.0"
   },
   "pebble": {
-    "displayName": "VW",
+    "displayName": "Velowatch",
     "uuid": "f8b286b0-fef5-46ce-b9fa-a7d16f90b206",
     "sdkVersion": "3",
     "enableMultiJS": true,

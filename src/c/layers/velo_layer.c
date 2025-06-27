@@ -42,7 +42,6 @@ static void velo_update_proc(Layer *layer, GContext *ctx) {
         }
         text_layer_set_text_color(s_calendar_text_layers[i], text_color);
 
-        // Use bold font for today, and holidays/weekends if colored
         bool bold = true;
         text_layer_set_font(s_calendar_text_layers[i],
             fonts_get_system_font(bold ? FONT_KEY_GOTHIC_18_BOLD : FONT_KEY_GOTHIC_18));

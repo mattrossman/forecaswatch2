@@ -70,7 +70,6 @@ void persist_init() {
             .time_lead_zero = false,
             .axis_12h = false,
             .time_font = 0,
-            .color_today = GColorBlack,
             .show_qt = true,
             .show_bt = true,
             .show_bt_disconnect = true,

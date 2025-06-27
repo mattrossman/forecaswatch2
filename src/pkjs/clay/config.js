@@ -81,15 +81,6 @@ module.exports = [
             },
             {
                 "type": "color",
-                "label": "Today highlight",
-                "messageKey": "colorToday",
-                "defaultValue": "#000000",
-                "description": "Black (default) means match date color, any other value overrides this.",
-                "sunlight": false,
-                "capabilities": ["COLOR"]
-            },
-            {
-                "type": "color",
                 "label": "Sunday color",
                 "messageKey": "colorSunday",
                 "defaultValue": "#FFFFFF",
@@ -106,7 +97,7 @@ module.exports = [
             },
             {
                 "type": "color",
-                "label": "US federal holidays color",
+                "label": "Public holidays color",
                 "messageKey": "colorUSFederal",
                 "defaultValue": "#FFFFFF",
                 "description": "White (default) means disable",
@@ -184,7 +175,7 @@ module.exports = [
                 "type": "radiogroup",
                 "label": "Provider",
                 "messageKey": "provider",
-                "defaultValue": "wunderground",
+                "defaultValue": "openweathermap",
                 "options": [
                     {
                         "label": "OpenWeatherMap",

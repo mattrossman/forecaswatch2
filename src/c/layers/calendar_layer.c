@@ -24,12 +24,6 @@ static struct tm *relative_tm(int days_from_today)
     return localtime(&timestamp);
 }
 
-static int relative_day_of_month(int days_from_today) {
-    // What is the day of the month n days from today?
-    tm *local_time = relative_tm(days_from_today);
-    return local_time->tm_mday;
-}
-
 static GColor date_color(struct tm *t, int i) {
     // Get color for a date, considering weekends and holidays
     if (((persist_get_holidays() >> i) && 0x01)==1)
@@ -75,7 +69,6 @@ void calendar_layer_create(Layer* parent_layer, GRect frame) {
 
 void calendar_layer_refresh() {
     static char s_calendar_box_buffers[NUM_WEEKS * DAYS_PER_WEEK][4];
-    // Request redraw (of today's highlight)
     layer_mark_dirty(s_calendar_layer);
 
     // Fill each box with an appropriate relative day number
@@ -86,7 +79,6 @@ void calendar_layer_refresh() {
         GColor text_color = PBL_IF_COLOR_ELSE(date_color(t,i), GColorWhite);
         text_layer_set_text_color(s_calendar_text_layers[i], text_color);
 
-        // Use bold font for today, and holidays/weekends if colored
         bool highlight_holiday = (config_highlight_holidays() && (((persist_get_holidays() >> i) && 0x01)==1));
         bool highlight_sunday = (config_highlight_sundays() && t->tm_wday == 0);
         bool highlight_saturday = (config_highlight_saturdays() && t->tm_wday == 6);

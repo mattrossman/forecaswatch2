@@ -28,7 +28,6 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *clay_celsius_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_CELSIUS);
     Tuple *clay_time_lead_zero_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_TIME_LEAD_ZERO);
     Tuple *clay_axis_12h_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_AXIS_12H);
-    Tuple *clay_color_today_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_TODAY);
     Tuple *clay_time_font_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_TIME_FONT);
     Tuple *clay_vibe_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_VIBE);
     Tuple *clay_show_qt_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_SHOW_QT);
@@ -81,7 +80,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         forecast_layer_refresh();
         weather_status_layer_refresh();
     }
-    else if (clay_celsius_tuple && clay_axis_12h_tuple  && clay_color_today_tuple
+    else if (clay_celsius_tuple && clay_axis_12h_tuple
         && clay_vibe_tuple && clay_show_qt_tuple && clay_show_bt_tuple && clay_show_bt_disconnect_tuple && clay_show_am_pm_tuple
         && clay_color_saturday_tuple && clay_color_sunday_tuple && clay_color_us_federal_tuple && clay_color_time_tuple) {
         // Clay config data received
@@ -94,7 +93,6 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         bool show_bt_disconnect = (bool) (clay_show_bt_disconnect_tuple->value->int16);
         bool show_am_pm = (bool) (clay_show_am_pm_tuple->value->int16);
         int16_t time_font = clay_time_font_tuple->value->int16;
-        GColor color_today = GColorFromHEX(clay_color_today_tuple->value->int32);
         GColor color_saturday = GColorFromHEX(clay_color_saturday_tuple->value->int32);
         GColor color_sunday = GColorFromHEX(clay_color_sunday_tuple->value->int32);
         GColor color_us_federal = GColorFromHEX(clay_color_us_federal_tuple->value->int32);
@@ -104,7 +102,6 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
             .time_lead_zero = time_lead_zero,
             .axis_12h = axis_12h,
             .time_font = time_font,
-            .color_today = color_today,
             .vibe = vibe,
             .show_qt = show_qt,
             .show_bt = show_bt,

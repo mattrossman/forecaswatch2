@@ -13,7 +13,6 @@ typedef struct {
     bool show_am_pm;
     int16_t time_font;
     int advice;
-    GColor color_today;
     GColor color_saturday;
     GColor color_sunday;
     GColor color_us_federal;

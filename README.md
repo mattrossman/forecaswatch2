@@ -9,9 +9,18 @@ Heavily based on the awesome ForcasWatch2 watchface by Matt Rossman https://gith
 
 This watchface adds in addition:
 * Weekly weather forecast using OpenWeaterMapAPI, API key needs to be set in settings.
+  * Weekly forecast shows the day maximum temperature
+  * Text color is blue if day forecast for precipitation is > 60%
 * Connection to [RiDuck](https://riduck.com/) to get current training advice. Username and password for account need to be set in settings.
+  * Background bar in blue behind the advice text to show where in the advice range the current points are.
+    Not shown for all ranges.
 * Connection to OpenHolidaysAPI to fetch public holidays,
-country and region needs to be set in settings.
+country and region needs to be set in settings. Color accordingly to public holiday setting.
+* Color indicator for current temperature showing the current uv-index as background color
+  * UV-Index < 2 => No background color
+  * UV-Index >= 2 and < 6 yellow background color
+  * UV-Index >= 6 and < 8 orange background color
+  * UV-Index >= 8 red background color
 
 ## Screenshots
 
@@ -24,9 +33,14 @@ country and region needs to be set in settings.
 * Current time
 * Battery indicator
 * 1 week calendar starting from current day
-* 1 week weather forecast with max temperature and colored blue if rain is expected
+* 1 week weather forecast with max temperature and colored blue if precipitation is expected
 * Connects to [RiDuck](https://riduck.com/) and shows training advice if login credentials are given in settings
 * 24 hour weather forecast (updates every 30 minutes)
+* Color indicator for current temperature showing the current uv-index as background color
+  * UV-Index < 2 => No background color
+  * UV-Index >= 2 and < 6 yellow background color
+  * UV-Index >= 6 and < 8 orange background color
+  * UV-Index >= 8 red background color
 * Bluetooth connection indicator
 * Quiet time indicator
 * Weather provider OpenWeatherMap
@@ -44,7 +58,6 @@ country and region needs to be set in settings.
 ## Planned Features
 
 * Add wind prediction in graph
-* Add color indicator for current temperature showing the current uv-index
 
 ## Platforms
 

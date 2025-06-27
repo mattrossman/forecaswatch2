@@ -55,6 +55,25 @@ static void city_layer_refresh() {
 
 static void current_temp_layer_refresh() {
     static char s_temp_buffer[8];
+    const int uvi = persist_get_current_uvi();
+    GColor b_color;
+    if (uvi<2000)
+    {
+        b_color = GColorClear;
+    }
+    else if (uvi<6000)
+    {
+        b_color = GColorYellow;
+    }
+    else if (uvi<8000)
+    {
+        b_color = GColorOrange;
+    }
+    else {
+        b_color = GColorRed;
+    }
+
+    text_layer_set_background_color(s_current_temp_layer, b_color);
     snprintf(s_temp_buffer, sizeof(s_temp_buffer), "• %d", config_localize_temp(persist_get_current_temp()));
     text_layer_set_text(s_current_temp_layer, s_temp_buffer);
 

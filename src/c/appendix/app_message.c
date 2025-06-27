@@ -20,6 +20,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *num_entries_tuple = dict_find(iterator, MESSAGE_KEY_NUM_ENTRIES);
     Tuple *num_days_tuple = dict_find(iterator, MESSAGE_KEY_NUM_DAYS);
     Tuple *current_temp_tuple = dict_find(iterator, MESSAGE_KEY_CURRENT_TEMP);
+    Tuple *current_uvi_tuple = dict_find(iterator, MESSAGE_KEY_UVI);
     Tuple *city_tuple = dict_find(iterator, MESSAGE_KEY_CITY);
     Tuple *sun_events_tuple = dict_find(iterator, MESSAGE_KEY_SUN_EVENTS);
 
@@ -39,7 +40,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *clay_color_us_federal_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_US_FEDERAL);
     Tuple *clay_color_time_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_TIME);
 
-    if(temp_trend_tuple && temp_days_tuple && icon_days_tuple && percip_days_tuple && num_days_tuple && temp_trend_tuple && forecast_start_tuple && advice_tuple && holidays_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
+    if(temp_trend_tuple && temp_days_tuple && icon_days_tuple && percip_days_tuple && num_days_tuple && temp_trend_tuple && forecast_start_tuple && advice_tuple && current_uvi_tuple && holidays_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
         // Weather data received
         APP_LOG(APP_LOG_LEVEL_INFO, "All tuples received!");
         persist_set_forecast_start((time_t)forecast_start_tuple->value->int32);
@@ -71,6 +72,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         persist_set_temp_lo(lo);
         persist_set_temp_hi(hi);
         persist_set_current_temp((int)current_temp_tuple->value->int32);
+        persist_set_current_uvi((int)current_uvi_tuple->value->int32);
         uint8_t sun_event_start_type = (uint8_t) sun_events_tuple->value->uint8;
         time_t *sun_event_times = (time_t*) (sun_events_tuple->value->data + 1);
         persist_set_sun_event_start_type(sun_event_start_type);

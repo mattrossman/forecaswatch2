@@ -89,6 +89,7 @@ OpenWeatherMapProvider.prototype.withProviderData = function (lat, lon, force, c
         })     
         this.startTime = weatherData.hourly[0].dt;
         this.currentTemp = weatherData.current.temp;
+        this.uvi = weatherData.current.uvi;
         callback();
     }).bind(this))
 }

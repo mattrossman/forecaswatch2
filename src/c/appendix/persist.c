@@ -3,7 +3,7 @@
 
 enum key {
     TEMP_LO, TEMP_HI, TEMP_TREND, DAYS_TREND, DAYS_ICON, PRECIP_DAYS, PRECIP_TREND, FORECAST_START, CITY, SUN_EVENT_START_TYPE, SUN_EVENT_TIMES, NUM_ENTRIES,
-    NUM_DAYS, CURRENT_TEMP, BATTERY_LEVEL, CONFIG, ADVICE, HOLIDAYS
+    NUM_DAYS, CURRENT_TEMP, UVI, BATTERY_LEVEL, CONFIG, ADVICE, HOLIDAYS
 }; // Deprecated: BATTERY_LEVEL
 
 void persist_init() {
@@ -50,6 +50,9 @@ void persist_init() {
     }
     if (!persist_exists(CURRENT_TEMP)) {
         persist_write_int(CURRENT_TEMP, 1);
+    }
+    if (!persist_exists(UVI)) {
+        persist_write_int(UVI, 0);
     }
     if (!persist_exists(CITY)) {
         persist_write_string(CITY, "Koji");
@@ -134,6 +137,10 @@ int persist_get_current_temp() {
     return persist_read_int(CURRENT_TEMP);
 }
 
+int persist_get_current_uvi() {
+    return persist_read_int(UVI);
+}
+
 int persist_get_city(char *buffer, const size_t buffer_size) {
     return persist_read_string(CITY, buffer, buffer_size);
 }
@@ -200,6 +207,10 @@ void persist_set_num_days(int val) {
 
 void persist_set_current_temp(int val) {
     persist_write_int(CURRENT_TEMP, val);
+}
+
+void persist_set_current_uvi(int val) {
+    persist_write_int(UVI, val);
 }
 
 void persist_set_city(char *val) {

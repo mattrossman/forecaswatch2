@@ -17,6 +17,7 @@ var WeatherProvider = function() {
     this.name = 'Template';
     this.id = 'interface';
     this.advice = 0;
+    this.uvi=0;
     this.holidays = 0;
     this.location = null;  // Address query used for overriding the GPS
     this.riduckUser = '';
@@ -299,6 +300,7 @@ WeatherProvider.prototype.getPayload = function() {
         'NUM_ENTRIES': this.numEntries,
         'NUM_DAYS': this.numDays,
         'CURRENT_TEMP': Math.round(this.currentTemp),
+        'UVI': Math.round(this.uvi*100),
         'CITY': this.cityName,
         // The first byte determines whether the list of events starts on a sunrise (0) or sunset (1)
         'SUN_EVENTS': [this.sunEvents[0].type == 'sunrise' ? 0 : 1].concat(sunEventsByteArray)

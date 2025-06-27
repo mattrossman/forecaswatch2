@@ -64,6 +64,7 @@
       "NUM_ENTRIES",
       "NUM_DAYS",
       "CURRENT_TEMP",
+      "UVI",
       "CITY",
       "SUN_EVENTS",
       "CLAY_CELSIUS",

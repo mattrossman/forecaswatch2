@@ -57,15 +57,15 @@ static void current_temp_layer_refresh() {
     static char s_temp_buffer[8];
     const int uvi = persist_get_current_uvi();
     GColor b_color;
-    if (uvi<2000)
+    if (uvi<200)
     {
         b_color = GColorClear;
     }
-    else if (uvi<6000)
+    else if (uvi<600)
     {
         b_color = GColorYellow;
     }
-    else if (uvi<8000)
+    else if (uvi<800)
     {
         b_color = GColorOrange;
     }

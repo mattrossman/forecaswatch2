@@ -57,23 +57,29 @@ static void current_temp_layer_refresh() {
     static char s_temp_buffer[8];
     const int uvi = persist_get_current_uvi();
     GColor b_color;
+    GColor f_color;
     if (uvi<200)
     {
         b_color = GColorClear;
+        f_color = GColorWhite;
     }
     else if (uvi<600)
     {
-        b_color = GColorYellow;
+        b_color = GColorElectricBlue;
+        f_color = GColorBlack;
     }
     else if (uvi<800)
     {
-        b_color = GColorOrange;
+        b_color = GColorYellow;
+        f_color = GColorBlack;
     }
     else {
         b_color = GColorRed;
+        f_color = GColorWhite;
     }
 
     text_layer_set_background_color(s_current_temp_layer, b_color);
+    text_layer_set_text_color(s_current_temp_layer, f_color);
     snprintf(s_temp_buffer, sizeof(s_temp_buffer), "• %d", config_localize_temp(persist_get_current_temp()));
     text_layer_set_text(s_current_temp_layer, s_temp_buffer);
 

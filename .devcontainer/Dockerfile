@@ -16,6 +16,8 @@ RUN apt-get update && apt-get install -y \
     libsdl2-dev \
     libfdt1 \
     build-essential \
+    wget \
+    gh \
     && rm -rf /var/lib/apt/lists/*
 
 # Create vscode user (same as in MS devcontainers)

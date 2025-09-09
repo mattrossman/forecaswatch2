@@ -1,0 +1,19 @@
+{
+  "name": "Ubuntu with uv",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  "settings": {
+    "terminal.integrated.defaultProfile.linux": "bash"
+  },
+  "remoteUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "coredevices.pebble-vscode"
+      ]
+    }
+  }
+}

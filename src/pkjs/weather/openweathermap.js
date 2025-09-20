@@ -15,7 +15,6 @@ var OpenWeatherMapProvider = function (apiKey) {
     this.id = 'openweathermap';
     this.apiKey = apiKey;
     this.weatherDataCache = null;
-    console.log('Constructed with ' + apiKey);
 }
 
 OpenWeatherMapProvider.prototype = Object.create(WeatherProvider.prototype);
@@ -24,8 +23,6 @@ OpenWeatherMapProvider.prototype._super = WeatherProvider;
 
 OpenWeatherMapProvider.prototype.withOwmResponse = function (lat, lon, callback) {
     var url = 'https://api.openweathermap.org/data/3.0/onecall?appid=' + this.apiKey + '&lat=' + lat + '&lon=' + lon + '&units=imperial&exclude=alerts,minutely';
-
-    console.log("Requesting " + url)
     
     request(url, 'GET', function (response) {
         var weatherData = JSON.parse(response);

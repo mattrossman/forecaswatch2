@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     wget \
     gh \
+    clang-format \
     && rm -rf /var/lib/apt/lists/*
 
 # Create vscode user (same as in MS devcontainers)

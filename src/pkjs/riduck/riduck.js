@@ -11,7 +11,7 @@ function request(url, type, callback, body = null, headers = {}) {
     };
 
     xhr.onerror = function () {
-        console.log("❌ Request error");
+        console.log("Riduck: Error: Request error");
     };
 
     xhr.send(body);
@@ -41,18 +41,18 @@ RiDuckProvider.prototype.login = function (username, password, callback) {
                 var response = JSON.parse(xhr.responseText);
                 var token = response && response.jwt && response.jwt.token;
                 if (token) {
-                    console.log("✅ Login successful.");
+                    console.log("Riduck: Login successful.");
                     callback(token);
                 } else {
-                    console.log("⚠️ Token not found.");
+                    console.log("Riduck: Error: Token not found.");
                     callback('');
                 }
             } catch (e) {
-                console.log("❌ JSON parse error:", e.message);
+                console.log("Riduck: Error: JSON parse error:", e.message);
                 callback('');
             }
         } else {
-            console.log("❌ Login failed: " + xhr.status);
+            console.log("Riduck: Error: Login failed: " + xhr.status);
             callback('');
         }
     }, payload, headers);
@@ -63,7 +63,7 @@ function findStatus(input) {
 
   if (input.includes("need more training")) {
     return 1000;
-  } else if (input.includes("fresh condition")) {
+  } else if (input.includes("load tapering")) {
     return 2000;
   } else if (input.includes("keeping it steady")) {
     return 3000;
@@ -119,20 +119,20 @@ RiDuckProvider.prototype.fetchAdvice = function (jwtToken, callback) {
                              data.summary_data &&
                              data.summary_data.tss_table &&
                              data.summary_data.tss_table.last_week_tss;
-                console.log("✅ Dashboard received.");
-                console.log("Advice ranges:", advice_range);
+                console.log("Riduck: Dashboard received.");
+                console.log("Riduck: Advice ranges:", advice_range);
                 var advice_percentage = getIntervalPercentage(advice_range, current_tss);
-                console.log("Advice percentage:", advice_percentage);
-                console.log("Current tss:", current_tss);
-                console.log("🧠 Advice: " + advice);
+                console.log("Riduck: Advice percentage:", advice_percentage);
+                console.log("Riduck: Current tss:", current_tss);
+                console.log("Riduck: Advice: " + advice);
                 adviceNumber = findStatus(advice);
                 callback(adviceNumber+advice_percentage);
             } catch (e) {
-                console.log("❌ JSON parse error:", e.message);
+                console.log("Riduck: Error: JSON parse error:", e.message);
                 callback(0);
             }
         } else {
-            console.log("❌ Dashboard fetch failed: " + xhr.status);
+            console.log("Riduck: Error: Dashboard fetch failed: " + xhr.status);
             callback(0);
         }
     }, null, headers);

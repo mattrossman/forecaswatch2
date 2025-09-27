@@ -11,7 +11,7 @@ function request(url, type, callback, body = null, headers = {}) {
     };
 
     xhr.onerror = function () {
-        console.log("❌ Request error");
+        console.log("Holdiay: Error: Request error");
     };
 
     xhr.send(body);
@@ -39,6 +39,8 @@ OpenHolidaysProvider.prototype.getHolidayBitmask = function (countryIsoCode, reg
             try {
                 const holidays = JSON.parse(xhr.responseText);
                 let bitmask = 0;
+                console.log(url);
+                console.log(holidays);
 
                 for (let i = 0; i < 7; i++) {
                     const checkDate = new Date(today);
@@ -51,14 +53,14 @@ OpenHolidaysProvider.prototype.getHolidayBitmask = function (countryIsoCode, reg
                     }
                 }
 
-                console.log("✅ Holiday bitmask:", bitmask);
+                console.log("Holiday: Holiday bitmask:", bitmask);
                 callback(bitmask);
             } catch (e) {
-                console.log("❌ JSON parse error:", e.message);
+                console.log("Holiday: Error: JSON parse error:", e.message);
                 callback(0);
             }
         } else {
-            console.log("❌ Holiday fetch failed: " + xhr.status);
+            console.log("Holiday: Error: Holiday fetch failed: " + xhr.status);
             callback(0);
         }
     }, null, headers);

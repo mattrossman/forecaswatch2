@@ -23,7 +23,7 @@ var WeatherProvider = function() {
     this.riduckUser = '';
     this.riduckPassword = '';
     this.openHolidaysCountry = '';
-    this.openHolidaysRegion = '';
+    this.openHolidaysRegional = '';
 }
 
 WeatherProvider.prototype.gpsEnable = function() {
@@ -141,7 +141,7 @@ WeatherProvider.prototype.withGpsCoordinates = function(callback) {
 WeatherProvider.prototype.withRiDuck = function(callback) {
     console.log('Trying to connect to RiDuck');
     if (this.riduckPassword === '' || this.riduckUser === '') {
-        console.log('No RiDuck credentials');
+        console.log('Riduck: Error: No RiDuck credentials');
         callback(0);
     }
     else
@@ -150,7 +150,7 @@ WeatherProvider.prototype.withRiDuck = function(callback) {
         riduck.login(this.riduckUser, this.riduckPassword, function (token) {
             if (token === '')
             {
-                console.log('Did not get RiDukc JWT');
+                console.log('Riduck: Error: Did not get RiDukc JWT');
                 callback(0);
             }
             else
@@ -166,13 +166,13 @@ WeatherProvider.prototype.withRiDuck = function(callback) {
 WeatherProvider.prototype.withOpenHolidays = function(callback) {
     console.log('Trying to connect to OpenHolidays');
     if (this.openHolidaysCountry === '') {
-        console.log('No OpenHolidays country code given');
+        console.log('Holiday: Error: No OpenHolidays country code given');
         callback(0);
     }
     else
     {
         var openHolidays = new OpenHolidays();
-        openHolidays.getHolidayBitmask(this.openHolidaysCountry, this.openHolidaysRegion, function (bitmask) {
+        openHolidays.getHolidayBitmask(this.openHolidaysCountry, this.openHolidaysRegional, function (bitmask) {
             callback(bitmask);
         }.bind(this));
     }
@@ -223,7 +223,7 @@ WeatherProvider.prototype.fetch = function(onSuccess, onFailure, force) {
                         );
                     }
                     else {
-                        console.log('Fetch cancelled: insufficient data.')
+                        console.log('Error: Fetch cancelled: insufficient data.')
                         onFailure();
                     }
                 }).bind(this));
@@ -245,18 +245,18 @@ WeatherProvider.prototype.hasValidData = function() {
     }
     else {
         if (!this.hasOwnProperty('tempTrend')) {
-            console.log('Temperature trend array was not set properly');
+            console.log('Error: Temperature trend array was not set properly');
         }
         if (!this.hasOwnProperty('precipTrend')) {
-            console.log('Precipitation trend array was not set properly');
+            console.log('Error: Precipitation trend array was not set properly');
         }
         if (!this.hasOwnProperty('startTime')) {
-            console.log('Start time value was not set properly');
+            console.log('Error: Start time value was not set properly');
         }
         if (!this.hasOwnProperty('currentTemp')) {
-            console.log('Current temperature value was not set properly');
+            console.log('Error: Current temperature value was not set properly');
         }
-        console.log('Data does not pass the checks.');
+        console.log('Error: Data does not pass the checks.');
         return false;
     }
 }

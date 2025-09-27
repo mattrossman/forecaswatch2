@@ -78,7 +78,7 @@ function refreshProvider() {
     app.provider.riduckUser = app.settings.riDuckUsername;
     app.provider.riduckPassword = app.settings.riDuckPassword;
     app.provider.openHolidaysCountry = app.settings.openHolidaysCountry;
-    app.provider.openHolidaysRegion = app.settings.openHolidaysRegion;
+    app.provider.openHolidaysRegional = app.settings.openHolidaysRegional;
 }
 
 function setProvider(providerId) {
@@ -127,6 +127,7 @@ function clayTryDevConfig() {
     catch (ex) {
         console.log("No developer configuration file found");
     }
+    app.firstStart = true;
 }
 
 function getClaySettings() {
@@ -176,6 +177,11 @@ function roundDownMinutes(date, minuteMod) {
 }
 
 function needRefresh() {
+    if (app.firstStart)
+    {
+        app.firstStart = false;
+        return true;
+    }
     // If the weather has never been fetched
     var lastFetchSuccessString = localStorage.getItem('lastFetchSuccess');
     if (lastFetchSuccessString === null) {

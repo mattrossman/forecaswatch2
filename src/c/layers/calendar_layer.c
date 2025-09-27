@@ -26,7 +26,7 @@ static struct tm *relative_tm(int days_from_today)
 
 static GColor date_color(struct tm *t, int i) {
     // Get color for a date, considering weekends and holidays
-    if (((persist_get_holidays() >> i) && 0x01)==1)
+    if (((persist_get_holidays() >> i) & 0x01)==1)
         return g_config->color_us_federal;
     if (t->tm_wday == 0)
         return g_config->color_sunday;

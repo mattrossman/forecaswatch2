@@ -83,10 +83,6 @@
     ]
   },
   "devDependencies": {
-    "jest": "^30.0.2",
     "xhr2": "^0.2.1"
-  },
-  "scripts": {
-    "test": "jest"
   }
 }

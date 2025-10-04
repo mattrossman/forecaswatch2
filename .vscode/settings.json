@@ -1,4 +1,14 @@
 {
     "editor.formatOnSave": true,
     "C_Cpp.clang_format_path": "/usr/bin/clang-format",
+    "files.associations": {
+        "forecast_layer.h": "c",
+        "main_window.h": "c"
+    },
+    "[c]": {
+        "editor.defaultFormatter": "xaver.clang-format"
+    },
+    "[cpp]": {
+        "editor.defaultFormatter": "xaver.clang-format"
+    }
 }

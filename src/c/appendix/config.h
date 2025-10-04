@@ -19,7 +19,7 @@ typedef struct {
     GColor color_time;
 } Config;
 
-Config *g_config;
+extern Config *g_config;
 
 void config_load();
 

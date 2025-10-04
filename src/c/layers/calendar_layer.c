@@ -36,11 +36,7 @@ static GColor date_color(struct tm *t, int i) {
 }
 
 static void calendar_update_proc(Layer *layer, GContext *ctx) {
-    GRect bounds = layer_get_bounds(layer);
-    int w = bounds.size.w;
-    int h = bounds.size.h;
-    float box_w = (float) w / DAYS_PER_WEEK;
-    float box_h = (float) h / NUM_WEEKS;
+
 }
 
 void calendar_layer_create(Layer* parent_layer, GRect frame) {

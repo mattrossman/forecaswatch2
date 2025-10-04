@@ -3,6 +3,7 @@
 #include "math.h"
 
 // NOTE: g_config is a global config variable
+Config *g_config;
 
 void config_load() {
     g_config = (Config*) malloc(sizeof(Config));

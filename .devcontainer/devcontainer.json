@@ -12,10 +12,11 @@
     "vscode": {
       "extensions": [
         "ms-python.python",
-        "coredevices.pebble-vscode"
-        "ms-vscode.cpptools"
-        "esbenp.prettier-vscode"
-        "xaver.clang-format"
+        "coredevices.pebble-vscode",
+        "ms-vscode.cpptools",
+        "esbenp.prettier-vscode",
+        "xaver.clang-format",
+        "ms-vscode.cpptools-extension-pack"
       ]
     }
   }

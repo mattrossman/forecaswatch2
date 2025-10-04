@@ -133,7 +133,6 @@ static void text_layers_refresh() {
 
 void forecast_layer_create(Layer *parent_layer, GRect frame) {
     s_forecast_layer = layer_create(frame);
-    GRect bounds = layer_get_bounds(s_forecast_layer);
 
     // Temperature HIGH
     s_hi_layer = text_layer_create(GRect(0, -3, 15, 20));

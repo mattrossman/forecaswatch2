@@ -115,7 +115,6 @@ static void sun_event_layer_refresh() {
 static void weather_status_layer_init(GRect bounds) {
     // Set up the city text layer properties
     int w = bounds.size.w;
-    int h = bounds.size.h;
 
     // Current temperature
     s_current_temp_layer = text_layer_create(GRect(MARGIN, -FONT_18_OFFSET, 40, 25));
@@ -146,7 +145,6 @@ static void weather_status_layer_init(GRect bounds) {
 static void weather_status_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
     int w = bounds.size.w;
-    int h = bounds.size.h;
     s_arrow_path = gpath_create(&ARROW_PATH_INFO);
     // Translate to correct location in layer
     if (persist_get_sun_event_start_type() == 0)

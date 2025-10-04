@@ -31,7 +31,6 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     s_calendar_status_layer = layer_create(frame);
     GRect bounds = layer_get_bounds(s_calendar_status_layer);
     int w = bounds.size.w;
-    int h = bounds.size.h;
 
     // Set up icons
     s_mute_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_MUTE);

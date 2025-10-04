@@ -81,8 +81,5 @@
       "CLAY_COLOR_US_FEDERAL",
       "CLAY_COLOR_TIME"
     ]
-  },
-  "devDependencies": {
-    "xhr2": "^0.2.1"
   }
 }

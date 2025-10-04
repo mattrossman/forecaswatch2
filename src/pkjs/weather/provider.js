@@ -150,7 +150,7 @@ WeatherProvider.prototype.withRiDuck = function(callback) {
         riduck.login(this.riduckUser, this.riduckPassword, function (token) {
             if (token === '')
             {
-                console.log('Riduck: Error: Did not get RiDukc JWT');
+                console.log('Riduck: Error: Did not get RiDuck JWT');
                 callback(0);
             }
             else

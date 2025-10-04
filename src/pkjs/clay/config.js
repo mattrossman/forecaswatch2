@@ -157,16 +157,16 @@ module.exports = [
             },
             {
                 "type": "select",
-                "defaultValue": "f",
+                "defaultValue": "c",
                 "messageKey": "temperatureUnits",
                 "label": "Temperature Units",
                 "options": [
                     {
-                        "label": "°F",
+                        "label": "Fahrenheit",
                         "value": "f"
                     },
                     {
-                        "label": "°C",
+                        "label": "Celsius",
                         "value": "c"
                     }
                 ]

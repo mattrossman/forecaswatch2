@@ -70,7 +70,7 @@ jobs:
       - name: pebble-build
         run: yes | sdk/bin/pebble build
       - name: Upload PBW
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: PebblePBW
           path: ./**/*.pbw

@@ -1,36 +1,76 @@
-name: Build Pebble Watchface
+# From https://github.com/clach04/github_action_pebble_build/
+name: PebbleBuild
 
+# Controls when the workflow will run
 on:
+  # Triggers the workflow on push or pull request events for any branch (see commented out `branches` lines for  master branch example)
   push:
-    branches: [ master ]
+    #branches: [master]
   pull_request:
-    branches: [ master ]
+    # External Pull Request requires confirmation BEFORE action fires https://docs.github.com/en/actions/managing-workflow-runs/approving-workflow-runs-from-public-forks 
+    #branches: [master]
 
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    # from https://levelup.gitconnected.com/how-to-manually-trigger-a-github-actions-workflow-4712542f1960
+    inputs:
+      git-ref:
+        description: Git Ref (Optional)    
+        required: false
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  # This workflow contains a single job called "build"
   build:
-    runs-on: ubuntu-latest
-    name: Pebble Build
+    # The type of runner that the job will run on
+    runs-on: ubuntu-20.04
 
+    container:
+      # Pebble SDK needs Python 2.7
+      image: python:2.7.18-buster
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      # Sanity checks for debugging, if/when problems occur
+      - name: pyver
+        run: python   --version
+      - name: whichpy
+        run: which python
+      - name: whichpy2
+        run: which python2
+      - name: whichpy3
+        run: which python3
 
-      - name: Set up Pebble build environment
-        uses: clach04/github_action_pebble_build@d0c288087bb402379fe0b71ecf6245630918599e
-
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      # from https://levelup.gitconnected.com/how-to-manually-trigger-a-github-actions-workflow-4712542f1960
+      - name: Clone Repository (Latest)
+        uses: actions/checkout@v2
+        if: github.event.inputs.git-ref == ''
+      - name: Clone Repository (Custom Ref)
+        uses: actions/checkout@v2
+        if: github.event.inputs.git-ref != ''
         with:
-          # Optional: specify SDK version (default is SDK 4.5)
-          sdk_version: 4.5
+          ref: ${{ github.event.inputs.git-ref }}
+      - uses: actions/setup-node@v2
+      #- name: apt-getsudo
+      #  run: apt-get update; apt-get -qq install -y sudo
 
-      - name: Build project
-        run: |
-          pebble build
-
-      - name: Archive PBW
-        uses: actions/upload-artifact@v4
+      - name: apt-get
+        run: apt-get update; apt-get -qq install -y wget python-pip python2.7-dev libsdl1.2debian libfdt1 libpixman-1-0 nodejs npm libfreetype6 libx11-6 rlwrap
+      - name: virtualenv
+        run: pip install virtualenv
+      - name: get sdk
+        run: if [ ! -d sdk ]; then mkdir sdk && wget -q -O - https://developer.rebble.io/s3.amazonaws.com/assets.getpebble.com/pebble-tool/pebble-sdk-4.5-linux64.tar.bz2 | tar xj --strip-components=1 -C sdk; fi
+      - name: requirements
+        run: if [ ! -d sdk/.env ]; then cd sdk && virtualenv .env && bash -c "source .env/bin/activate && pip install -r requirements.txt && deactivate" && cd ..; fi
+      - name: sdk-core
+        run: if [ ! -f sdk/sdk-core-4.3.tar.bz2 ]; then wget https://github.com/aveao/PebbleArchive/raw/master/SDKCores/sdk-core-4.3.tar.bz2 -O sdk/sdk-core-4.3.tar.bz2; fi
+      - name: install sdk
+        run: if [ ! -d ~/.pebble-sdk ]; then mkdir -p ~/.pebble-sdk && touch ~/.pebble-sdk/NO_TRACKING && sdk/bin/pebble sdk install sdk/sdk-core-4.3.tar.bz2; fi
+      - name: pebble-build
+        run: yes | sdk/bin/pebble build
+      - name: Upload PBW
+        uses: actions/upload-artifact@v3
         with:
-          name: pebble-watchface
-          path: build/*.pbw
-
-  
-          
+          name: PebblePBW
+          path: ./**/*.pbw

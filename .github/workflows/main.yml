@@ -53,6 +53,8 @@ jobs:
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
       - name: install pebble-tool
         run: export PATH="$PATH:/home/runner/.local/bin:/home/runner/.cargo/bin" && uv tool install pebble-tool
+      - name: install pebble-sdk
+        run: pebble sdk install latest
       - name: pebble-build
         run: pebble build
       - name: Upload PBW

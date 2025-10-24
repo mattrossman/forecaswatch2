@@ -50,7 +50,7 @@ jobs:
       - name: apt-get
         run: sudo apt-get update && sudo apt-get install -y curl ca-certificates git python3-pip python3-venv nodejs npm libsdl1.2debian libsdl2-dev libfdt1 build-essential wget;
       - name: uv
-        run: sudo mkdir -p /usr/local/uv && export UV_INSTALL_DIR=/usr/local/uv && export UV_UNMANAGED_INSTALL=/usr/local/uv && curl -LsSf https://astral.sh/uv/install.sh | sudo sh && ln -s /usr/local/uv/uv /usr/local/bin/uv && sudo ln -s /usr/local/uv/uvx /usr/local/bin/uvx;
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
       - name: install pebble-tool
         run: source $HOME/.local/bin/env && uv tool install pebble-tool
       - name: pebble-build

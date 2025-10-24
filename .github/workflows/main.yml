@@ -52,9 +52,9 @@ jobs:
       - name: uv
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
       - name: install pebble-tool
-        run: source $HOME/.local/bin/env && uv tool install pebble-tool
+        run: export PATH="$PATH:/home/runner/.local/bin:/home/runner/.cargo/bin" && uv tool install pebble-tool
       - name: pebble-build
-        run: yes | sdk/bin/pebble build
+        run: pebble build
       - name: Upload PBW
         uses: actions/upload-artifact@v4
         with:

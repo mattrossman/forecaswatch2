@@ -48,9 +48,9 @@ jobs:
       #  run: apt-get update; apt-get -qq install -y sudo
 
       - name: apt-get
-        run: apt-get update; apt-get install -y curl ca-certificates git python3-pip python3-venv nodejs npm libsdl1.2debian libsdl2-dev libfdt1 build-essential wget;
+        run: sudo apt-get update && sudo apt-get install -y curl ca-certificates git python3-pip python3-venv nodejs npm libsdl1.2debian libsdl2-dev libfdt1 build-essential wget;
       - name: uv
-        run: mkdir -p /usr/local/uv && export UV_INSTALL_DIR=/usr/local/uv && export UV_UNMANAGED_INSTALL=/usr/local/uv && curl -LsSf https://astral.sh/uv/install.sh | sh ln -s /usr/local/uv/uv /usr/local/bin/uv && ln -s /usr/local/uv/uvx /usr/local/bin/uvx;
+        run: sudo mkdir -p /usr/local/uv && export UV_INSTALL_DIR=/usr/local/uv && export UV_UNMANAGED_INSTALL=/usr/local/uv && curl -LsSf https://astral.sh/uv/install.sh | sudo sh ln -s /usr/local/uv/uv /usr/local/bin/uv && sudo ln -s /usr/local/uv/uvx /usr/local/bin/uvx;
       - name: install pebble-tool
         run: uv tool install pebble-tool
       - name: pebble-build

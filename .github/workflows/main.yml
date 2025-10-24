@@ -16,7 +16,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Pebble build environment
-        uses: clach04/github_action_pebble_build@0.0.3
+        uses: clach04/github_action_pebble_build@d0c288087bb402379fe0b71ecf6245630918599e
+
         with:
           # Optional: specify SDK version (default is SDK 4.5)
           sdk_version: 4.5

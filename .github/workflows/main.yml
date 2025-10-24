@@ -1,0 +1,7 @@
+  - name: PebbleBuild
+  # You may pin to the exact commit or the version.
+  # uses: clach04/github_action_pebble_build@d0c288087bb402379fe0b71ecf6245630918599e
+  uses: clach04/github_action_pebble_build@0.0.3
+
+  
+          

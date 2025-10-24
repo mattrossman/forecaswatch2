@@ -52,7 +52,7 @@ jobs:
       - name: uv
         run: sudo mkdir -p /usr/local/uv && export UV_INSTALL_DIR=/usr/local/uv && export UV_UNMANAGED_INSTALL=/usr/local/uv && curl -LsSf https://astral.sh/uv/install.sh | sudo sh && ln -s /usr/local/uv/uv /usr/local/bin/uv && sudo ln -s /usr/local/uv/uvx /usr/local/bin/uvx;
       - name: install pebble-tool
-        run: uv tool install pebble-tool
+        run: source $HOME/.local/bin/env && uv tool install pebble-tool
       - name: pebble-build
         run: yes | sdk/bin/pebble build
       - name: Upload PBW

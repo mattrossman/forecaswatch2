@@ -9,6 +9,7 @@ enum key {
   DAYS_ICON,
   PRECIP_DAYS,
   PRECIP_TREND,
+  WINDSPEED_TREND,
   FORECAST_START,
   CITY,
   SUN_EVENT_START_TYPE,
@@ -49,6 +50,10 @@ void persist_init() {
   if (!persist_exists(PRECIP_TREND)) {
     uint8_t data[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     persist_write_data(PRECIP_TREND, (void *)data, 12 * sizeof(uint8_t));
+  }
+  if (!persist_exists(WINDSPEED_TREND)) {
+    uint8_t data[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    persist_write_data(WINDSPEED_TREND, (void *)data, 12 * sizeof(uint8_t));
   }
   if (!persist_exists(ADVICE)) {
     persist_write_int(ADVICE, 0);
@@ -132,6 +137,11 @@ int persist_get_precip_trend(uint8_t *buffer, const size_t buffer_size) {
                            buffer_size * sizeof(uint8_t));
 }
 
+int persist_get_windspeed_trend(uint8_t *buffer, const size_t buffer_size) {
+  return persist_read_data(WINDSPEED_TREND, (void *)buffer,
+                           buffer_size * sizeof(uint8_t));
+}
+
 time_t persist_get_forecast_start() {
   return (time_t)persist_read_int(FORECAST_START);
 }
@@ -183,6 +193,10 @@ void persist_set_precip_days(uint8_t *data, const size_t size) {
 
 void persist_set_precip_trend(uint8_t *data, const size_t size) {
   persist_write_data(PRECIP_TREND, (void *)data, size * sizeof(uint8_t));
+}
+
+void persist_set_windspeed_trend(uint8_t *data, const size_t size) {
+  persist_write_data(WINDSPEED_TREND, (void *)data, size * sizeof(uint8_t));
 }
 
 void persist_set_advice(int val) { persist_write_int(ADVICE, val); }

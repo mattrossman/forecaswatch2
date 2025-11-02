@@ -20,6 +20,8 @@ int persist_get_precip_days(uint8_t *buffer, const size_t buffer_size);
 
 int persist_get_precip_trend(uint8_t *buffer, const size_t buffer_size);
 
+int persist_get_windspeed_trend(uint8_t *buffer, const size_t buffer_size);
+
 void persist_set_advice(int val);
 
 void persist_set_holidays(int val);
@@ -59,6 +61,8 @@ void persist_set_days_icon(int16_t *data, const size_t size);
 void persist_set_precip_days(uint8_t *data, const size_t size);
 
 void persist_set_precip_trend(uint8_t *data, const size_t size);
+
+void persist_set_windspeed_trend(uint8_t *data, const size_t size);
 
 void persist_set_forecast_start(time_t val);
 

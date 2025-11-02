@@ -4,20 +4,20 @@ const OpenHolidays = require('../openholidaysapi/openholidaysapi')
 
 function request(url, type, callback) {
     var xhr = new XMLHttpRequest();
-    xhr.onload = function() {
+    xhr.onload = function () {
         callback(this.responseText);
     };
     xhr.open(type, url);
     xhr.send();
 }
 
-var WeatherProvider = function() {
+var WeatherProvider = function () {
     this.numEntries = 24;
     this.numDays = 7;
     this.name = 'Template';
     this.id = 'interface';
     this.advice = 0;
-    this.uvi=0;
+    this.uvi = 0;
     this.holidays = 0;
     this.location = null;  // Address query used for overriding the GPS
     this.riduckUser = '';
@@ -26,15 +26,15 @@ var WeatherProvider = function() {
     this.openHolidaysRegional = '';
 }
 
-WeatherProvider.prototype.gpsEnable = function() {
+WeatherProvider.prototype.gpsEnable = function () {
     this.location = null;
 }
 
-WeatherProvider.prototype.gpsOverride = function(location) {
+WeatherProvider.prototype.gpsOverride = function (location) {
     this.location = location;
 }
 
-WeatherProvider.prototype.withSunEvents = function(lat, lon, callback) {
+WeatherProvider.prototype.withSunEvents = function (lat, lon, callback) {
     /* The callback runs with an array of the next two sun events (i.e. 24 hours worth),
      * where each sun event contains a 'type' ('sunrise' or 'sunset') and a 'date' (of type Date)
      */
@@ -48,7 +48,7 @@ WeatherProvider.prototype.withSunEvents = function(lat, lon, callback) {
      * @param {SunCalc.GetTimesResult} results 
      * @returns {{ type: 'sunrise'|'sunset', date: Date }[]}
      */
-    var processResults = function(results) {
+    var processResults = function (results) {
         return [
             {
                 'type': 'sunrise',
@@ -71,7 +71,7 @@ WeatherProvider.prototype.withSunEvents = function(lat, lon, callback) {
     callback(next24HourSunEvents);
 }
 
-WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
+WeatherProvider.prototype.withCityName = function (lat, lon, callback) {
     // callback(cityName)
     var url = 'https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?f=json&langCode=EN&location='
         + lon + ',' + lat;
@@ -86,7 +86,7 @@ WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
 // https://github.com/mattrossman/forecaswatch2/issues/59#issue-1317582743
 const r_lat_long = new RegExp(/([-+]?[\d\.]*),([-+]?[\d\.]*)/gm);
 
-WeatherProvider.prototype.withGeocodeCoordinates = function(callback) {
+WeatherProvider.prototype.withGeocodeCoordinates = function (callback) {
     // callback(lattitude, longtitude)
     var locationiq_key = 'pk.5a61972cde94491774bcfaa0705d5a0d';
     var url = 'https://us1.locationiq.com/v1/search.php?key=' + locationiq_key
@@ -121,7 +121,7 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback) {
 
 }
 
-WeatherProvider.prototype.withGpsCoordinates = function(callback) {
+WeatherProvider.prototype.withGpsCoordinates = function (callback) {
     // callback(lattitude, longtitude)
     var options = {
         enableHighAccuracy: true,
@@ -138,23 +138,20 @@ WeatherProvider.prototype.withGpsCoordinates = function(callback) {
     navigator.geolocation.getCurrentPosition(success, error, options);
 }
 
-WeatherProvider.prototype.withRiDuck = function(callback) {
+WeatherProvider.prototype.withRiDuck = function (callback) {
     console.log('Trying to connect to RiDuck');
     if (this.riduckPassword === '' || this.riduckUser === '') {
         console.log('Riduck: Error: No RiDuck credentials');
         callback(0);
     }
-    else
-    {
+    else {
         var riduck = new RiDuck();
         riduck.login(this.riduckUser, this.riduckPassword, function (token) {
-            if (token === '')
-            {
+            if (token === '') {
                 console.log('Riduck: Error: Did not get RiDuck JWT');
                 callback(0);
             }
-            else
-            {
+            else {
                 riduck.fetchAdvice(token, function (advice) {
                     callback(advice);
                 }.bind(this));
@@ -163,14 +160,13 @@ WeatherProvider.prototype.withRiDuck = function(callback) {
     }
 }
 
-WeatherProvider.prototype.withOpenHolidays = function(callback) {
+WeatherProvider.prototype.withOpenHolidays = function (callback) {
     console.log('Trying to connect to OpenHolidays');
     if (this.openHolidaysCountry === '') {
         console.log('Holiday: Error: No OpenHolidays country code given');
         callback(0);
     }
-    else
-    {
+    else {
         var openHolidays = new OpenHolidays();
         openHolidays.getHolidayBitmask(this.openHolidaysCountry, this.openHolidaysRegional, function (bitmask) {
             callback(bitmask);
@@ -178,7 +174,7 @@ WeatherProvider.prototype.withOpenHolidays = function(callback) {
     }
 }
 
-WeatherProvider.prototype.withCoordinates = function(callback) {
+WeatherProvider.prototype.withCoordinates = function (callback) {
     if (this.location === null) {
         console.log('Using GPS')
         this.withGpsCoordinates(callback);
@@ -189,52 +185,52 @@ WeatherProvider.prototype.withCoordinates = function(callback) {
     }
 }
 
-WeatherProvider.prototype.withProviderData = function(lat, lon, force, callback) {
+WeatherProvider.prototype.withProviderData = function (lat, lon, force, callback) {
     console.log('This is the fallback implementation of withProviderData')
     callback();
 }
 
-WeatherProvider.prototype.fetch = function(onSuccess, onFailure, force) {
-    this.withCoordinates((function(lat, lon) {
-        this.withCityName(lat, lon, (function(cityName) {
-            this.withRiDuck((function(advice) {
-            this.withOpenHolidays((function(holidays) {
-            this.withSunEvents(lat, lon, (function(sunEvents) {
-                this.withProviderData(lat, lon, force, (function() {
-                    // if `this` (the provider) contains valid weather details,
-                    // then we can safely call this.getPayload()
-                    if (this.hasValidData()) {
-                        console.log('Lets get the payload for ' + cityName);
-                        // Send to Pebble
-                        this.cityName = cityName;
-                        this.sunEvents = sunEvents;
-                        this.advice = advice;
-                        this.holidays = holidays;
-                        payload = this.getPayload();
-                        Pebble.sendAppMessage(payload,
-                            function (e) {
-                                console.log('Weather info sent to Pebble successfully!');
-                                onSuccess();
-                            },
-                            function (e) {
-                                console.log('Error sending weather info to Pebble!');
+WeatherProvider.prototype.fetch = function (onSuccess, onFailure, force) {
+    this.withCoordinates((function (lat, lon) {
+        this.withCityName(lat, lon, (function (cityName) {
+            this.withRiDuck((function (advice) {
+                this.withOpenHolidays((function (holidays) {
+                    this.withSunEvents(lat, lon, (function (sunEvents) {
+                        this.withProviderData(lat, lon, force, (function () {
+                            // if `this` (the provider) contains valid weather details,
+                            // then we can safely call this.getPayload()
+                            if (this.hasValidData()) {
+                                console.log('Lets get the payload for ' + cityName);
+                                // Send to Pebble
+                                this.cityName = cityName;
+                                this.sunEvents = sunEvents;
+                                this.advice = advice;
+                                this.holidays = holidays;
+                                payload = this.getPayload();
+                                Pebble.sendAppMessage(payload,
+                                    function (e) {
+                                        console.log('Weather info sent to Pebble successfully!');
+                                        onSuccess();
+                                    },
+                                    function (e) {
+                                        console.log('Error sending weather info to Pebble!');
+                                        onFailure();
+                                    }
+                                );
+                            }
+                            else {
+                                console.log('Error: Fetch cancelled: insufficient data.')
                                 onFailure();
                             }
-                        );
-                    }
-                    else {
-                        console.log('Error: Fetch cancelled: insufficient data.')
-                        onFailure();
-                    }
-                }).bind(this));
-                }).bind(this));
+                        }).bind(this));
+                    }).bind(this));
                 }).bind(this));
             }).bind(this));
         }).bind(this));
     }).bind(this));
 }
 
-WeatherProvider.prototype.hasValidData = function() {
+WeatherProvider.prototype.hasValidData = function () {
     // all fields are set
     if (this.hasOwnProperty('tempTrend') && this.hasOwnProperty('precipTrend') && this.hasOwnProperty('startTime') && this.hasOwnProperty('currentTemp')) {
         // trends are filled with enough data
@@ -261,21 +257,41 @@ WeatherProvider.prototype.hasValidData = function() {
     }
 }
 
-WeatherProvider.prototype.getPayload = function() {
+WeatherProvider.prototype.getPayload = function () {
     // Get the rounded (integer) temperatures for those hours
-    var temps = this.tempTrend.slice(0, this.numEntries).map(function(temperature) {
+    var temps = this.tempTrend.slice(0, this.numEntries).map(function (temperature) {
         return Math.round(temperature);
     });
-    var daysTemp = this.daysTemp.slice(0, this.numDays).map(function(temperature) {
+    console.log("Step 1");
+    var windSpeeds =
+        this.windSpeed.slice(0, this.numEntries).map(function (windspeed) {
+            if (windspeed > 255) windspeed = 255;
+            return Math.round(windspeed);
+        }
+        );
+    console.log("Step 2");
+    var daysTemp = this.daysTemp.slice(0, this.numDays).map(function (temperature) {
         return Math.round(temperature);
     });
-    var daysIcons = this.daysIcon.slice(0, this.numDays).map(function(temperature) {
+    var daysIcons = this.daysIcon.slice(0, this.numDays).map(function (temperature) {
         return temperature;
     });
-    var precips = this.precipTrend.slice(0, this.numEntries).map(function(probability) {
-        return Math.round(probability * 100);
+    const precips = this.precipTrend.slice(0, this.numEntries).map(p => Math.round(p * 15));
+    console.log("Step 3");
+    const precips_amount = this.precipMMH.slice(0, this.numEntries).map(a => {
+        if (a > 45) return 15;
+        return Math.ceil(a * 0.33);
     });
-    var daysPrecips = this.daysPop.slice(0, this.numDays).map(function(probability) {
+
+    var combined = [];
+    console.log("Step 4");
+    for (let i = 0; i < this.numEntries; i++) {
+        const high = precips[i] & 0x0F;         // ensure only 4 bits
+        const low = precips_amount[i] & 0x0F;   // ensure only 4 bits
+        combined[i] = (high << 4) | low;        // pack into one byte
+    }
+    console.log("Step 5");
+    var daysPrecips = this.daysPop.slice(0, this.numDays).map(function (probability) {
         return Math.round(probability * 100);
     });
     var tempsIntView = new Int16Array(temps);
@@ -284,27 +300,30 @@ WeatherProvider.prototype.getPayload = function() {
     var tempsByteArray = Array.prototype.slice.call(new Uint8Array(tempsIntView.buffer))
     var daysTempsByteArray = Array.prototype.slice.call(new Uint8Array(daysTempIntView.buffer))
     var daysIconByteArray = Array.prototype.slice.call(new Uint8Array(daysIconsIntView.buffer))
-    var sunEventsIntView = new Int32Array(this.sunEvents.map(function(sunEvent) {
+    var sunEventsIntView = new Int32Array(this.sunEvents.map(function (sunEvent) {
         return sunEvent.date.getTime() / 1000;  // Seconds since epoch
     }));
     var sunEventsByteArray = Array.prototype.slice.call(new Uint8Array(sunEventsIntView.buffer))
+    console.log("Step 6");
     var payload = {
         'TEMP_TREND_INT16': tempsByteArray,
-        'TEMP_DAYS_INT16' : daysTempsByteArray,
-        'ICON_DAYS_INT16' : daysIconByteArray,
-        'PRECIP_DAYS_UINT8' : daysPrecips,
-        'PRECIP_TREND_UINT8': precips, // Holds values within [0,100]
+        'TEMP_DAYS_INT16': daysTempsByteArray,
+        'ICON_DAYS_INT16': daysIconByteArray,
+        'PRECIP_DAYS_UINT8': daysPrecips,
+        'PRECIP_TREND_UINT8': combined,
+        'WINDSPEED_TREND_UINT8': windSpeeds,
         'FORECAST_START': this.startTime,
         'ADVICE': this.advice,
         'HOLIDAYS': this.holidays,
         'NUM_ENTRIES': this.numEntries,
         'NUM_DAYS': this.numDays,
         'CURRENT_TEMP': Math.round(this.currentTemp),
-        'UVI': Math.round(this.uvi*100),
+        'UVI': Math.round(this.uvi * 100),
         'CITY': this.cityName,
         // The first byte determines whether the list of events starts on a sunrise (0) or sunset (1)
         'SUN_EVENTS': [this.sunEvents[0].type == 'sunrise' ? 0 : 1].concat(sunEventsByteArray)
     }
+    console.log("Step 7");
     return payload;
 }
 

@@ -23,7 +23,7 @@ OpenWeatherMapProvider.prototype._super = WeatherProvider;
 
 OpenWeatherMapProvider.prototype.withOwmResponse = function (lat, lon, callback) {
     var url = 'https://api.openweathermap.org/data/3.0/onecall?appid=' + this.apiKey + '&lat=' + lat + '&lon=' + lon + '&units=imperial&exclude=alerts,minutely';
-    
+
     request(url, 'GET', function (response) {
         var weatherData = JSON.parse(response);
         console.log('Found timezone: ' + weatherData.timezone);
@@ -75,15 +75,26 @@ OpenWeatherMapProvider.prototype.withProviderData = function (lat, lon, force, c
         this.precipTrend = weatherData.hourly.map(function (entry) {
             return entry.pop;
         })
+        this.precipMMH = weatherData.hourly.map(function (entry) {
+            if (entry.rain == null) return 0;
+            return entry.rain["1h"];
+        })
+        this.windSpeed = weatherData.hourly.map(function (entry) {
+            return entry.wind_speed;
+        })
         this.daysTemp = weatherData.daily.map(function (entry) {
             return entry.temp.max;
         })
         this.daysPop = weatherData.daily.map(function (entry) {
             return entry.pop;
         })
+        this.daysMMH = weatherData.daily.map(function (entry) {
+            if (entry.rain == null) return 0;
+            return entry.rain;
+        })
         this.daysIcon = weatherData.daily.map(function (entry) {
             return entry.weather[0].id;
-        })     
+        })
         this.startTime = weatherData.hourly[0].dt;
         this.currentTemp = weatherData.current.temp;
         this.uvi = weatherData.current.uvi;

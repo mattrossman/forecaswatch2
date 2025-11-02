@@ -1,7 +1,7 @@
 {
   "name": "velowatch",
   "author": "Alexander Paersch",
-  "version": "1.30.0",
+  "version": "1.31.0",
   "keywords": [
     "pebble-app"
   ],
@@ -58,6 +58,7 @@
       "ICON_DAYS_INT16",
       "PRECIP_DAYS_UINT8",
       "PRECIP_TREND_UINT8",
+      "WINDSPEED_TREND_UINT8",
       "FORECAST_START",
       "ADVICE",
       "HOLIDAYS",

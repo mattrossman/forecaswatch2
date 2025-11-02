@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     libfdt1 \
     build-essential \
     wget \
+    sudo \
     gh \
     clang-format \
     && rm -rf /var/lib/apt/lists/*

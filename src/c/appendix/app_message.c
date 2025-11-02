@@ -16,6 +16,8 @@ static void inbox_received_callback(DictionaryIterator *iterator,
   Tuple *percip_days_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_DAYS_UINT8);
   Tuple *precip_trend_tuple =
       dict_find(iterator, MESSAGE_KEY_PRECIP_TREND_UINT8);
+  Tuple *windspeed_trend_tuple =
+      dict_find(iterator, MESSAGE_KEY_WINDSPEED_TREND_UINT8);
   Tuple *forecast_start_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_START);
   Tuple *advice_tuple = dict_find(iterator, MESSAGE_KEY_ADVICE);
   Tuple *holidays_tuple = dict_find(iterator, MESSAGE_KEY_HOLIDAYS);
@@ -76,7 +78,9 @@ static void inbox_received_callback(DictionaryIterator *iterator,
     persist_set_precip_days(precip_days, num_days);
 
     uint8_t *precip_data = (uint8_t *)precip_trend_tuple->value->data;
+    uint8_t *windspeed_data = (uint8_t *)windspeed_trend_tuple->value->data;
     persist_set_precip_trend(precip_data, num_entries);
+    persist_set_windspeed_trend(windspeed_data, num_entries);
     persist_set_city((char *)city_tuple->value->cstring);
     int lo, hi;
     min_max(temp_data, num_entries, &lo, &hi);
@@ -134,7 +138,7 @@ static void inbox_received_callback(DictionaryIterator *iterator,
 }
 
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped! Error %i", reason);
 }
 
 void app_message_init() {
@@ -143,7 +147,7 @@ void app_message_init() {
   app_message_register_inbox_dropped(inbox_dropped_callback);
 
   // Open AppMessage
-  const int inbox_size = 256;
+  const int inbox_size = 356;
   const int outbox_size = 0;
   app_message_open(inbox_size, outbox_size);
 }

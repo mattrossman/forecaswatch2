@@ -26,13 +26,15 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
   struct tm *forecast_start_local = localtime(&forecast_start);
   int16_t temps[num_entries];
   uint8_t precips[num_entries];
+  uint8_t windspeeds[num_entries];
   persist_get_temp_trend(temps, num_entries);
   persist_get_precip_trend(precips, num_entries);
+  persist_get_windspeed_trend(windspeeds, num_entries);
 
   // Allocate point arrays for plots
   GPoint points_temp[num_entries];
   GPoint points_precip[num_entries + 2]; // We need 2 more to complete the area
-
+  GPoint points_windspeed[num_entries];
   // Calculate the temperature range
   int lo, hi;
   min_max(temps, num_entries, &lo, &hi);
@@ -51,10 +53,14 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
     int entry_x = graph_bounds.origin.x + i * entry_w;
 
     // Save a point for the precipitation probability
-    int precip = precips[i];
+    int precip = ((precips[i] & 0xF0) >> 4) * 6.6666;
     int precip_h = (float)precip / 100.0 * (h - BOTTOM_AXIS_H);
     points_precip[i] = GPoint(entry_x, h - BOTTOM_AXIS_H - precip_h);
-
+    int windspeed = windspeeds[i];
+    if (windspeed > 100)
+      windspeed = 100;
+    int windspeed_h = (float)windspeed / 100.0 * (h - BOTTOM_AXIS_H);
+    points_windspeed[i] = GPoint(entry_x, h - BOTTOM_AXIS_H - windspeed_h);
     // Save a point for the temperature reading
     int temp = temps[i];
     int temp_h =
@@ -101,6 +107,17 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
   graphics_context_set_stroke_width(ctx, 1);
   gpath_draw_outline_open(ctx, path_precip_top);
   gpath_destroy(path_precip_top);
+
+  // Draw the windspeed line
+  GPathInfo path_info_windspeed = {.num_points = num_entries,
+                                   .points = points_windspeed};
+  GPath *path_windspeed = gpath_create(&path_info_windspeed);
+  graphics_context_set_stroke_color(
+      ctx, PBL_IF_COLOR_ELSE(GColorWhite, GColorWhite));
+  graphics_context_set_stroke_width(
+      ctx, 3); // Only odd stroke width values supported
+  gpath_draw_outline_open(ctx, path_windspeed);
+  gpath_destroy(path_windspeed);
 
   // Draw the temperature line
   GPathInfo path_info_temp = {.num_points = num_entries, .points = points_temp};

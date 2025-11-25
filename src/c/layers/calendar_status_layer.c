@@ -11,7 +11,6 @@
 
 static Layer *s_calendar_status_layer;
 static TextLayer *s_calendar_month_layer;
-static TextLayer *s_calendar_month_layer;
 static GBitmap *s_mute_bitmap;
 static GBitmap *s_bt_bitmap;
 static GBitmap *s_bt_disconnect_bitmap;

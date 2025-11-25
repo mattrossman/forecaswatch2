@@ -89,5 +89,9 @@ void time_layer_refresh() {
 
 void time_layer_destroy() {
   text_layer_destroy(s_time_layer);
+  if (s_am_pm_layer) {
+    text_layer_destroy(s_am_pm_layer);
+    s_am_pm_layer = NULL;
+  }
   text_layer_destroy(s_container_layer);
 }

@@ -15,7 +15,7 @@ static struct tm *relative_tm(int days_from_today) {
   Use this function to avoid edge cases from daylight savings time
   */
   time_t timestamp = time(NULL);
-  tm *local_time = localtime(&timestamp);
+  struct tm *local_time = localtime(&timestamp);
   // Set arbitrary hour so there's no daylight savings rounding error:
   local_time->tm_hour = 5;
   timestamp = mktime(local_time) + days_from_today * SECONDS_PER_DAY;

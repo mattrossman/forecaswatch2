@@ -139,6 +139,6 @@ void calendar_status_layer_destroy() {
   bitmap_layer_destroy(s_mute_bitmap_layer);
   bitmap_layer_destroy(s_bt_bitmap_layer);
   bitmap_layer_destroy(s_bt_disconnect_bitmap_layer);
-  layer_destroy(s_calendar_month_layer);
+  text_layer_destroy(s_calendar_month_layer);
   layer_destroy(s_calendar_status_layer);
 }

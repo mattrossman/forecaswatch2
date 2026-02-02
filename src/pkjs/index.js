@@ -68,6 +68,8 @@ function sendClaySettings() {
         "CLAY_COLOR_SATURDAY": app.settings.hasOwnProperty('colorSaturday') ? app.settings.colorSaturday : 16777215,
         "CLAY_COLOR_US_FEDERAL": app.settings.hasOwnProperty('colorUSFederal') ? app.settings.colorUSFederal : 16777215,
         "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : 16777215,
+        "CLAY_WIND_UNIT": (app.settings.windUnit === 'kph') ? 1 : 0,
+        "CLAY_WIND_MAX": Number(app.settings.windMax || 0),
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));

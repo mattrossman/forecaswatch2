@@ -171,6 +171,31 @@ module.exports = [
                 ]
             },
             {
+                "type": "select",
+                "defaultValue": "mph",
+                "messageKey": "windUnit",
+                "label": "Wind Units",
+                "options": [
+                    { "label": "mph", "value": "mph" },
+                    { "label": "kph", "value": "kph" }
+                ]
+            },
+            {
+                "type": "select",
+                "defaultValue": "0",
+                "messageKey": "windMax",
+                "label": "Fixed wind graph max (0 = auto)",
+                "options": [
+                    { "label": "Auto", "value": "0" },
+                    { "label": "5", "value": "5" },
+                    { "label": "10", "value": "10" },
+                    { "label": "15", "value": "15" },
+                    { "label": "20", "value": "20" },
+                    { "label": "30", "value": "30" },
+                    { "label": "40", "value": "40" }
+                ]
+            },
+            {
                 "type": "radiogroup",
                 "label": "Provider",
                 "messageKey": "provider",

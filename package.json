@@ -16,8 +16,8 @@
     "suncalc": "^1.9.0"
   },
   "pebble": {
-    "displayName": "FCW2",
-    "uuid": "7ed9b053-1521-4e49-be8b-6e12c68978ae",
+    "displayName": "FCW2 (wind)",
+    "uuid": "3f1a5b2c-8d4e-4a6b-9b7c-2d3e4f5a6b7c",
     "sdkVersion": "3",
     "enableMultiJS": true,
     "targetPlatforms": [
@@ -63,6 +63,7 @@
     "messageKeys": [
       "TEMP_TREND_INT16",
       "PRECIP_TREND_UINT8",
+      "WIND_TREND_UINT8",
       "FORECAST_START",
       "NUM_ENTRIES",
       "CURRENT_TEMP",
@@ -83,7 +84,9 @@
       "CLAY_COLOR_SATURDAY",
       "CLAY_COLOR_SUNDAY",
       "CLAY_COLOR_US_FEDERAL",
-      "CLAY_COLOR_TIME"
+      "CLAY_COLOR_TIME",
+      "CLAY_WIND_UNIT",
+      "CLAY_WIND_MAX"
     ]
   }
 }

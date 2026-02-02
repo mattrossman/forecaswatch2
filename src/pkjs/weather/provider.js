@@ -213,6 +213,23 @@ WeatherProvider.prototype.getPayload = function() {
     var precips = this.precipTrend.slice(0, this.numEntries).map(function(probability) {
         return Math.round(probability * 100);
     });
+    // Normalize wind values according to Clay settings (default: mph).
+    var clayRaw = null;
+    try { clayRaw = JSON.parse(localStorage.getItem('clay-settings')); } catch (e) { clayRaw = null; }
+    var windUnit = (clayRaw && clayRaw.windUnit) ? clayRaw.windUnit : 'mph';
+    // If providers give mph (current behavior), convert to m/s if requested.
+    var winds_source = (this.windTrend ? this.windTrend.slice(0, this.numEntries) : new Array(this.numEntries).fill(0));
+    var winds = winds_source.map(function(w) {
+        var val = Number(w) || 0;
+        if (windUnit === 'kph') {
+            val = val * 1.60934; // mph -> kph
+        }
+        // Clamp and round for uint8
+        val = Math.round(val);
+        if (val < 0) val = 0;
+        if (val > 255) val = 255;
+        return val;
+    });
     var tempsIntView = new Int16Array(temps);
     var tempsByteArray = Array.prototype.slice.call(new Uint8Array(tempsIntView.buffer))
     var sunEventsIntView = new Int32Array(this.sunEvents.map(function(sunEvent) {
@@ -222,6 +239,7 @@ WeatherProvider.prototype.getPayload = function() {
     var payload = {
         'TEMP_TREND_INT16': tempsByteArray,
         'PRECIP_TREND_UINT8': precips, // Holds values within [0,100]
+        'WIND_TREND_UINT8': winds,
         'FORECAST_START': this.startTime,
         'NUM_ENTRIES': this.numEntries,
         'CURRENT_TEMP': Math.round(this.currentTemp),

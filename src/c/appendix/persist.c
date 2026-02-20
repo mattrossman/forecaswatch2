@@ -54,6 +54,7 @@ void persist_init() {
             .time_font = 0,
             .wind_unit = 0,
             .wind_max = 0,
+            .show_wind_graph = true,
             .color_today = GColorBlack,
             .show_qt = true,
             .show_bt = true,

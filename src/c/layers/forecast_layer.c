@@ -115,6 +115,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
     gpath_destroy(path_temp);
 
     // Prepare and draw the wind speed line (scaled independently)
+    if (g_config && g_config->show_wind_graph) {
     int max_wind = 0;
     // If a fixed max is configured, use it (in same units as persisted wind data)
     if (g_config && g_config->wind_max > 0) {
@@ -143,6 +144,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
     graphics_context_set_stroke_width(ctx, 1);
     gpath_draw_outline_open(ctx, path_wind);
     gpath_destroy(path_wind);
+    } // end show_wind_graph
 
     // Draw a line for the bottom axis
     graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorOrange, GColorWhite));

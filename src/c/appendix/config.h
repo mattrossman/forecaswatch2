@@ -16,6 +16,7 @@ typedef struct {
     int16_t time_font;
     int16_t wind_unit; // 0 = mph, 1 = kph
     int16_t wind_max; // 0 = auto, otherwise fixed max value (same unit as wind_unit)
+    bool show_wind_graph;
     GColor color_today;
     GColor color_saturday;
     GColor color_sunday;

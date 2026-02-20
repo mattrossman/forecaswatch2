@@ -196,6 +196,12 @@ module.exports = [
                 ]
             },
             {
+                "type": "toggle",
+                "label": "Show wind speed graph",
+                "messageKey": "showWindGraph",
+                "defaultValue": true
+            },
+            {
                 "type": "radiogroup",
                 "label": "Provider",
                 "messageKey": "provider",

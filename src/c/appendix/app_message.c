@@ -37,6 +37,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *clay_color_time_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_TIME);
     Tuple *clay_wind_unit_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_WIND_UNIT);
     Tuple *clay_wind_max_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_WIND_MAX);
+    Tuple *clay_show_wind_graph_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_SHOW_WIND_GRAPH);
 
     if(temp_trend_tuple && forecast_start_tuple && num_entries_tuple && city_tuple && sun_events_tuple && precip_trend_tuple && wind_trend_tuple) {
         // Weather data received
@@ -67,7 +68,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     else if (clay_celsius_tuple && clay_axis_12h_tuple && clay_start_mon_tuple && clay_prev_week_tuple && clay_color_today_tuple
         && clay_vibe_tuple && clay_show_qt_tuple && clay_show_bt_tuple && clay_show_bt_disconnect_tuple && clay_show_am_pm_tuple
         && clay_color_saturday_tuple && clay_color_sunday_tuple && clay_color_us_federal_tuple && clay_color_time_tuple
-        && clay_wind_unit_tuple && clay_wind_max_tuple) {
+        && clay_wind_unit_tuple && clay_wind_max_tuple && clay_show_wind_graph_tuple) {
         // Clay config data received
         bool clay_celsius = (bool) (clay_celsius_tuple->value->int16);
         bool time_lead_zero = (bool) (clay_time_lead_zero_tuple->value->int16);
@@ -87,6 +88,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         GColor color_time = GColorFromHEX(clay_color_time_tuple->value->int32);
         int16_t wind_unit = clay_wind_unit_tuple->value->int16;
         int16_t wind_max = clay_wind_max_tuple->value->int16;
+        bool show_wind_graph = (bool) (clay_show_wind_graph_tuple->value->int16);
         Config config = (Config) {
             .celsius = clay_celsius,
             .time_lead_zero = time_lead_zero,
@@ -96,6 +98,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
             .time_font = time_font,
             .wind_unit = wind_unit,
             .wind_max = wind_max,
+            .show_wind_graph = show_wind_graph,
             .color_today = color_today,
             .vibe = vibe,
             .show_qt = show_qt,

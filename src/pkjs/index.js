@@ -70,6 +70,7 @@ function sendClaySettings() {
         "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : 16777215,
         "CLAY_WIND_UNIT": (app.settings.windUnit === 'kph') ? 1 : 0,
         "CLAY_WIND_MAX": Number(app.settings.windMax || 0),
+        "CLAY_SHOW_WIND_GRAPH": app.settings.showWindGraph !== false,
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));

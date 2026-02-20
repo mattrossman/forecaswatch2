@@ -4,27 +4,70 @@
 
 // NOTE: g_config is a global config variable
 
-// Size of Config before show_wind_graph was added, for migration
-#define CONFIG_SIZE_V1 (sizeof(Config) - sizeof(bool))
+// Config layout as it existed in master (before wind fields were added).
+// Used for migration when upgrading from master -> this branch.
+typedef struct {
+    bool celsius;
+    bool time_lead_zero;
+    bool axis_12h;
+    bool start_mon;
+    bool prev_week;
+    bool show_qt;
+    bool show_bt;
+    bool show_bt_disconnect;
+    bool vibe;
+    bool show_am_pm;
+    int16_t time_font;
+    GColor color_today;
+    GColor color_saturday;
+    GColor color_sunday;
+    GColor color_us_federal;
+    GColor color_time;
+} ConfigV1;
 
-static void config_apply_defaults_for_new_fields(int bytes_read) {
-    // If persisted data is from before show_wind_graph was added, default it to true
-    if (bytes_read <= (int)CONFIG_SIZE_V1) {
+static void config_migrate(int bytes_read) {
+    if (bytes_read == (int)sizeof(ConfigV1)) {
+        // Upgrading from master: persist_read_data loaded 17 bytes at the start
+        // of the new 22-byte struct. The 5 GColor fields were at raw offsets
+        // 12-16 in ConfigV1, but in Config they are at 16-20 (shifted by the
+        // two new int16_t wind fields). Extract the colors from their raw byte
+        // positions before we overwrite anything.
+        uint8_t *raw = (uint8_t*) g_config;
+        GColor old_color_today      = (GColor){ .argb = raw[12] };
+        GColor old_color_saturday   = (GColor){ .argb = raw[13] };
+        GColor old_color_sunday     = (GColor){ .argb = raw[14] };
+        GColor old_color_us_federal = (GColor){ .argb = raw[15] };
+        GColor old_color_time       = (GColor){ .argb = raw[16] };
+        // Wind fields: safe defaults
+        g_config->wind_unit         = 0;    // mph
+        g_config->wind_max          = 0;    // auto
+        // Restore colors at their correct new offsets
+        g_config->color_today       = old_color_today;
+        g_config->color_saturday    = old_color_saturday;
+        g_config->color_sunday      = old_color_sunday;
+        g_config->color_us_federal  = old_color_us_federal;
+        g_config->color_time        = old_color_time;
+        g_config->show_wind_graph   = true;
+    } else if (bytes_read < (int)sizeof(Config)) {
+        // Unknown/future layout smaller than current — ensure new fields are sane
+        g_config->wind_unit       = 0;
+        g_config->wind_max        = 0;
         g_config->show_wind_graph = true;
     }
+    // bytes_read == sizeof(Config): current format, nothing to do
 }
 
 void config_load() {
     g_config = (Config*) malloc(sizeof(Config));
     int bytes_read = persist_get_config(g_config);
-    config_apply_defaults_for_new_fields(bytes_read);
+    config_migrate(bytes_read);
 }
 
 void config_refresh() {
     free(g_config);  // Clear out the old config
     g_config = (Config*) malloc(sizeof(Config));
     int bytes_read = persist_get_config(g_config);  // Then reload
-    config_apply_defaults_for_new_fields(bytes_read);
+    config_migrate(bytes_read);
 }
 
 void config_unload() {

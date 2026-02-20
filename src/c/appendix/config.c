@@ -4,15 +4,27 @@
 
 // NOTE: g_config is a global config variable
 
+// Size of Config before show_wind_graph was added, for migration
+#define CONFIG_SIZE_V1 (sizeof(Config) - sizeof(bool))
+
+static void config_apply_defaults_for_new_fields(int bytes_read) {
+    // If persisted data is from before show_wind_graph was added, default it to true
+    if (bytes_read <= (int)CONFIG_SIZE_V1) {
+        g_config->show_wind_graph = true;
+    }
+}
+
 void config_load() {
     g_config = (Config*) malloc(sizeof(Config));
-    persist_get_config(g_config);
+    int bytes_read = persist_get_config(g_config);
+    config_apply_defaults_for_new_fields(bytes_read);
 }
 
 void config_refresh() {
     free(g_config);  // Clear out the old config
     g_config = (Config*) malloc(sizeof(Config));
-    persist_get_config(g_config);  // Then reload
+    int bytes_read = persist_get_config(g_config);  // Then reload
+    config_apply_defaults_for_new_fields(bytes_read);
 }
 
 void config_unload() {

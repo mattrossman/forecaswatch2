@@ -35,6 +35,7 @@ static void draw_power_icon(GContext *ctx, int h, GBitmap *icon_bitmap) {
         ctx,
         icon_bitmap,
         GRect(icon_x, icon_y, icon_bounds.size.w, icon_bounds.size.h));
+    graphics_context_set_compositing_mode(ctx, GCompOpAssign);
 }
 
 static void battery_update_proc(Layer *layer, GContext *ctx) {

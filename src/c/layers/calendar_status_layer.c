@@ -3,7 +3,7 @@
 #include "c/appendix/config.h"
 
 #define MONTH_FONT_OFFSET 7
-#define BATTERY_W 20
+#define BATTERY_W 29
 #define BATTERY_H 10
 #define PADDING 4
 #define ICON_SLOT_1 GRect(PADDING, 0, 10, 10)

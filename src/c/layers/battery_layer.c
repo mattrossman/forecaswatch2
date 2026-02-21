@@ -5,6 +5,7 @@
 #define BATTERY_NUB_H 6
 #define BATTERY_STROKE 1
 #define FILL_PADDING 1
+#define ICON_SPACING 3
 
 
 static Layer *s_battery_layer;
@@ -25,9 +26,9 @@ static GColor get_battery_color(int level) {
         return GColorRed;
 }
 
-static void draw_power_icon(GContext *ctx, int battery_w, int h, GBitmap *icon_bitmap) {
+static void draw_power_icon(GContext *ctx, int h, GBitmap *icon_bitmap) {
     GRect icon_bounds = gbitmap_get_bounds(icon_bitmap);
-    int icon_x = (battery_w - icon_bounds.size.w) / 2;
+    int icon_x = 0;
     int icon_y = (h - icon_bounds.size.h) / 2;
 
     graphics_context_set_compositing_mode(ctx, GCompOpSet);
@@ -41,14 +42,17 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
     int w = bounds.size.w;
     int h = bounds.size.h;
-    int battery_w = w - BATTERY_NUB_W;
+    int icon_w = gbitmap_get_bounds(s_battery_charging_bitmap).size.w;
+    int battery_x = icon_w + ICON_SPACING;
+    int battery_total_w = w - battery_x;
+    int battery_w = battery_total_w - BATTERY_NUB_W;
     BatteryChargeState battery_state = battery_state_service_peek();
     int battery_level = battery_state.charge_percent;
     bool show_power_icon = battery_state.is_charging || battery_state.is_plugged;
 
     // Fill the battery level
     GRect color_bounds = GRect(
-        BATTERY_STROKE + FILL_PADDING, BATTERY_STROKE + FILL_PADDING,
+        battery_x + BATTERY_STROKE + FILL_PADDING, BATTERY_STROKE + FILL_PADDING,
         battery_w - (BATTERY_STROKE + FILL_PADDING) * 2, h - (BATTERY_STROKE + FILL_PADDING) * 2);
     GRect color_area = GRect(
         color_bounds.origin.x, color_bounds.origin.y,
@@ -58,16 +62,18 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
 
     if (show_power_icon) {
         GBitmap *icon_bitmap = battery_state.is_charging ? s_battery_charging_bitmap : s_battery_plugged_bitmap;
-        draw_power_icon(ctx, battery_w, h, icon_bitmap);
+        draw_power_icon(ctx, h, icon_bitmap);
     }
 
     // Draw the white battery outline
     graphics_context_set_stroke_color(ctx, GColorWhite);
     graphics_context_set_stroke_width(ctx, BATTERY_STROKE);
-    graphics_draw_rect(ctx, GRect(0, 0, battery_w, h));
+    graphics_draw_rect(ctx, GRect(battery_x, 0, battery_w, h));
 
     // Draw the battery nub on the right
-    graphics_draw_rect(ctx, GRect(battery_w - 1, h / 2 - BATTERY_NUB_H / 2, BATTERY_NUB_W + 1, BATTERY_NUB_H));
+    graphics_draw_rect(
+        ctx,
+        GRect(battery_x + battery_w - 1, h / 2 - BATTERY_NUB_H / 2, BATTERY_NUB_W + 1, BATTERY_NUB_H));
 }
 
 void battery_layer_create(Layer* parent_layer, GRect frame) {

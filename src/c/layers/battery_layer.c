@@ -9,8 +9,7 @@
 
 
 static Layer *s_battery_layer;
-static GBitmap *s_battery_charging_bitmap;
-static GBitmap *s_battery_plugged_bitmap;
+static GBitmap *s_battery_power_bitmap;
 static GColor *s_battery_palette;
 
 static void battery_state_handler(BatteryChargeState charge) {
@@ -42,7 +41,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
     int w = bounds.size.w;
     int h = bounds.size.h;
-    int icon_w = gbitmap_get_bounds(s_battery_charging_bitmap).size.w;
+    int icon_w = gbitmap_get_bounds(s_battery_power_bitmap).size.w;
     int battery_x = icon_w + ICON_SPACING;
     int battery_total_w = w - battery_x;
     int battery_w = battery_total_w - BATTERY_NUB_W;
@@ -61,8 +60,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     graphics_fill_rect(ctx, color_area, 0, GCornerNone);
 
     if (show_power_icon) {
-        GBitmap *icon_bitmap = battery_state.is_charging ? s_battery_charging_bitmap : s_battery_plugged_bitmap;
-        draw_power_icon(ctx, h, icon_bitmap);
+        draw_power_icon(ctx, h, s_battery_power_bitmap);
     }
 
     // Draw the white battery outline
@@ -78,14 +76,12 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
 
 void battery_layer_create(Layer* parent_layer, GRect frame) {
     s_battery_layer = layer_create(frame);
-    s_battery_charging_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BATTERY_CHARGING);
-    s_battery_plugged_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BATTERY_PLUGGED);
+    s_battery_power_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BATTERY_CHARGING);
 
     s_battery_palette = malloc(2 * sizeof(GColor));
     s_battery_palette[0] = GColorWhite;
     s_battery_palette[1] = GColorClear;
-    gbitmap_set_palette(s_battery_charging_bitmap, s_battery_palette, false);
-    gbitmap_set_palette(s_battery_plugged_bitmap, s_battery_palette, false);
+    gbitmap_set_palette(s_battery_power_bitmap, s_battery_palette, false);
 
     layer_set_update_proc(s_battery_layer, battery_update_proc);
     battery_state_service_subscribe(battery_state_handler);
@@ -99,7 +95,6 @@ void battery_layer_refresh() {
 void battery_layer_destroy() {
     battery_state_service_unsubscribe();
     free(s_battery_palette);
-    gbitmap_destroy(s_battery_charging_bitmap);
-    gbitmap_destroy(s_battery_plugged_bitmap);
+    gbitmap_destroy(s_battery_power_bitmap);
     layer_destroy(s_battery_layer);
 }

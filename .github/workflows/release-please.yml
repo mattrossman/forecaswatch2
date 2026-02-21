@@ -29,10 +29,6 @@ jobs:
           install: true
           cache: true
 
-      - name: Install JS dependencies
-        if: ${{ steps.release.outputs.release_created }}
-        run: npm ci
-
       - name: Build .pbw
         if: ${{ steps.release.outputs.release_created }}
         run: mise build

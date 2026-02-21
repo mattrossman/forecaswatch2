@@ -1,0 +1,3 @@
+[[tools."pipx:pebble-tool"]]
+version = "5.0.27"
+backend = "pipx:pebble-tool"

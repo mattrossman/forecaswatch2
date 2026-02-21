@@ -1,0 +1,8 @@
+[settings]
+experimental = true
+lockfile = true
+
+[tools]
+# https://developer.rebble.io/sdk/
+# https://mise.jdx.dev/dev-tools/backends/pipx.html
+"pipx:pebble-tool" = "latest"

@@ -1,0 +1,99 @@
+name: Build Preview
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - labeled
+      - unlabeled
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  build-preview:
+    if: contains(github.event.pull_request.labels.*.name, 'build-preview')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: build-preview-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build .pbw in Pebble SDK container
+        run: |
+          docker run --rm \
+            -v "${PWD}:/forecaswatch2" \
+            -w /forecaswatch2 \
+            rebble/pebble-sdk \
+            pebble build
+
+      - name: Verify artifact exists
+        run: test -f build/forecaswatch2.pbw
+
+      - name: Upload .pbw artifact
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: forecaswatch2-pbw-pr-${{ github.event.pull_request.number }}
+          path: build/forecaswatch2.pbw
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upsert PR comment with artifact link
+        uses: actions/github-script@v7
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+        with:
+          script: |
+            const marker = '<!-- build-preview-artifact -->';
+            const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
+            if (!process.env.ARTIFACT_ID) {
+              throw new Error('upload-artifact did not return artifact-id');
+            }
+            const runUrl = `${process.env.GITHUB_SERVER_URL}/${owner}/${repo}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+            const artifactUrl = `${runUrl}/artifacts/${process.env.ARTIFACT_ID}`;
+            const prNumber = context.payload.pull_request.number;
+
+            const body = [
+              marker,
+              '✅ Preview build available.',
+              '',
+              `Download \`forecaswatch2.pbw\`: [artifact link](${artifactUrl})`,
+              '',
+              'Artifacts are attached to the workflow run/job and require GitHub access to this repository.',
+              `Run: [#${process.env.GITHUB_RUN_NUMBER}](${runUrl})`,
+            ].join('\n');
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: prNumber,
+              per_page: 100,
+            });
+
+            const existing = comments.find((comment) =>
+              comment.user?.type === 'Bot' && comment.body?.includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body,
+              });
+            }

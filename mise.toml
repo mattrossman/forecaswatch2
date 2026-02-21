@@ -6,3 +6,24 @@ lockfile = true
 # https://developer.rebble.io/sdk/
 # https://mise.jdx.dev/dev-tools/backends/pipx.html
 "pipx:pebble-tool" = "latest"
+
+[env]
+_.file = ".env"
+
+[tasks.build]
+description = "Clean and build PBW"
+run = "pebble clean && pebble build"
+
+[tasks.install-phone]
+description = "Build and install on phone"
+alias = "install"
+depends = ["build"]
+usage = '''
+arg "<ip>" env="IP" help="Phone IP address"
+'''
+run = "pebble install --phone ${usage_ip?}"
+
+[tasks.install-emulator]
+description = "Build and install on basalt emulator"
+depends = ["build"]
+run = "pebble install --emulator basalt"

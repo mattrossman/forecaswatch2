@@ -10,8 +10,24 @@ lockfile = true
 [env]
 _.file = ".env"
 
+[tasks.clean]
+description = "Clean build artifacts"
+run = "pebble clean"
+
 [tasks.build]
-description = "Clean and build PBW"
+description = "Build PBW"
+run = "pebble build"
+sources = [
+  "wscript",
+  "package.json",
+  "package-lock.json",
+  "src/**/*",
+  "resources/**/*",
+]
+outputs = ["build/**/*.pbw"]
+
+[tasks.rebuild]
+description = "Clean and rebuild PBW"
 run = "pebble clean && pebble build"
 
 [tasks.install-phone]

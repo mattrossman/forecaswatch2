@@ -31,6 +31,10 @@ jobs:
           install: true
           cache: true
 
+      - name: Install Pebble SDK
+        if: ${{ steps.release.outputs.release_created }}
+        run: pebble sdk install latest
+
       - name: Build .pbw
         if: ${{ steps.release.outputs.release_created }}
         run: mise build

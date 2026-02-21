@@ -126,6 +126,7 @@ void calendar_status_layer_refresh() {
 }
 
 void calendar_status_layer_destroy() {
+    battery_layer_destroy();
     free(s_bt_palette);
     free(s_bt_disconnect_palette);
     free(s_mute_palette);

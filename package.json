@@ -47,6 +47,18 @@
           "name": "IMAGE_BT_CONNECT",
           "file": "img/bt.png",
           "memoryFormat": "1BitPalette"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BATTERY_CHARGING",
+          "file": "img/battery-charging.png",
+          "memoryFormat": "1BitPalette"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BATTERY_PLUGGED",
+          "file": "img/battery-plugged.png",
+          "memoryFormat": "1BitPalette"
         }
       ]
     },

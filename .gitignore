@@ -3,6 +3,7 @@
 !.travis.yml
 !.github/
 !.env.example
+!.release-please-manifest.json
 build
 src/pkjs/dev-config.js
 screenshot/*

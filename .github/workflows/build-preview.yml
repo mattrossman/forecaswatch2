@@ -3,11 +3,8 @@ name: Build Preview
 on:
   pull_request:
     types:
-      - opened
-      - reopened
-      - synchronize
       - labeled
-      - unlabeled
+      - synchronize
 
 permissions:
   contents: read
@@ -16,7 +13,13 @@ permissions:
 
 jobs:
   build-preview:
-    if: contains(github.event.pull_request.labels.*.name, 'build-preview')
+    if: >
+      github.repository == 'mattrossman/forecaswatch2' &&
+      (
+        (github.event.action == 'labeled' && github.event.label.name == 'build-preview') ||
+        (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'build-preview'))
+      ) &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     concurrency:
       group: build-preview-${{ github.event.pull_request.number }}

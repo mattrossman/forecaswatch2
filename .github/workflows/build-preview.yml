@@ -44,7 +44,7 @@ jobs:
         id: upload
         uses: actions/upload-artifact@v4
         with:
-          name: forecaswatch2-pbw-pr-${{ github.event.pull_request.number }}
+          name: forecaswatch2-pbw-pr-${{ github.event.pull_request.number }}.zip
           path: build/forecaswatch2.pbw
           if-no-files-found: error
           retention-days: 14
@@ -62,13 +62,13 @@ jobs:
             }
             const runUrl = `${process.env.GITHUB_SERVER_URL}/${owner}/${repo}/actions/runs/${process.env.GITHUB_RUN_ID}`;
             const prNumber = context.payload.pull_request.number;
-            const artifactName = `forecaswatch2-pbw-pr-${prNumber}`;
+            const artifactName = `forecaswatch2-pbw-pr-${prNumber}.zip`;
 
             const body = [
               marker,
               '✅ Preview build available.',
               '',
-              `Download [${artifactName}](${process.env.ARTIFACT_URL}) (zip containing \`forecaswatch2.pbw\`)`,
+              `Download [${artifactName}](${process.env.ARTIFACT_URL})`,
               '',
               'Artifacts are attached to the workflow run/job and require GitHub access to this repository.',
               `Run: [#${process.env.GITHUB_RUN_NUMBER}](${runUrl})`,

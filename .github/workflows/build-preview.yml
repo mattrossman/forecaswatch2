@@ -29,13 +29,14 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Build .pbw in Pebble SDK container
-        run: |
-          docker run --rm \
-            -v "${PWD}:/forecaswatch2" \
-            -w /forecaswatch2 \
-            rebble/pebble-sdk \
-            pebble build
+      - name: Set up mise toolchain
+        uses: jdx/mise-action@v3
+        with:
+          install: true
+          cache: true
+
+      - name: Build .pbw
+        run: mise build
 
       - name: Verify artifact exists
         run: test -f build/forecaswatch2.pbw

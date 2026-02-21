@@ -58,25 +58,34 @@ For more cutting-edge features, download the latest [`forecaswatch2.pbw`](https:
 
 ### Building
 
-Prerequisites: [Node.js](https://nodejs.org/en/) and [Docker Desktop](https://docs.docker.com/get-docker/)
+Prerequisites: [Node.js](https://nodejs.org/en/) and [mise](https://mise.jdx.dev/)
 
 ```bash
+# Install toolchain from mise.toml
+mise install
+
 # Install JS dependencies
 npm install
 
-# Start the detached docker container
-npm start
-
-# Build within the container
-npm run build
+# Build
+mise build
 ```
 
-This will build the project inside a docker container containing the Pebble SDK. The `.pbw` output can be found in the `build` directory on the host machine.
+This builds the project with the Pebble SDK provisioned by mise. The `.pbw` output can be found in the `build` directory.
 
-You can also use `npm run shell` to access other Pebble CLI commands, for instance during development I often use:
+You can run Pebble CLI commands directly, or use install tasks that build and install in one command:
 
 ```bash
-pebble clean && pebble build && pebble install --phone <IP>
+# Option 1: set once in .env
+cp .env.example .env
+# then edit .env and set IP=<PHONE_IP>
+mise install-phone
+
+# Option 2: pass IP explicitly
+mise install-phone <PHONE_IP>
+
+# Install to basalt emulator
+mise install-emulator
 ```
 
 ### Config

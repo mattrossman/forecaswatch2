@@ -104,6 +104,7 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback) {
             var locations = JSON.parse(response);
             if (locations.length === 0) {
                 console.log('[!] No geocoding results')
+                callback(null, null);
             }
             else {
                 var closest = locations[0];

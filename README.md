@@ -94,4 +94,8 @@ You can create a file `src/pkjs/dev-config.js` to set values for Clay keys (for 
 ```javascript
 var owmApiKey = 'abc123';
 module.exports.owmApiKey = owmApiKey;
+module.exports.location = 'New York, NY';
+module.exports.forceFetchOnBoot = true;
 ```
+
+When `forceFetchOnBoot` is `true`, PKJS clears the saved `lastFetchSuccess` value on startup so weather is fetched immediately instead of waiting for the normal refresh window.

@@ -66,7 +66,12 @@ WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
     var url = 'https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?f=json&langCode=EN&location='
         + lon + ',' + lat;
     request(url, 'GET', function (response) {
-        var address = JSON.parse(response).address;
+        var body = JSON.parse(response);
+        if (!body.address) {
+            console.log('[!] Reverse geocoding response had no address object');
+            return;
+        }
+        var address = body.address;
         var name = address.District ? address.District : address.City;
         console.log('Running callback with city: ' + name);
         callback(name);
@@ -74,17 +79,18 @@ WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
 }
 
 // https://github.com/mattrossman/forecaswatch2/issues/59#issue-1317582743
-const r_lat_long = new RegExp(/([-+]?[\d\.]*),([-+]?[\d\.]*)/gm);
+const r_lat_long = /^\s*([-+]?\d+(?:\.\d+)?)\s*,\s*([-+]?\d+(?:\.\d+)?)\s*$/;
 
 WeatherProvider.prototype.withGeocodeCoordinates = function(callback) {
     // callback(lattitude, longtitude)
     var locationiq_key = 'pk.5a61972cde94491774bcfaa0705d5a0d';
+    var locationQuery = this.location;
     var url = 'https://us1.locationiq.com/v1/search.php?key=' + locationiq_key
-        + '&q=' + this.location
+        + '&q=' + locationQuery
         + '&format=json';
-    var m = r_lat_long.exec(this.location);
+    var m = locationQuery ? locationQuery.match(r_lat_long) : null;
 
-    console.log('WeatherProvider.prototype.withGeocodeCoordinates lets regex, this.location: ' + JSON.stringify(this.location));
+    console.log('WeatherProvider.prototype.withGeocodeCoordinates lets regex, this.location: ' + JSON.stringify(locationQuery));
     if (m != null) {
         var latitude = m[1];
         var longitude = m[2];
@@ -101,7 +107,7 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback) {
             }
             else {
                 var closest = locations[0];
-                console.log('Query ' + this.location + ' geocoded to ' + closest.lat + ', ' + closest.lon);
+                console.log('Query "' + locationQuery + '" geocoded to ' + closest.lat + ', ' + closest.lon);
                 JSON.stringify('closest.lat ' + JSON.stringify(closest.lat));
                 JSON.stringify('closest ' + JSON.stringify(closest));
                 callback(closest.lat, closest.lon);

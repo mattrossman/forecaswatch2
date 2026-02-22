@@ -121,10 +121,19 @@ function clayTryDevConfig() {
         var persistClay = getClaySettings();
         for (var prop in devConfig) {
             if (Object.prototype.hasOwnProperty.call(devConfig, prop)) {
+                if (prop === 'forceFetchOnBoot') {
+                    continue;
+                }
                 persistClay[prop] = devConfig[prop];
                 console.log('Found dev setting: ' + prop + '=' + devConfig[prop]);
             }
         }
+
+        if (devConfig.forceFetchOnBoot === true) {
+            console.log('Found dev setting: forceFetchOnBoot=true (clearing lastFetchSuccess)');
+            localStorage.removeItem('lastFetchSuccess');
+        }
+
         localStorage.setItem('clay-settings', JSON.stringify(persistClay));
     }
     catch (ex) {

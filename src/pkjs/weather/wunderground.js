@@ -105,6 +105,18 @@ WundergroundProvider.prototype.withProviderData = function(lat, lon, force, call
                 this.precipTrend = forecast.map(function(entry) {
                     return entry.pop / 100.0
                 })
+                this.windTrend = forecast.map(function(entry) {
+                    // Try a few common field names used by providers
+                    if (entry.wspd) {
+                        if (typeof entry.wspd === 'object') {
+                            return entry.wspd.english || entry.wspd.metric || 0;
+                        }
+                        return entry.wspd;
+                    }
+                    if (entry.wspd_mph) return entry.wspd_mph;
+                    if (entry.wind_speed) return entry.wind_speed;
+                    return 0;
+                })
                 this.startTime = forecast[0].fcst_valid;
                 this.currentTemp = currentTemp;
                 callback();

@@ -14,11 +14,15 @@ typedef struct {
     bool vibe;
     bool show_am_pm;
     int16_t time_font;
+    int16_t wind_unit; // 0 = mph, 1 = kph
+    int16_t wind_max; // 0 = auto, otherwise fixed max value (same unit as wind_unit)
     GColor color_today;
     GColor color_saturday;
     GColor color_sunday;
     GColor color_us_federal;
     GColor color_time;
+    // Added after v1 — must stay at end for backward-compat persist reads
+    bool show_wind_graph;
 } Config;
 
 Config *g_config;

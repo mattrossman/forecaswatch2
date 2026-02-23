@@ -3,7 +3,7 @@
 
 enum key {
     TEMP_LO, TEMP_HI, TEMP_TREND, PRECIP_TREND, FORECAST_START, CITY, SUN_EVENT_START_TYPE, SUN_EVENT_TIMES, NUM_ENTRIES,
-    CURRENT_TEMP, BATTERY_LEVEL, CONFIG
+    CURRENT_TEMP, BATTERY_LEVEL, CONFIG, WIND_TREND
 }; // Deprecated: BATTERY_LEVEL
 
 void persist_init() {
@@ -19,7 +19,11 @@ void persist_init() {
     }
     if (!persist_exists(PRECIP_TREND)) {
         uint8_t data[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        persist_write_data(TEMP_TREND, (void*) data, 12*sizeof(uint8_t));
+        persist_write_data(PRECIP_TREND, (void*) data, 12*sizeof(uint8_t));
+    }
+    if (!persist_exists(WIND_TREND)) {
+        uint8_t data_w[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        persist_write_data(WIND_TREND, (void*) data_w, 12*sizeof(uint8_t));
     }
     if (!persist_exists(FORECAST_START)) {
         persist_write_int(FORECAST_START, 0);
@@ -48,6 +52,9 @@ void persist_init() {
             .start_mon = false,
             .prev_week = true,
             .time_font = 0,
+            .wind_unit = 0,
+            .wind_max = 0,
+            .show_wind_graph = true,
             .color_today = GColorBlack,
             .show_qt = true,
             .show_bt = true,
@@ -77,6 +84,10 @@ int persist_get_temp_trend(int16_t *buffer, const size_t buffer_size) {
 
 int persist_get_precip_trend(uint8_t *buffer, const size_t buffer_size) {
     return persist_read_data(PRECIP_TREND, (void*) buffer, buffer_size * sizeof(uint8_t));
+}
+
+int persist_get_wind_trend(uint8_t *buffer, const size_t buffer_size) {
+    return persist_read_data(WIND_TREND, (void*) buffer, buffer_size * sizeof(uint8_t));
 }
 
 time_t persist_get_forecast_start() {
@@ -121,6 +132,10 @@ void persist_set_temp_trend(int16_t *data, const size_t size) {
 
 void persist_set_precip_trend(uint8_t *data, const size_t size) {
     persist_write_data(PRECIP_TREND, (void*) data, size * sizeof(uint8_t));
+}
+
+void persist_set_wind_trend(uint8_t *data, const size_t size) {
+    persist_write_data(WIND_TREND, (void*) data, size * sizeof(uint8_t));
 }
 
 void persist_set_forecast_start(time_t val) {

@@ -56,42 +56,4 @@ For more cutting-edge features, download the latest [`forecaswatch2.pbw`](https:
 
 ## Developers
 
-### Building
-
-Prerequisites: [Node.js](https://nodejs.org/en/) and [mise](https://mise.jdx.dev/)
-
-```bash
-# Install toolchain from mise.toml
-mise install
-
-# Install JS dependencies
-npm install
-
-# Build
-mise build
-```
-
-This builds the project with the Pebble SDK provisioned by mise. The `.pbw` output can be found in the `build` directory.
-
-You can run Pebble CLI commands directly, or use install tasks that build and install in one command:
-
-```bash
-# Option 1: set once in .env
-cp .env.example .env
-# then edit .env and set IP=<PHONE_IP>
-mise install-phone
-
-# Option 2: pass IP explicitly
-mise install-phone <PHONE_IP>
-
-# Install to basalt emulator
-mise install-emulator
-```
-
-### Config
-You can create a file `src/pkjs/dev-config.js` to set values for Clay keys (for convenience), e.g.
-
-```javascript
-var owmApiKey = 'abc123';
-module.exports.owmApiKey = owmApiKey;
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for developer setup and workflow.

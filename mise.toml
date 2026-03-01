@@ -4,8 +4,9 @@ lockfile = true
 
 [tools]
 # https://developer.rebble.io/sdk/
+# https://github.com/coredevices/pebble-tool
 # https://mise.jdx.dev/dev-tools/backends/pipx.html
-"pipx:pebble-tool" = "latest"
+"pipx:pebble-tool" = "5.0.28"
 
 [env]
 _.file = ".env"

@@ -2,26 +2,158 @@
 #include "c/appendix/persist.h"
 #include "c/appendix/math.h"
 #include "c/appendix/config.h"
+#include "c/appendix/dither.h"
 
 #define LEFT_AXIS_MARGIN_W 17
 #define BOTTOM_AXIS_FONT_OFFSET 4  // Adjustment for whitespace at top of font
 #define LABEL_PADDING 20  // Minimum width a label should cover
 #define BOTTOM_AXIS_H 10  // Height of the bottom axis (hour labels)
 #define MARGIN_TEMP_H 7  // Height of margins for the temperature plot
+#define NIGHT_GRAY_APLITE 64
+#define AXIS_COLOR PBL_IF_COLOR_ELSE(GColorRed, GColorWhite)
+#define FORECAST_STEP_SECONDS (60 * 60)
+
+typedef struct {
+    time_t start;
+    time_t end;
+} NightSegment;
+
+typedef struct {
+    int count;
+    NightSegment segments[3];
+} NightSegments;
 
 static Layer *s_forecast_layer;
 static TextLayer *s_hi_layer;
 static TextLayer *s_lo_layer;
 
+static void night_segments_add(NightSegments *night_segments, time_t start, time_t end) {
+    if (night_segments->count >= (int) (sizeof(night_segments->segments) / sizeof(night_segments->segments[0])) || end <= start) {
+        return;
+    }
+
+    night_segments->segments[night_segments->count].start = start;
+    night_segments->segments[night_segments->count].end = end;
+    night_segments->count += 1;
+}
+
+static NightSegments compute_night_segments(time_t graph_start, time_t graph_end) {
+    NightSegments night_segments = {0};
+
+    if (graph_end <= graph_start) {
+        return night_segments;
+    }
+
+    time_t sun_event_times[2] = {0, 0};
+    const int num_sun_events = sizeof(sun_event_times) / sizeof(sun_event_times[0]);
+    const int sun_events_read = persist_get_sun_event_times(sun_event_times, num_sun_events);
+    if (sun_events_read < (int) sizeof(sun_event_times)) {
+        return night_segments;
+    }
+
+    const int sun_event_start_type = persist_get_sun_event_start_type();
+    if ((sun_event_start_type != 0 && sun_event_start_type != 1)
+        || sun_event_times[0] <= 0
+        || sun_event_times[1] <= 0
+        || sun_event_times[1] <= sun_event_times[0]) {
+        return night_segments;
+    }
+
+    // Start type is the type of the first event in the list:
+    // 0 = sunrise, 1 = sunset. Before sunrise is night; before sunset is day.
+    bool is_night = (sun_event_start_type == 0);
+
+    for (int i = 0; i < num_sun_events; ++i) {
+        if (sun_event_times[i] <= graph_start) {
+            is_night = !is_night;
+        }
+    }
+
+    time_t segment_start = graph_start;
+    for (int i = 0; i < num_sun_events; ++i) {
+        const time_t transition = sun_event_times[i];
+
+        if (transition <= graph_start) {
+            continue;
+        }
+        if (transition >= graph_end) {
+            break;
+        }
+
+        if (is_night) {
+            night_segments_add(&night_segments, segment_start, transition);
+        }
+
+        segment_start = transition;
+        is_night = !is_night;
+    }
+
+    if (is_night) {
+        night_segments_add(&night_segments, segment_start, graph_end);
+    }
+
+    return night_segments;
+}
+
+static int16_t graph_x_for_time(time_t timestamp, time_t graph_start, time_t graph_end, GRect graph_plot_rect) {
+    const int16_t graph_left = graph_plot_rect.origin.x;
+    const int16_t graph_right = graph_plot_rect.origin.x + graph_plot_rect.size.w;
+
+    if (timestamp <= graph_start) {
+        return graph_left;
+    }
+    if (timestamp >= graph_end) {
+        return graph_right;
+    }
+
+    const int64_t elapsed = (int64_t) timestamp - graph_start;
+    const int64_t total = (int64_t) graph_end - graph_start;
+    return graph_left + (int16_t) ((elapsed * graph_plot_rect.size.w) / total);
+}
+
+static void draw_night_regions(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end) {
+    const NightSegments night_segments = compute_night_segments(graph_start, graph_end);
+    if (night_segments.count == 0) {
+        return;
+    }
+
+    const int16_t graph_left = graph_plot_rect.origin.x;
+    const int16_t graph_right = graph_plot_rect.origin.x + graph_plot_rect.size.w;
+
+    for (int i = 0; i < night_segments.count; ++i) {
+        int16_t x0 = graph_x_for_time(night_segments.segments[i].start, graph_start, graph_end, graph_plot_rect);
+        int16_t x1 = graph_x_for_time(night_segments.segments[i].end, graph_start, graph_end, graph_plot_rect);
+
+        if (x0 < graph_left) {
+            x0 = graph_left;
+        }
+        if (x1 > graph_right) {
+            x1 = graph_right;
+        }
+        if (x1 <= x0) {
+            continue;
+        }
+
+        GRect night_rect = GRect(x0, graph_plot_rect.origin.y, x1 - x0, graph_plot_rect.size.h);
+        dither_fill_rect_1bit(ctx, night_rect, NIGHT_GRAY_APLITE);
+    }
+}
+
 static void forecast_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
     GRect graph_bounds = GRect(LEFT_AXIS_MARGIN_W, 0, bounds.size.w - LEFT_AXIS_MARGIN_W, bounds.size.h);
+    GRect graph_plot_rect = GRect(graph_bounds.origin.x, 0, graph_bounds.size.w, bounds.size.h - BOTTOM_AXIS_H);
     int w = graph_bounds.size.w;
     int h = graph_bounds.size.h;
 
     // Load data from storage
     const int num_entries = persist_get_num_entries();
+    if (num_entries < 2) {
+        return;
+    }
+
     const time_t forecast_start = persist_get_forecast_start();
+    const time_t forecast_end = forecast_start + (num_entries - 1) * FORECAST_STEP_SECONDS;
     struct tm *forecast_start_local = localtime(&forecast_start);
     int16_t temps[num_entries];
     uint8_t precips[num_entries];
@@ -39,6 +171,8 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
 
     // Draw a bounding box for each data entry (the -1 is since we don't want a gap on either side)
     float entry_w = (float) graph_bounds.size.w / (num_entries - 1);
+    draw_night_regions(ctx, graph_plot_rect, forecast_start, forecast_end);
+
     graphics_context_set_text_color(ctx, GColorWhite);
     graphics_context_set_stroke_color(ctx, GColorLightGray);
 
@@ -112,7 +246,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx) {
     gpath_destroy(path_temp);
 
     // Draw a line for the bottom axis
-    graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorOrange, GColorWhite));
+    graphics_context_set_stroke_color(ctx, AXIS_COLOR);
     graphics_context_set_stroke_width(ctx, 1);
     graphics_draw_line(ctx, GPoint(graph_bounds.origin.x, h - BOTTOM_AXIS_H), GPoint(graph_bounds.origin.x + w, h - BOTTOM_AXIS_H));
     // And for the left side axis
@@ -133,7 +267,6 @@ static void text_layers_refresh() {
 
 void forecast_layer_create(Layer *parent_layer, GRect frame) {
     s_forecast_layer = layer_create(frame);
-    GRect bounds = layer_get_bounds(s_forecast_layer);
 
     // Temperature HIGH
     s_hi_layer = text_layer_create(GRect(0, -3, 15, 20));

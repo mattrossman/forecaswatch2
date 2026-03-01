@@ -34,4 +34,5 @@ run = "scripts/install-phone.sh"
 
 [tasks.install-emulator]
 description = "Build and install on basalt emulator (default: dev)"
-run = "scripts/install-emulator.sh"
+alias = "emu"
+run = "pebble wipe && scripts/install-emulator.sh"

@@ -66,23 +66,23 @@ WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
     var url = 'https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?f=json&langCode=EN&location='
         + lon + ',' + lat;
     request(url, 'GET', function (response) {
-        var address = JSON.parse(response).address;
-        var name = address.District ? address.District : address.City;
+        var address = JSON.parse(response).address || {};
+        var name = address.District || address.City || address.Region || 'Unknown';
         console.log('Running callback with city: ' + name);
         callback(name);
     });
 }
 
 // https://github.com/mattrossman/forecaswatch2/issues/59#issue-1317582743
-const r_lat_long = new RegExp(/([-+]?[\d\.]*),([-+]?[\d\.]*)/gm);
+const r_lat_long = /^([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)$/;
 
 WeatherProvider.prototype.withGeocodeCoordinates = function(callback) {
     // callback(lattitude, longtitude)
     var locationiq_key = 'pk.5a61972cde94491774bcfaa0705d5a0d';
     var url = 'https://us1.locationiq.com/v1/search.php?key=' + locationiq_key
-        + '&q=' + this.location
+        + '&q=' + encodeURIComponent(this.location)
         + '&format=json';
-    var m = r_lat_long.exec(this.location);
+    var m = this.location.match(r_lat_long);
 
     console.log('WeatherProvider.prototype.withGeocodeCoordinates lets regex, this.location: ' + JSON.stringify(this.location));
     if (m != null) {
@@ -94,7 +94,7 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback) {
     }
     else {
         console.log('regex failed, about to look up lat/long for override')
-        request(url, 'GET', function (response) {
+        request(url, 'GET', (function (response) {
             var locations = JSON.parse(response);
             if (locations.length === 0) {
                 console.log('[!] No geocoding results')
@@ -106,7 +106,7 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback) {
                 JSON.stringify('closest ' + JSON.stringify(closest));
                 callback(closest.lat, closest.lon);
             }
-        });
+        }).bind(this));
     }
 
 }

@@ -155,3 +155,4 @@ PebbleKit JS (phone-side JS):
 - All UI must run on the main app task. AppWorker is a separate background task.
 - Platform differences exist between Aplite (B&W), Basalt (color), Chalk
   (round), and Diorite. Use PBL_IF_* macros and check /docs/c/Foundation/Platform/.
+- PebbleKit JS supports only ECMAScript 5.1

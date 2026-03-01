@@ -12,4 +12,5 @@ screenshot/*
 !screenshot/composite_bw.sh
 !screenshot/composite_color.sh
 !screenshot/**/
+!.agents
 node_modules

@@ -63,6 +63,7 @@
     "messageKeys": [
       "TEMP_TREND_INT16",
       "PRECIP_TREND_UINT8",
+      "WIND_TREND_UINT8",
       "FORECAST_START",
       "NUM_ENTRIES",
       "CURRENT_TEMP",
@@ -83,7 +84,10 @@
       "CLAY_COLOR_SATURDAY",
       "CLAY_COLOR_SUNDAY",
       "CLAY_COLOR_US_FEDERAL",
-      "CLAY_COLOR_TIME"
+      "CLAY_COLOR_TIME",
+      "CLAY_WIND_UNIT",
+      "CLAY_WIND_MAX",
+      "CLAY_SHOW_WIND_GRAPH"
     ]
   }
 }

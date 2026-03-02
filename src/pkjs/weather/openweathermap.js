@@ -78,6 +78,9 @@ OpenWeatherMapProvider.prototype.withProviderData = function (lat, lon, force, c
         this.precipTrend = weatherData.hourly.map(function (entry) {
             return entry.pop;
         })
+        this.windTrend = weatherData.hourly.map(function (entry) {
+            return entry.wind_speed || 0;
+        })
         this.startTime = weatherData.hourly[0].dt;
         this.currentTemp = weatherData.current.temp;
         callback();

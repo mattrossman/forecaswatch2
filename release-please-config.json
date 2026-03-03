@@ -3,9 +3,16 @@
   "include-component-in-tag": false,
   "packages": {
     ".": {
-      "release-type": "node",
+      "release-type": "go",
       "versioning": "always-bump-minor",
-      "skip-changelog": true
+      "skip-changelog": true,
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "package.template.json",
+          "jsonpath": "$.version"
+        }
+      ]
     }
   }
 }

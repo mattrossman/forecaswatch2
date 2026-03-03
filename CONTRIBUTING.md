@@ -8,6 +8,9 @@ Prerequisites: [Node.js](https://nodejs.org/en/) and [mise](https://mise.jdx.dev
 # Install toolchain from mise.toml
 mise install
 
+# Prepare release package.json from template
+mise prepare-package
+
 # Install JS dependencies
 npm install
 
@@ -16,6 +19,18 @@ mise build
 ```
 
 This builds the project with the Pebble SDK provisioned by mise. The `.pbw` output can be found in the `build` directory.
+
+`package.json` is generated from `package.template.json` and profile data in `profiles/`.
+
+- Release profile: `profiles/package.release.json`
+- Dev profile: `profiles/package.dev.json`
+
+You can regenerate explicitly with:
+
+```bash
+mise prepare-package
+mise prepare-package-dev
+```
 
 You can run Pebble CLI commands directly, or use install tasks that build and install in one command:
 
@@ -30,6 +45,11 @@ mise install-phone <PHONE_IP>
 
 # Install to basalt emulator
 mise install-emulator
+
+# Build/install isolated dev variant
+mise build-dev
+mise install-phone-dev <PHONE_IP>
+mise install-emulator-dev
 ```
 
 ## Config

@@ -16,13 +16,13 @@ bool dither_is_white(int16_t x, int16_t y, uint8_t gray) {
     return gray > s_dither_matrix[y & 0x7][x & 0x7];
 }
 
-void dither_fill_rect_1bit(GContext *ctx, GRect rect, uint8_t gray) {
+void dither_fill_rect_1bit_with_color(GContext *ctx, GRect rect, uint8_t gray, GColor color) {
     if (rect.size.w <= 0 || rect.size.h <= 0) {
         return;
     }
 
 #if defined(PBL_COLOR)
-    graphics_context_set_stroke_color(ctx, GColorDarkGray);
+    graphics_context_set_stroke_color(ctx, color);
 #else
     graphics_context_set_stroke_color(ctx, GColorWhite);
 #endif
@@ -36,4 +36,8 @@ void dither_fill_rect_1bit(GContext *ctx, GRect rect, uint8_t gray) {
             }
         }
     }
+}
+
+void dither_fill_rect_1bit(GContext *ctx, GRect rect, uint8_t gray) {
+    dither_fill_rect_1bit_with_color(ctx, rect, gray, GColorWhite);
 }

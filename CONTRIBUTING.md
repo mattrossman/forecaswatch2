@@ -25,7 +25,9 @@ This builds the project with the Pebble SDK provisioned by mise. The `.pbw` outp
 - Release profile: `profiles/package.release.json`
 - Dev profile: `profiles/package.dev.json`
 
-You can regenerate explicitly with:
+You usually do not need to run prepare commands manually; `mise build` and `mise build-dev` run the correct prepare step automatically.
+
+If you do want to regenerate explicitly:
 
 ```bash
 mise prepare-package
@@ -49,7 +51,7 @@ mise install-emulator
 # Build/install isolated dev variant
 mise build-dev
 mise install-phone-dev <PHONE_IP>
-mise run install-emulator dev
+mise install-emulator dev
 
 # Pass through pebble install flags
 mise install-emulator -- --logs

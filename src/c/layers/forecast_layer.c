@@ -2,17 +2,15 @@
 #include "c/appendix/persist.h"
 #include "c/appendix/math.h"
 #include "c/appendix/config.h"
-#include "c/appendix/dither.h"
 
 #define LEFT_AXIS_MARGIN_W 17
 #define BOTTOM_AXIS_FONT_OFFSET 4 // Adjustment for whitespace at top of font
 #define LABEL_PADDING 20          // Minimum width a label should cover
 #define BOTTOM_AXIS_H 10          // Height of the bottom axis (hour labels)
 #define MARGIN_TEMP_H 7           // Height of margins for the temperature plot
-#define NIGHT_DITHER_DENSITY_COLOR DITHER_DENSITY_50
-#define NIGHT_DITHER_DENSITY_BW DITHER_DENSITY_12
-#define NIGHT_DITHER_COLOR GColorDarkGray
-#define NIGHT_BOUNDARY_COLOR PBL_IF_COLOR_ELSE(GColorDarkGray, GColorWhite)
+#define NIGHT_HATCH_SPACING PBL_IF_COLOR_ELSE(6, 7)
+#define NIGHT_HATCH_COLOR GColorLightGray
+#define NIGHT_BOUNDARY_COLOR PBL_IF_COLOR_ELSE(GColorLightGray, GColorLightGray)
 #define AXIS_COLOR PBL_IF_COLOR_ELSE(GColorRed, GColorWhite)
 #define FORECAST_STEP_SECONDS (60 * 60)
 
@@ -146,6 +144,27 @@ static int16_t graph_x_for_time(time_t timestamp, time_t graph_start, time_t gra
     return graph_left + (int16_t)((elapsed * graph_plot_rect.size.w) / total);
 }
 
+static void draw_night_hatch_rect(GContext *ctx, GRect rect, int16_t spacing)
+{
+    if (spacing <= 0 || rect.size.w <= 0 || rect.size.h <= 0)
+    {
+        return;
+    }
+
+    const int16_t x_end = rect.origin.x + rect.size.w;
+    const int16_t y_end = rect.origin.y + rect.size.h;
+    for (int16_t y = rect.origin.y; y < y_end; ++y)
+    {
+        for (int16_t x = rect.origin.x; x < x_end; ++x)
+        {
+            if (((x + y) % spacing) == 0)
+            {
+                graphics_draw_pixel(ctx, GPoint(x, y));
+            }
+        }
+    }
+}
+
 static void draw_night_regions(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end)
 {
     const NightSegments night_segments = compute_night_segments(graph_start, graph_end);
@@ -156,6 +175,9 @@ static void draw_night_regions(GContext *ctx, GRect graph_plot_rect, time_t grap
 
     const int16_t graph_left = graph_plot_rect.origin.x;
     const int16_t graph_right = graph_plot_rect.origin.x + graph_plot_rect.size.w;
+
+    const int16_t hatch_spacing = NIGHT_HATCH_SPACING;
+    graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(NIGHT_HATCH_COLOR, GColorWhite));
 
     for (int i = 0; i < night_segments.count; ++i)
     {
@@ -176,11 +198,7 @@ static void draw_night_regions(GContext *ctx, GRect graph_plot_rect, time_t grap
         }
 
         GRect night_rect = GRect(x0, graph_plot_rect.origin.y, x1 - x0, graph_plot_rect.size.h);
-#if defined(PBL_COLOR)
-        dither_fill_rect_1bit_with_color(ctx, night_rect, dither_gray_from_density(NIGHT_DITHER_DENSITY_COLOR), NIGHT_DITHER_COLOR);
-#else
-        dither_fill_rect_1bit(ctx, night_rect, dither_gray_from_density(NIGHT_DITHER_DENSITY_BW));
-#endif
+        draw_night_hatch_rect(ctx, night_rect, hatch_spacing);
     }
 }
 

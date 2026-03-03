@@ -80,10 +80,18 @@ run = "pebble install build/forecaswatch2-dev.pbw --phone ${usage_ip?}"
 
 [tasks.install-emulator]
 description = "Build and install on basalt emulator"
-depends = ["build"]
-run = "pebble install --emulator basalt"
-
-[tasks.install-emulator-dev]
-description = "Build dev and install on basalt emulator"
-depends = ["build-dev"]
-run = "pebble install build/forecaswatch2-dev.pbw --emulator basalt"
+usage = '''
+arg "[profile]"
+arg "[pebble_args]" var=#true double_dash="optional"
+'''
+run = '''
+eval "pebble_args=(${usage_pebble_args:-})"
+args=()
+if [[ -n "${usage_profile:-}" ]]; then
+  args+=("${usage_profile}")
+fi
+if [[ -n "${usage_pebble_args:-}" ]]; then
+  args+=("--" "${pebble_args[@]}")
+fi
+scripts/install-emulator.sh "${args[@]}"
+'''

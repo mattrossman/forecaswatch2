@@ -49,7 +49,11 @@ mise install-emulator
 # Build/install isolated dev variant
 mise build-dev
 mise install-phone-dev <PHONE_IP>
-mise install-emulator-dev
+mise run install-emulator dev
+
+# Pass through pebble install flags
+mise install-emulator -- --logs
+mise run install-emulator dev -- --logs
 ```
 
 ## Config

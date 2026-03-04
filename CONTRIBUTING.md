@@ -49,6 +49,12 @@ mise install-phone <PHONE_IP>
 # Explicit release install
 mise install-phone <PHONE_IP> release
 
+# Install dev build via CloudPebble (default profile)
+mise install-cloud
+
+# Explicit release install via CloudPebble
+mise install-cloud release
+
 # Install dev build to basalt emulator (default profile)
 mise install-emulator
 

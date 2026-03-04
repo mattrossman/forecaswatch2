@@ -32,6 +32,11 @@ description = "Build and install dev build on phone"
 alias = "install"
 run = "scripts/install-phone.sh"
 
+[tasks.install-cloud]
+description = "Build and install on CloudPebble (default: dev)"
+alias = "cloud"
+run = "scripts/install-cloud.sh"
+
 [tasks.install-emulator]
 description = "Build and install on basalt emulator (default: dev)"
 alias = "emu"

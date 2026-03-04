@@ -40,18 +40,18 @@ You can run Pebble CLI commands directly, or use install tasks that build and in
 # Option 1: set once in .env
 cp .env.example .env
 # then edit .env and set IP=<PHONE_IP>
+# this installs the dev build by default
 mise install-phone
 
 # Option 2: pass IP explicitly
 mise install-phone <PHONE_IP>
 
-# Install to basalt emulator
+# Install dev build to basalt emulator (default profile)
 mise install-emulator
 
-# Build/install isolated dev variant
-mise build-dev
-mise install-phone-dev <PHONE_IP>
-mise install-emulator dev
+# Explicit release installs when needed
+mise install-phone-release <PHONE_IP>
+mise install-emulator release
 
 # Pass through pebble install flags
 mise install-emulator -- --logs

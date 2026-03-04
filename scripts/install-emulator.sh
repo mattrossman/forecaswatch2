@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-profile="release"
+profile="dev"
 
 if [[ "${1:-}" == "release" || "${1:-}" == "dev" ]]; then
   profile="$1"

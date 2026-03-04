@@ -11,36 +11,27 @@ lockfile = true
 [env]
 _.file = ".env"
 
+[tasks.prepare-package]
+description = "Prepare package.json from profile (default: dev)"
+run = "scripts/prepare-package.sh"
+
 [tasks.clean]
 description = "Clean build artifacts"
 run = "pebble clean"
 
 [tasks.build]
-description = "Build PBW"
-run = "pebble build"
-sources = [
-  "wscript",
-  "package.json",
-  "package-lock.json",
-  "src/**/*",
-  "resources/**/*",
-]
-outputs = ["build/**/*.pbw"]
+description = "Build PBW (default: dev)"
+run = "scripts/build.sh"
 
 [tasks.rebuild]
 description = "Clean and rebuild PBW"
-run = "pebble clean && pebble build"
+run = "pebble clean && scripts/build.sh"
 
 [tasks.install-phone]
-description = "Build and install on phone"
+description = "Build and install dev build on phone"
 alias = "install"
-depends = ["build"]
-usage = '''
-arg "<ip>" env="IP" help="Phone IP address"
-'''
-run = "pebble install --phone ${usage_ip?}"
+run = "scripts/install-phone.sh"
 
 [tasks.install-emulator]
-description = "Build and install on basalt emulator"
-depends = ["build"]
-run = "pebble install --emulator basalt"
+description = "Build and install on basalt emulator (default: dev)"
+run = "scripts/install-emulator.sh"

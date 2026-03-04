@@ -38,18 +38,18 @@ jobs:
       - name: Install Pebble SDK
         run: pebble sdk install latest
 
-      - name: Build .pbw
-        run: mise build
+      - name: Build dev .pbw
+        run: mise build dev
 
       - name: Verify artifact exists
-        run: test -f build/forecaswatch2.pbw
+        run: test -f build/forecaswatch2-dev.pbw
 
       - name: Upload .pbw artifact
         id: upload
         uses: actions/upload-artifact@v4
         with:
-          name: forecaswatch2-pbw-pr-${{ github.event.pull_request.number }}.zip
-          path: build/forecaswatch2.pbw
+          name: forecaswatch2-dev-pbw-pr-${{ github.event.pull_request.number }}.zip
+          path: build/forecaswatch2-dev.pbw
           if-no-files-found: error
           retention-days: 14
 
@@ -66,11 +66,11 @@ jobs:
             }
             const runUrl = `${process.env.GITHUB_SERVER_URL}/${owner}/${repo}/actions/runs/${process.env.GITHUB_RUN_ID}`;
             const prNumber = context.payload.pull_request.number;
-            const artifactName = `forecaswatch2-pbw-pr-${prNumber}.zip`;
+            const artifactName = `forecaswatch2-dev-pbw-pr-${prNumber}.zip`;
 
             const body = [
               marker,
-              '✅ Preview build available.',
+              '✅ Preview dev build available.',
               '',
               `Download [${artifactName}](${process.env.ARTIFACT_URL})`,
               '',

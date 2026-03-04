@@ -14,3 +14,4 @@ screenshot/*
 !screenshot/**/
 !.agents
 node_modules
+package.json

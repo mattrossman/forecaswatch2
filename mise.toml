@@ -12,86 +12,26 @@ lockfile = true
 _.file = ".env"
 
 [tasks.prepare-package]
-description = "Prepare release package.json"
-run = "scripts/prepare-package.sh release"
-
-[tasks.prepare-package-dev]
-description = "Prepare dev package.json"
-run = "scripts/prepare-package.sh dev"
+description = "Prepare package.json from profile (default: dev)"
+run = "scripts/prepare-package.sh"
 
 [tasks.clean]
 description = "Clean build artifacts"
 run = "pebble clean"
 
 [tasks.build]
-description = "Build PBW"
-depends = ["prepare-package"]
-run = "pebble build"
-sources = [
-  "wscript",
-  "package.template.json",
-  "profiles/package.release.json",
-  "package-lock.json",
-  "src/**/*",
-  "resources/**/*",
-]
-outputs = ["build/**/*.pbw"]
+description = "Build PBW (default: dev)"
+run = "scripts/build.sh"
 
 [tasks.rebuild]
 description = "Clean and rebuild PBW"
-depends = ["prepare-package"]
-run = "pebble clean && pebble build"
-
-[tasks.build-dev]
-description = "Build dev PBW"
-depends = ["prepare-package-dev"]
-run = "pebble build && cp build/forecaswatch2.pbw build/forecaswatch2-dev.pbw"
-sources = [
-  "wscript",
-  "package.template.json",
-  "profiles/package.dev.json",
-  "package-lock.json",
-  "src/**/*",
-  "resources/**/*",
-]
-outputs = ["build/forecaswatch2-dev.pbw"]
-
-[tasks.rebuild-dev]
-description = "Clean and rebuild dev PBW"
-depends = ["prepare-package-dev"]
-run = "pebble clean && pebble build && cp build/forecaswatch2.pbw build/forecaswatch2-dev.pbw"
+run = "pebble clean && scripts/build.sh"
 
 [tasks.install-phone]
 description = "Build and install dev build on phone"
 alias = "install"
-depends = ["build-dev"]
-usage = '''
-arg "<ip>" env="IP" help="Phone IP address"
-'''
-run = "pebble install build/forecaswatch2-dev.pbw --phone ${usage_ip?}"
-
-[tasks.install-phone-release]
-description = "Build and install release build on phone"
-depends = ["build"]
-usage = '''
-arg "<ip>" env="IP" help="Phone IP address"
-'''
-run = "pebble install build/forecaswatch2.pbw --phone ${usage_ip?}"
+run = "scripts/install-phone.sh"
 
 [tasks.install-emulator]
 description = "Build and install on basalt emulator (default: dev)"
-usage = '''
-arg "[profile]"
-arg "[pebble_args]" var=#true double_dash="optional"
-'''
-run = '''
-eval "pebble_args=(${usage_pebble_args:-})"
-args=()
-if [[ -n "${usage_profile:-}" ]]; then
-  args+=("${usage_profile}")
-fi
-if [[ -n "${usage_pebble_args:-}" ]]; then
-  args+=("--" "${pebble_args[@]}")
-fi
-scripts/install-emulator.sh "${args[@]}"
-'''
+run = "scripts/install-emulator.sh"

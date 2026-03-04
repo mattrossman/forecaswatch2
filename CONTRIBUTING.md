@@ -8,14 +8,14 @@ Prerequisites: [Node.js](https://nodejs.org/en/) and [mise](https://mise.jdx.dev
 # Install toolchain from mise.toml
 mise install
 
-# Prepare release package.json from template
-mise prepare-package
-
 # Install JS dependencies
 npm install
 
-# Build
+# Build dev (default)
 mise build
+
+# Build release
+mise build release
 ```
 
 This builds the project with the Pebble SDK provisioned by mise. The `.pbw` output can be found in the `build` directory.
@@ -25,13 +25,13 @@ This builds the project with the Pebble SDK provisioned by mise. The `.pbw` outp
 - Release profile: `profiles/package.release.json`
 - Dev profile: `profiles/package.dev.json`
 
-You usually do not need to run prepare commands manually; `mise build` and `mise build-dev` run the correct prepare step automatically.
+`mise build` and `mise build release` automatically generate `package.json` from the template/profile before building.
 
-If you do want to regenerate explicitly:
+If you want to regenerate `package.json` without building:
 
 ```bash
-mise prepare-package
-mise prepare-package-dev
+mise prepare-package           # dev profile (default)
+mise prepare-package release   # release profile
 ```
 
 You can run Pebble CLI commands directly, or use install tasks that build and install in one command:
@@ -46,11 +46,13 @@ mise install-phone
 # Option 2: pass IP explicitly
 mise install-phone <PHONE_IP>
 
+# Explicit release install
+mise install-phone <PHONE_IP> release
+
 # Install dev build to basalt emulator (default profile)
 mise install-emulator
 
-# Explicit release installs when needed
-mise install-phone-release <PHONE_IP>
+# Explicit release install
 mise install-emulator release
 
 # Pass through pebble install flags
@@ -68,23 +70,11 @@ module.exports.owmApiKey = owmApiKey;
 
 ## Upgrading pebble-tool
 
-This project pins `pipx:pebble-tool` to an exact version in `mise.toml` so the version is visible at a glance.
+This project pins `pipx:pebble-tool` to an exact version in `mise.toml` (fully resolved in `mise.lock`).
 
-If you need to reset the pin to the current latest once:
-
-```bash
-mise use "pipx:pebble-tool" --pin
-```
-
-When a new release is available, bump the pinned version and refresh installs:
+To bump the pinned version:
 
 ```bash
 mise upgrade "pipx:pebble-tool" --bump
 mise install
-```
-
-Optional check before upgrading:
-
-```bash
-mise upgrade "pipx:pebble-tool" --dry-run
 ```

@@ -37,7 +37,7 @@ jobs:
 
       - name: Build .pbw
         if: ${{ steps.release.outputs.release_created }}
-        run: mise build
+        run: mise build release
 
       - name: Verify release asset exists
         if: ${{ steps.release.outputs.release_created }}

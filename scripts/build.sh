@@ -13,10 +13,9 @@ if [[ "${1:-}" == "--" ]]; then
   shift
 fi
 
+mise run prepare-package -- "$profile"
+pebble build "$@"
+
 if [[ "$profile" == "dev" ]]; then
-  mise run build -- dev
-  pebble install "build/forecaswatch2-dev.pbw" --emulator basalt "$@"
-else
-  mise run build -- release
-  pebble install "build/forecaswatch2.pbw" --emulator basalt "$@"
+  cp build/forecaswatch2.pbw build/forecaswatch2-dev.pbw
 fi

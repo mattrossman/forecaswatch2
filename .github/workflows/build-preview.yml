@@ -39,7 +39,7 @@ jobs:
         run: pebble sdk install latest
 
       - name: Build dev .pbw
-        run: mise build-dev
+        run: mise build dev
 
       - name: Verify artifact exists
         run: test -f build/forecaswatch2-dev.pbw

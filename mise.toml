@@ -41,3 +41,8 @@ run = "scripts/install-cloud.sh"
 description = "Build and install on basalt emulator (default: dev)"
 alias = "emu"
 run = "pebble wipe && scripts/install-emulator.sh"
+
+[tasks.screenshot-phone]
+description = "Take a screenshot from phone"
+alias = "screenshot"
+run = "scripts/screenshot-phone.sh"

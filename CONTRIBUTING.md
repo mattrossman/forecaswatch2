@@ -64,6 +64,17 @@ mise install-emulator release
 # Pass through pebble install flags
 mise install-emulator -- --logs
 mise run install-emulator dev -- --logs
+
+# Take a screenshot from phone
+mise screenshot-phone
+
+# Or pass IP explicitly
+mise screenshot-phone <PHONE_IP>
+
+# Default output goes to screenshot/phone-auto/<timestamp>.png
+
+# Provide explicit output path / additional screenshot args
+mise screenshot-phone -- screenshot/my-capture.png
 ```
 
 ## Config

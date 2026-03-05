@@ -10,7 +10,9 @@
 #define MARGIN_TEMP_H 7           // Height of margins for the temperature plot
 #define NIGHT_HATCH_SPACING PBL_IF_COLOR_ELSE(6, 7)
 #define NIGHT_HATCH_COLOR GColorLightGray
+#define NIGHT_HATCH_COLOR_PRECIP PBL_IF_COLOR_ELSE(GColorPictonBlue, GColorWhite)
 #define NIGHT_BOUNDARY_COLOR PBL_IF_COLOR_ELSE(GColorLightGray, GColorLightGray)
+#define NIGHT_BOUNDARY_COLOR_PRECIP PBL_IF_COLOR_ELSE(GColorPictonBlue, GColorWhite)
 #define FORECAST_STEP_SECONDS (60 * 60)
 
 typedef struct
@@ -242,6 +244,90 @@ static void draw_night_regions(GContext *ctx, GRect graph_plot_rect, time_t grap
     }
 }
 
+static int16_t precip_top_y_for_x(const GPoint *points_precip, int num_entries, int16_t x)
+{
+    if (x <= points_precip[0].x)
+    {
+        return points_precip[0].y;
+    }
+
+    for (int i = 0; i < num_entries - 1; ++i)
+    {
+        const int16_t x0 = points_precip[i].x;
+        const int16_t y0 = points_precip[i].y;
+        const int16_t x1 = points_precip[i + 1].x;
+        const int16_t y1 = points_precip[i + 1].y;
+
+        if (x > x1)
+        {
+            continue;
+        }
+
+        if (x1 == x0)
+        {
+            return y0 < y1 ? y0 : y1;
+        }
+
+        return y0 + (int16_t)(((int32_t)(y1 - y0) * (x - x0)) / (x1 - x0));
+    }
+
+    return points_precip[num_entries - 1].y;
+}
+
+static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end,
+                                         const GPoint *points_precip, int num_entries)
+{
+    const NightSegments night_segments = compute_night_segments(graph_start, graph_end);
+    if (night_segments.count == 0)
+    {
+        return;
+    }
+
+    const int16_t graph_left = graph_plot_rect.origin.x;
+    const int16_t graph_right = graph_plot_rect.origin.x + graph_plot_rect.size.w;
+    const int16_t y_top_limit = graph_plot_rect.origin.y;
+    const int16_t y_bottom = graph_plot_rect.origin.y + graph_plot_rect.size.h;
+    const int16_t hatch_spacing = NIGHT_HATCH_SPACING;
+
+    graphics_context_set_stroke_color(ctx, NIGHT_HATCH_COLOR_PRECIP);
+
+    for (int i = 0; i < night_segments.count; ++i)
+    {
+        int16_t x0 = graph_x_for_time(night_segments.segments[i].start, graph_start, graph_end, graph_plot_rect);
+        int16_t x1 = graph_x_for_time(night_segments.segments[i].end, graph_start, graph_end, graph_plot_rect);
+
+        if (x0 < graph_left)
+        {
+            x0 = graph_left;
+        }
+        if (x1 > graph_right)
+        {
+            x1 = graph_right;
+        }
+        if (x1 <= x0)
+        {
+            continue;
+        }
+
+        for (int16_t x = x0; x < x1; ++x)
+        {
+            int16_t precip_y = precip_top_y_for_x(points_precip, num_entries, x);
+            if (precip_y < y_top_limit)
+            {
+                precip_y = y_top_limit;
+            }
+
+            for (int16_t y = precip_y; y < y_bottom; ++y)
+            {
+                if (((x + y) % hatch_spacing) == 0)
+                {
+                    graphics_draw_pixel(ctx, GPoint(x, y));
+                }
+            }
+        }
+    }
+}
+
 static void draw_night_boundaries(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end)
 {
     time_t sun_event_times[2] = {0, 0};
@@ -265,6 +351,38 @@ static void draw_night_boundaries(GContext *ctx, GRect graph_plot_rect, time_t g
 
         const int16_t x = graph_x_for_time(transition, graph_start, graph_end, graph_plot_rect);
         graphics_draw_line(ctx, GPoint(x, y0), GPoint(x, y1));
+    }
+}
+
+static void draw_night_boundaries_over_precip(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end,
+                                              const GPoint *points_precip, int num_entries)
+{
+    time_t sun_event_times[2] = {0, 0};
+    if (!get_valid_sun_events(sun_event_times, NULL))
+    {
+        return;
+    }
+
+    graphics_context_set_stroke_color(ctx, NIGHT_BOUNDARY_COLOR_PRECIP);
+    graphics_context_set_stroke_width(ctx, 1);
+
+    const int16_t y_top_limit = graph_plot_rect.origin.y;
+    const int16_t y_bottom = graph_plot_rect.origin.y + graph_plot_rect.size.h - 1;
+    for (int i = 0; i < (int)(sizeof(sun_event_times) / sizeof(sun_event_times[0])); ++i)
+    {
+        const time_t transition = sun_event_times[i];
+        if (transition <= graph_start || transition >= graph_end)
+        {
+            continue;
+        }
+
+        const int16_t x = graph_x_for_time(transition, graph_start, graph_end, graph_plot_rect);
+        int16_t precip_y = precip_top_y_for_x(points_precip, num_entries, x);
+        if (precip_y < y_top_limit)
+        {
+            precip_y = y_top_limit;
+        }
+        graphics_draw_line(ctx, GPoint(x, precip_y), GPoint(x, y_bottom));
     }
 }
 
@@ -362,6 +480,12 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     graphics_context_set_fill_color(ctx, PBL_IF_COLOR_ELSE(GColorCobaltBlue, GColorLightGray));
     gpath_draw_filled(ctx, path_precip_area_under);
     gpath_destroy(path_precip_area_under);
+
+    if (render_spec.draw_night_overlay)
+    {
+        draw_night_hatch_over_precip(ctx, graph_plot_rect, forecast_start, forecast_end, points_precip, num_entries);
+        draw_night_boundaries_over_precip(ctx, graph_plot_rect, forecast_start, forecast_end, points_precip, num_entries);
+    }
 
     // Draw the precipitation line
     path_info_precip.num_points = num_entries;

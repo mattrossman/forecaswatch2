@@ -51,7 +51,7 @@ function startTick() {
 }
 
 function sendClaySettings() {
-    payload = {
+    var payload = {
         "CLAY_CELSIUS": app.settings.temperatureUnits === 'c',
         "CLAY_TIME_LEAD_ZERO": app.settings.timeLeadingZero,
         "CLAY_AXIS_12H": app.settings.axisTimeFormat === '12h',
@@ -68,6 +68,7 @@ function sendClaySettings() {
         "CLAY_COLOR_SATURDAY": app.settings.hasOwnProperty('colorSaturday') ? app.settings.colorSaturday : 16777215,
         "CLAY_COLOR_US_FEDERAL": app.settings.hasOwnProperty('colorUSFederal') ? app.settings.colorUSFederal : 16777215,
         "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : 16777215,
+        "CLAY_NIGHT_SHADING": app.settings.hasOwnProperty('nightShading') ? app.settings.nightShading : true,
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));
@@ -101,13 +102,22 @@ function clayTryDefaults() {
     /* Clay only considers `defaultValue` upon first startup, but we need
      * defaults set even if the user has not made a custom config
      */
-    var persistClay = localStorage.getItem('clay-settings');
-    if (persistClay === null) {
+    var persistClayString = localStorage.getItem('clay-settings');
+    var persistClay;
+    if (persistClayString === null) {
         console.log('No clay settings found, setting defaults');
         persistClay = {
             provider: 'wunderground',
-            location: ''
+            location: '',
+            nightShading: true,
         }
+        localStorage.setItem('clay-settings', JSON.stringify(persistClay));
+        return;
+    }
+
+    persistClay = JSON.parse(persistClayString);
+    if (!persistClay.hasOwnProperty('nightShading')) {
+        persistClay.nightShading = true;
         localStorage.setItem('clay-settings', JSON.stringify(persistClay));
     }
 }
@@ -116,10 +126,13 @@ function clayTryDevConfig() {
     /* Use values from a dev-config.js file to configure clay settings
      * by iterating over the exported properties
      */
+    var devConfig;
+    var persistClay;
+    var prop;
     try {
-        var devConfig = require('./dev-config.js');
-        var persistClay = getClaySettings();
-        for (var prop in devConfig) {
+        devConfig = require('./dev-config.js');
+        persistClay = getClaySettings();
+        for (prop in devConfig) {
             if (Object.prototype.hasOwnProperty.call(devConfig, prop)) {
                 persistClay[prop] = devConfig[prop];
                 console.log('Found dev setting: ' + prop + '=' + devConfig[prop]);

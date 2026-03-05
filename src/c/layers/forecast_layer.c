@@ -11,7 +11,6 @@
 #define NIGHT_HATCH_SPACING PBL_IF_COLOR_ELSE(6, 7)
 #define NIGHT_HATCH_COLOR GColorLightGray
 #define NIGHT_BOUNDARY_COLOR PBL_IF_COLOR_ELSE(GColorLightGray, GColorLightGray)
-#define AXIS_COLOR PBL_IF_COLOR_ELSE(GColorRed, GColorWhite)
 #define FORECAST_STEP_SECONDS (60 * 60)
 
 typedef struct
@@ -26,9 +25,50 @@ typedef struct
     NightSegment segments[3];
 } NightSegments;
 
+typedef struct
+{
+    bool draw_night_overlay;
+    GColor axis_color;
+} RenderSpec;
+
+typedef struct
+{
+    GRect graph_bounds;
+    GRect graph_plot_rect;
+    int16_t w;
+    int16_t h;
+} ForecastLayout;
+
 static Layer *s_forecast_layer;
 static TextLayer *s_hi_layer;
 static TextLayer *s_lo_layer;
+
+static RenderSpec make_render_spec()
+{
+    RenderSpec spec = {
+        .draw_night_overlay = g_config->night_shading,
+        .axis_color = PBL_IF_COLOR_ELSE(GColorOrange, GColorWhite)};
+
+    if (spec.draw_night_overlay)
+    {
+        spec.axis_color = PBL_IF_COLOR_ELSE(GColorRed, GColorWhite);
+    }
+
+    return spec;
+}
+
+static ForecastLayout compute_layout(GRect bounds, RenderSpec spec)
+{
+    (void)spec;
+
+    ForecastLayout layout = {
+        .graph_bounds = GRect(LEFT_AXIS_MARGIN_W, 0, bounds.size.w - LEFT_AXIS_MARGIN_W, bounds.size.h)};
+    layout.graph_plot_rect = GRect(layout.graph_bounds.origin.x, 0, layout.graph_bounds.size.w, layout.graph_bounds.size.h - BOTTOM_AXIS_H);
+    layout.w = layout.graph_bounds.size.w;
+    layout.h = layout.graph_bounds.size.h;
+
+    return layout;
+}
 
 static void night_segments_add(NightSegments *night_segments, time_t start, time_t end)
 {
@@ -231,10 +271,12 @@ static void draw_night_boundaries(GContext *ctx, GRect graph_plot_rect, time_t g
 static void forecast_update_proc(Layer *layer, GContext *ctx)
 {
     GRect bounds = layer_get_bounds(layer);
-    GRect graph_bounds = GRect(LEFT_AXIS_MARGIN_W, 0, bounds.size.w - LEFT_AXIS_MARGIN_W, bounds.size.h);
-    GRect graph_plot_rect = GRect(graph_bounds.origin.x, 0, graph_bounds.size.w, bounds.size.h - BOTTOM_AXIS_H);
-    int w = graph_bounds.size.w;
-    int h = graph_bounds.size.h;
+    RenderSpec render_spec = make_render_spec();
+    ForecastLayout layout = compute_layout(bounds, render_spec);
+    GRect graph_bounds = layout.graph_bounds;
+    GRect graph_plot_rect = layout.graph_plot_rect;
+    int w = layout.w;
+    int h = layout.h;
 
     // Load data from storage
     const int num_entries = persist_get_num_entries();
@@ -262,8 +304,11 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
 
     // Draw a bounding box for each data entry (the -1 is since we don't want a gap on either side)
     float entry_w = (float)graph_bounds.size.w / (num_entries - 1);
-    draw_night_regions(ctx, graph_plot_rect, forecast_start, forecast_end);
-    draw_night_boundaries(ctx, graph_plot_rect, forecast_start, forecast_end);
+    if (render_spec.draw_night_overlay)
+    {
+        draw_night_regions(ctx, graph_plot_rect, forecast_start, forecast_end);
+        draw_night_boundaries(ctx, graph_plot_rect, forecast_start, forecast_end);
+    }
 
     graphics_context_set_text_color(ctx, GColorWhite);
     graphics_context_set_stroke_color(ctx, GColorLightGray);
@@ -337,7 +382,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     gpath_destroy(path_temp);
 
     // Draw a line for the bottom axis
-    graphics_context_set_stroke_color(ctx, AXIS_COLOR);
+    graphics_context_set_stroke_color(ctx, render_spec.axis_color);
     graphics_context_set_stroke_width(ctx, 1);
     graphics_draw_line(ctx, GPoint(graph_bounds.origin.x, h - BOTTOM_AXIS_H), GPoint(graph_bounds.origin.x + w, h - BOTTOM_AXIS_H));
     // And for the left side axis

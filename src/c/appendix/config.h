@@ -19,6 +19,7 @@ typedef struct {
     GColor color_sunday;
     GColor color_us_federal;
     GColor color_time;
+    bool night_shading;
 } Config;
 
 Config *g_config;

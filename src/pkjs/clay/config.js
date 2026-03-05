@@ -171,6 +171,13 @@ module.exports = [
                 ]
             },
             {
+                "type": "toggle",
+                "label": "Night shading",
+                "messageKey": "nightShading",
+                "defaultValue": true,
+                "description": "Show night hatch shading and sunrise/sunset boundaries on the forecast graph"
+            },
+            {
                 "type": "radiogroup",
                 "label": "Provider",
                 "messageKey": "provider",

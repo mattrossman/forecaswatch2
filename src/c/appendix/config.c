@@ -6,13 +6,19 @@
 
 void config_load() {
     g_config = (Config*) malloc(sizeof(Config));
-    persist_get_config(g_config);
+    const int bytes_read = persist_get_config(g_config);
+    if (bytes_read < (int)sizeof(Config)) {
+        g_config->night_shading = true;
+    }
 }
 
 void config_refresh() {
     free(g_config);  // Clear out the old config
     g_config = (Config*) malloc(sizeof(Config));
-    persist_get_config(g_config);  // Then reload
+    const int bytes_read = persist_get_config(g_config);  // Then reload
+    if (bytes_read < (int)sizeof(Config)) {
+        g_config->night_shading = true;
+    }
 }
 
 void config_unload() {

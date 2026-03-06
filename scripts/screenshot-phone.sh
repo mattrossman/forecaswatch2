@@ -20,7 +20,7 @@ if [[ "${1:-}" == "--" ]]; then
 fi
 
 if [[ "$#" -eq 0 ]]; then
-  output_dir="screenshot/phone-auto"
+  output_dir="screenshot/tmp"
   timestamp="$(date +"%Y-%m-%dT%H-%M-%S")"
   output_path="${output_dir}/${timestamp}.png"
   mkdir -p "$output_dir"

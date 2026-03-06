@@ -38,7 +38,7 @@ alias = "cloud"
 run = "scripts/install-cloud.sh"
 
 [tasks.install-emulator]
-description = "Build and install on basalt emulator (default: dev)"
+description = "Build and install on emulator (default profile: dev, emulator: basalt)"
 alias = "emu"
 run = "pebble wipe && scripts/install-emulator.sh"
 

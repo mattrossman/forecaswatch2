@@ -55,11 +55,21 @@ mise install-cloud
 # Explicit release install via CloudPebble
 mise install-cloud release
 
-# Install dev build to basalt emulator (default profile)
+# Install dev build to emulator (defaults: profile=dev, emulator=basalt)
 mise install-emulator
 
 # Explicit release install
 mise install-emulator release
+
+# Choose emulator platform
+mise install-emulator -- --emulator aplite
+mise install-emulator -- release --emulator chalk
+
+# Shorthand platform arg (also supported)
+mise install-emulator -- aplite
+
+# Set default emulator in environment
+PEBBLE_EMULATOR=aplite mise install-emulator
 
 # Pass through pebble install flags
 mise install-emulator -- --logs
@@ -71,7 +81,7 @@ mise screenshot-phone
 # Or pass IP explicitly
 mise screenshot-phone <PHONE_IP>
 
-# Default output goes to screenshot/phone-auto/<timestamp>.png
+# Default output goes to screenshot/tmp/<timestamp>.png
 
 # Provide explicit output path / additional screenshot args
 mise screenshot-phone -- screenshot/my-capture.png

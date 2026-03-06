@@ -4,6 +4,9 @@
     "skill": {
       "*": "ask",
       "pebble": "allow"
+    },
+    "bash": {
+      "mise build": "allow"
     }
   }
 }

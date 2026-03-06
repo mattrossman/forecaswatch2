@@ -9,10 +9,12 @@
 #define BOTTOM_AXIS_H 10          // Height of the bottom axis (hour labels)
 #define MARGIN_TEMP_H 7           // Height of margins for the temperature plot
 #define NIGHT_HATCH_SPACING PBL_IF_COLOR_ELSE(6, 7)
-#define NIGHT_HATCH_COLOR GColorLightGray
-#define NIGHT_HATCH_COLOR_PRECIP PBL_IF_COLOR_ELSE(GColorPictonBlue, GColorWhite)
-#define NIGHT_BOUNDARY_COLOR PBL_IF_COLOR_ELSE(GColorLightGray, GColorLightGray)
-#define NIGHT_BOUNDARY_COLOR_PRECIP PBL_IF_COLOR_ELSE(GColorPictonBlue, GColorWhite)
+#define NIGHT_HATCH_COLOR GColorDarkGray
+#define PRECIP_FILL_COLOR PBL_IF_COLOR_ELSE(GColorCobaltBlue, GColorLightGray)
+#define NIGHT_PRECIP_FILL_COLOR PBL_IF_COLOR_ELSE(GColorDukeBlue, GColorLightGray)
+#define NIGHT_HATCH_COLOR_PRECIP PBL_IF_COLOR_ELSE(GColorBlue, GColorWhite)
+#define NIGHT_BOUNDARY_COLOR PBL_IF_COLOR_ELSE(GColorDarkGray, GColorLightGray)
+#define NIGHT_BOUNDARY_COLOR_PRECIP PBL_IF_COLOR_ELSE(GColorVividCerulean, GColorWhite)
 #define FORECAST_STEP_SECONDS (60 * 60)
 
 typedef struct
@@ -289,8 +291,6 @@ static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, t
     const int16_t y_bottom = graph_plot_rect.origin.y + graph_plot_rect.size.h;
     const int16_t hatch_spacing = NIGHT_HATCH_SPACING;
 
-    graphics_context_set_stroke_color(ctx, NIGHT_HATCH_COLOR_PRECIP);
-
     for (int i = 0; i < night_segments.count; ++i)
     {
         int16_t x0 = graph_x_for_time(night_segments.segments[i].start, graph_start, graph_end, graph_plot_rect);
@@ -309,6 +309,25 @@ static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, t
             continue;
         }
 
+        if (PBL_IF_COLOR_ELSE(true, false))
+        {
+            graphics_context_set_stroke_color(ctx, NIGHT_PRECIP_FILL_COLOR);
+            for (int16_t x = x0; x < x1; ++x)
+            {
+                int16_t precip_y = precip_top_y_for_x(points_precip, num_entries, x);
+                if (precip_y < y_top_limit)
+                {
+                    precip_y = y_top_limit;
+                }
+
+                for (int16_t y = precip_y; y < y_bottom; ++y)
+                {
+                    graphics_draw_pixel(ctx, GPoint(x, y));
+                }
+            }
+        }
+
+        graphics_context_set_stroke_color(ctx, NIGHT_HATCH_COLOR_PRECIP);
         for (int16_t x = x0; x < x1; ++x)
         {
             int16_t precip_y = precip_top_y_for_x(points_precip, num_entries, x);
@@ -477,7 +496,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
         .num_points = num_entries + 2,
         .points = points_precip};
     GPath *path_precip_area_under = gpath_create(&path_info_precip);
-    graphics_context_set_fill_color(ctx, PBL_IF_COLOR_ELSE(GColorCobaltBlue, GColorLightGray));
+    graphics_context_set_fill_color(ctx, PRECIP_FILL_COLOR);
     gpath_draw_filled(ctx, path_precip_area_under);
     gpath_destroy(path_precip_area_under);
 

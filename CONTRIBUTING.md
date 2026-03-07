@@ -58,22 +58,23 @@ mise install-cloud release
 # Install dev build to emulator (defaults: profile=dev, emulator=basalt)
 mise install-emulator
 
-# Explicit release install
+# Choose emulator platform
+mise install-emulator aplite
+
+# Choose emulator build type
 mise install-emulator release
 
-# Choose emulator platform
-mise install-emulator -- --emulator aplite
-mise install-emulator -- release --emulator chalk
+# Choose emulator platform and build type
+mise install-emulator release aplite
 
-# Shorthand platform arg (also supported)
-mise install-emulator -- aplite
+# Pass additional flags
+mise install-emulator -- --logs
 
 # Set default emulator in environment
 PEBBLE_EMULATOR=aplite mise install-emulator
 
 # Pass through pebble install flags
-mise install-emulator -- --logs
-mise run install-emulator dev -- --logs
+mise install-emulator --logs
 
 # Take a screenshot from phone
 mise screenshot-phone

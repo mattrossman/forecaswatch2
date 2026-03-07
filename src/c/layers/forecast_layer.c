@@ -16,6 +16,7 @@
 #define NIGHT_BOUNDARY_COLOR PBL_IF_COLOR_ELSE(GColorDarkGray, GColorLightGray)
 #define NIGHT_BOUNDARY_COLOR_PRECIP PBL_IF_COLOR_ELSE(GColorVividCerulean, GColorWhite)
 #define FORECAST_STEP_SECONDS (60 * 60)
+#define DAY_SECONDS (24 * 60 * 60)
 
 typedef struct
 {
@@ -28,6 +29,12 @@ typedef struct
     int count;
     NightSegment segments[3];
 } NightSegments;
+
+typedef struct
+{
+    time_t timestamp;
+    int type; // 0 = sunrise, 1 = sunset
+} SunEvent;
 
 typedef struct
 {
@@ -120,93 +127,148 @@ static NightSegments compute_night_segments(time_t graph_start, time_t graph_end
 
     time_t sun_event_times[2] = {0, 0};
     int sun_event_start_type;
-    const int num_sun_events = sizeof(sun_event_times) / sizeof(sun_event_times[0]);
     if (!get_valid_sun_events(sun_event_times, &sun_event_start_type))
     {
         return night_segments;
     }
 
-    // Start type is the type of the first event in the list:
-    // 0 = sunrise, 1 = sunset. Before sunrise is night; before sunset is day.
-    bool is_night = (sun_event_start_type == 0);
+    SunEvent events[6];
+    int event_count = 0;
 
-    for (int i = 0; i < num_sun_events; ++i)
+    for (int day_offset = -1; day_offset <= 1; ++day_offset)
     {
-        if (sun_event_times[i] <= graph_start)
-        {
-            is_night = !is_night;
-        }
+        const time_t offset_seconds = (time_t)day_offset * DAY_SECONDS;
+        events[event_count++] = (SunEvent){
+            .timestamp = sun_event_times[0] + offset_seconds,
+            .type = sun_event_start_type};
+        events[event_count++] = (SunEvent){
+            .timestamp = sun_event_times[1] + offset_seconds,
+            .type = 1 - sun_event_start_type};
     }
 
-    time_t segment_start = graph_start;
-    for (int i = 0; i < num_sun_events; ++i)
+    for (int i = 1; i < event_count; ++i)
     {
-        const time_t transition = sun_event_times[i];
+        SunEvent current = events[i];
+        int j = i - 1;
+        while (j >= 0 && events[j].timestamp > current.timestamp)
+        {
+            events[j + 1] = events[j];
+            --j;
+        }
+        events[j + 1] = current;
+    }
 
-        if (transition <= graph_start)
+    for (int i = 0; i < event_count - 1; ++i)
+    {
+        const SunEvent event_start = events[i];
+        const SunEvent event_end = events[i + 1];
+        if (event_start.type != 1 || event_end.type != 0)
         {
             continue;
         }
-        if (transition >= graph_end)
-        {
-            break;
-        }
 
-        if (is_night)
-        {
-            night_segments_add(&night_segments, segment_start, transition);
-        }
-
-        segment_start = transition;
-        is_night = !is_night;
-    }
-
-    if (is_night)
-    {
-        night_segments_add(&night_segments, segment_start, graph_end);
+        night_segments_add(&night_segments, event_start.timestamp, event_end.timestamp);
     }
 
     return night_segments;
 }
 
-static int16_t graph_x_for_time(time_t timestamp, time_t graph_start, time_t graph_end, GRect graph_plot_rect)
+static time_t graph_time_for_x(int16_t x, time_t graph_start, time_t graph_end, GRect graph_plot_rect)
 {
     const int16_t graph_left = graph_plot_rect.origin.x;
     const int16_t graph_right = graph_plot_rect.origin.x + graph_plot_rect.size.w;
-
-    if (timestamp <= graph_start)
+    if (graph_plot_rect.size.w <= 0)
     {
-        return graph_left;
-    }
-    if (timestamp >= graph_end)
-    {
-        return graph_right;
+        return graph_start;
     }
 
-    const int64_t elapsed = (int64_t)timestamp - graph_start;
-    const int64_t total = (int64_t)graph_end - graph_start;
-    return graph_left + (int16_t)((elapsed * graph_plot_rect.size.w) / total);
+    if (x <= graph_left)
+    {
+        return graph_start;
+    }
+    if (x >= graph_right)
+    {
+        return graph_end;
+    }
+
+    const int64_t elapsed_pixels = (int64_t)(x - graph_left);
+    const int64_t total_pixels = graph_plot_rect.size.w;
+    const int64_t total_seconds = (int64_t)graph_end - graph_start;
+    return graph_start + (time_t)((elapsed_pixels * total_seconds) / total_pixels);
 }
 
-static void draw_night_hatch_rect(GContext *ctx, GRect rect, int16_t spacing)
+static int32_t half_cycle_strength(time_t interval_start, time_t interval_end, time_t timestamp)
 {
-    if (spacing <= 0 || rect.size.w <= 0 || rect.size.h <= 0)
+    const int64_t duration = (int64_t)interval_end - interval_start;
+    if (duration <= 0)
     {
-        return;
+        return 0;
     }
 
-    const int16_t x_end = rect.origin.x + rect.size.w;
-    const int16_t y_end = rect.origin.y + rect.size.h;
-    for (int16_t y = rect.origin.y; y < y_end; ++y)
+    int64_t elapsed = (int64_t)timestamp - interval_start;
+    if (elapsed < 0)
     {
-        for (int16_t x = rect.origin.x; x < x_end; ++x)
-        {
-            if (((x + y) % spacing) == 0)
-            {
-                graphics_draw_pixel(ctx, GPoint(x, y));
-            }
-        }
+        elapsed = 0;
     }
+    if (elapsed > duration)
+    {
+        elapsed = duration;
+    }
+
+    const int32_t half_rotation = TRIG_MAX_ANGLE / 2;
+    const int32_t angle = (int32_t)((elapsed * half_rotation) / duration);
+    const int32_t strength = sin_lookup(angle);
+    return strength > 0 ? strength : 0;
+}
+
+static int32_t solar_curve_strength_for_time(const NightSegments *night_segments, time_t timestamp)
+{
+    for (int i = 0; i < night_segments->count; ++i)
+    {
+        const time_t night_start = night_segments->segments[i].start;
+        const time_t night_end = night_segments->segments[i].end;
+        if (timestamp < night_start || timestamp > night_end)
+        {
+            continue;
+        }
+
+        return -half_cycle_strength(night_start, night_end, timestamp);
+    }
+
+    for (int i = 0; i < night_segments->count - 1; ++i)
+    {
+        const time_t day_start = night_segments->segments[i].end;
+        const time_t day_end = night_segments->segments[i + 1].start;
+        if (timestamp < day_start || timestamp > day_end)
+        {
+            continue;
+        }
+
+        return half_cycle_strength(day_start, day_end, timestamp);
+    }
+
+    return 0;
+}
+
+static int16_t solar_curve_y_for_time(const NightSegments *night_segments, time_t timestamp, GRect graph_plot_rect)
+{
+    const int16_t y_top = graph_plot_rect.origin.y;
+    const int16_t y_bottom = graph_plot_rect.origin.y + graph_plot_rect.size.h - 1;
+    const int16_t y_mid = graph_plot_rect.origin.y + graph_plot_rect.size.h / 2;
+    const int16_t amplitude = graph_plot_rect.size.h / 2;
+    const int32_t strength = solar_curve_strength_for_time(night_segments, timestamp);
+    const int16_t offset = (int16_t)((strength * amplitude) / TRIG_MAX_RATIO);
+
+    int16_t y = y_mid - offset;
+    if (y < y_top)
+    {
+        y = y_top;
+    }
+    if (y > y_bottom)
+    {
+        y = y_bottom;
+    }
+    return y;
 }
 
 static void draw_night_regions(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end)
@@ -223,26 +285,23 @@ static void draw_night_regions(GContext *ctx, GRect graph_plot_rect, time_t grap
     const int16_t hatch_spacing = NIGHT_HATCH_SPACING;
     graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(NIGHT_HATCH_COLOR, GColorWhite));
 
-    for (int i = 0; i < night_segments.count; ++i)
+    const int16_t y_top = graph_plot_rect.origin.y;
+    for (int16_t x = graph_left; x < graph_right; ++x)
     {
-        int16_t x0 = graph_x_for_time(night_segments.segments[i].start, graph_start, graph_end, graph_plot_rect);
-        int16_t x1 = graph_x_for_time(night_segments.segments[i].end, graph_start, graph_end, graph_plot_rect);
-
-        if (x0 < graph_left)
+        const time_t timestamp = graph_time_for_x(x, graph_start, graph_end, graph_plot_rect);
+        int16_t curve_y = solar_curve_y_for_time(&night_segments, timestamp, graph_plot_rect);
+        if (curve_y < y_top)
         {
-            x0 = graph_left;
-        }
-        if (x1 > graph_right)
-        {
-            x1 = graph_right;
-        }
-        if (x1 <= x0)
-        {
-            continue;
+            curve_y = y_top;
         }
 
-        GRect night_rect = GRect(x0, graph_plot_rect.origin.y, x1 - x0, graph_plot_rect.size.h);
-        draw_night_hatch_rect(ctx, night_rect, hatch_spacing);
+        for (int16_t y = y_top; y < curve_y; ++y)
+        {
+            if (((x + y) % hatch_spacing) == 0)
+            {
+                graphics_draw_pixel(ctx, GPoint(x, y));
+            }
+        }
     }
 }
 
@@ -276,6 +335,19 @@ static int16_t precip_top_y_for_x(const GPoint *points_precip, int num_entries, 
     return points_precip[num_entries - 1].y;
 }
 
+static int16_t clamped_precip_top_y_for_x(GRect graph_plot_rect,
+                                          const GPoint *points_precip, int num_entries, int16_t x)
+{
+    const int16_t y_top_limit = graph_plot_rect.origin.y;
+    int16_t precip_y = precip_top_y_for_x(points_precip, num_entries, x);
+    if (precip_y < y_top_limit)
+    {
+        precip_y = y_top_limit;
+    }
+
+    return precip_y;
+}
+
 static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end,
                                          const GPoint *points_precip, int num_entries)
 {
@@ -287,61 +359,54 @@ static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, t
 
     const int16_t graph_left = graph_plot_rect.origin.x;
     const int16_t graph_right = graph_plot_rect.origin.x + graph_plot_rect.size.w;
-    const int16_t y_top_limit = graph_plot_rect.origin.y;
     const int16_t y_bottom = graph_plot_rect.origin.y + graph_plot_rect.size.h;
     const int16_t hatch_spacing = NIGHT_HATCH_SPACING;
+    const bool draw_night_precip_fill = PBL_IF_COLOR_ELSE(true, false);
 
-    for (int i = 0; i < night_segments.count; ++i)
+    if (draw_night_precip_fill)
     {
-        int16_t x0 = graph_x_for_time(night_segments.segments[i].start, graph_start, graph_end, graph_plot_rect);
-        int16_t x1 = graph_x_for_time(night_segments.segments[i].end, graph_start, graph_end, graph_plot_rect);
+        graphics_context_set_stroke_color(ctx, NIGHT_PRECIP_FILL_COLOR);
+        for (int16_t x = graph_left; x < graph_right; ++x)
+        {
+            const time_t timestamp = graph_time_for_x(x, graph_start, graph_end, graph_plot_rect);
+            int16_t curve_y = solar_curve_y_for_time(&night_segments, timestamp, graph_plot_rect);
+            const int16_t precip_y = clamped_precip_top_y_for_x(graph_plot_rect, points_precip, num_entries, x);
+            if (curve_y <= precip_y)
+            {
+                continue;
+            }
+            if (curve_y > y_bottom)
+            {
+                curve_y = y_bottom;
+            }
 
-        if (x0 < graph_left)
-        {
-            x0 = graph_left;
+            for (int16_t y = precip_y; y < curve_y; ++y)
+            {
+                graphics_draw_pixel(ctx, GPoint(x, y));
+            }
         }
-        if (x1 > graph_right)
-        {
-            x1 = graph_right;
-        }
-        if (x1 <= x0)
+    }
+
+    graphics_context_set_stroke_color(ctx, NIGHT_HATCH_COLOR_PRECIP);
+    for (int16_t x = graph_left; x < graph_right; ++x)
+    {
+        const time_t timestamp = graph_time_for_x(x, graph_start, graph_end, graph_plot_rect);
+        int16_t curve_y = solar_curve_y_for_time(&night_segments, timestamp, graph_plot_rect);
+        const int16_t precip_y = clamped_precip_top_y_for_x(graph_plot_rect, points_precip, num_entries, x);
+        if (curve_y <= precip_y)
         {
             continue;
         }
-
-        if (PBL_IF_COLOR_ELSE(true, false))
+        if (curve_y > y_bottom)
         {
-            graphics_context_set_stroke_color(ctx, NIGHT_PRECIP_FILL_COLOR);
-            for (int16_t x = x0; x < x1; ++x)
-            {
-                int16_t precip_y = precip_top_y_for_x(points_precip, num_entries, x);
-                if (precip_y < y_top_limit)
-                {
-                    precip_y = y_top_limit;
-                }
-
-                for (int16_t y = precip_y; y < y_bottom; ++y)
-                {
-                    graphics_draw_pixel(ctx, GPoint(x, y));
-                }
-            }
+            curve_y = y_bottom;
         }
 
-        graphics_context_set_stroke_color(ctx, NIGHT_HATCH_COLOR_PRECIP);
-        for (int16_t x = x0; x < x1; ++x)
+        for (int16_t y = precip_y; y < curve_y; ++y)
         {
-            int16_t precip_y = precip_top_y_for_x(points_precip, num_entries, x);
-            if (precip_y < y_top_limit)
+            if (((x + y) % hatch_spacing) == 0)
             {
-                precip_y = y_top_limit;
-            }
-
-            for (int16_t y = precip_y; y < y_bottom; ++y)
-            {
-                if (((x + y) % hatch_spacing) == 0)
-                {
-                    graphics_draw_pixel(ctx, GPoint(x, y));
-                }
+                graphics_draw_pixel(ctx, GPoint(x, y));
             }
         }
     }
@@ -349,8 +414,8 @@ static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, t
 
 static void draw_night_boundaries(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end)
 {
-    time_t sun_event_times[2] = {0, 0};
-    if (!get_valid_sun_events(sun_event_times, NULL))
+    const NightSegments night_segments = compute_night_segments(graph_start, graph_end);
+    if (night_segments.count == 0)
     {
         return;
     }
@@ -358,26 +423,25 @@ static void draw_night_boundaries(GContext *ctx, GRect graph_plot_rect, time_t g
     graphics_context_set_stroke_color(ctx, NIGHT_BOUNDARY_COLOR);
     graphics_context_set_stroke_width(ctx, 1);
 
-    const int16_t y0 = graph_plot_rect.origin.y;
-    const int16_t y1 = graph_plot_rect.origin.y + graph_plot_rect.size.h - 1;
-    for (int i = 0; i < (int)(sizeof(sun_event_times) / sizeof(sun_event_times[0])); ++i)
+    const int16_t graph_left = graph_plot_rect.origin.x;
+    const int16_t graph_right = graph_plot_rect.origin.x + graph_plot_rect.size.w;
+    for (int16_t x = graph_left; x < graph_right - 1; ++x)
     {
-        const time_t transition = sun_event_times[i];
-        if (transition <= graph_start || transition >= graph_end)
-        {
-            continue;
-        }
+        const time_t timestamp0 = graph_time_for_x(x, graph_start, graph_end, graph_plot_rect);
+        const time_t timestamp1 = graph_time_for_x(x + 1, graph_start, graph_end, graph_plot_rect);
 
-        const int16_t x = graph_x_for_time(transition, graph_start, graph_end, graph_plot_rect);
-        graphics_draw_line(ctx, GPoint(x, y0), GPoint(x, y1));
+        int16_t y0 = solar_curve_y_for_time(&night_segments, timestamp0, graph_plot_rect);
+        int16_t y1 = solar_curve_y_for_time(&night_segments, timestamp1, graph_plot_rect);
+
+        graphics_draw_line(ctx, GPoint(x, y0), GPoint(x + 1, y1));
     }
 }
 
 static void draw_night_boundaries_over_precip(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end,
-                                              const GPoint *points_precip, int num_entries)
+                                               const GPoint *points_precip, int num_entries)
 {
-    time_t sun_event_times[2] = {0, 0};
-    if (!get_valid_sun_events(sun_event_times, NULL))
+    const NightSegments night_segments = compute_night_segments(graph_start, graph_end);
+    if (night_segments.count == 0)
     {
         return;
     }
@@ -385,23 +449,32 @@ static void draw_night_boundaries_over_precip(GContext *ctx, GRect graph_plot_re
     graphics_context_set_stroke_color(ctx, NIGHT_BOUNDARY_COLOR_PRECIP);
     graphics_context_set_stroke_width(ctx, 1);
 
-    const int16_t y_top_limit = graph_plot_rect.origin.y;
-    const int16_t y_bottom = graph_plot_rect.origin.y + graph_plot_rect.size.h - 1;
-    for (int i = 0; i < (int)(sizeof(sun_event_times) / sizeof(sun_event_times[0])); ++i)
+    const int16_t graph_left = graph_plot_rect.origin.x;
+    const int16_t graph_right = graph_plot_rect.origin.x + graph_plot_rect.size.w;
+    for (int16_t x = graph_left; x < graph_right - 1; ++x)
     {
-        const time_t transition = sun_event_times[i];
-        if (transition <= graph_start || transition >= graph_end)
+        const time_t timestamp0 = graph_time_for_x(x, graph_start, graph_end, graph_plot_rect);
+        const time_t timestamp1 = graph_time_for_x(x + 1, graph_start, graph_end, graph_plot_rect);
+        int16_t y0 = solar_curve_y_for_time(&night_segments, timestamp0, graph_plot_rect);
+        int16_t y1 = solar_curve_y_for_time(&night_segments, timestamp1, graph_plot_rect);
+        const int16_t precip_y0 = clamped_precip_top_y_for_x(graph_plot_rect, points_precip, num_entries, x);
+        const int16_t precip_y1 = clamped_precip_top_y_for_x(graph_plot_rect, points_precip, num_entries, x + 1);
+
+        if (y0 < precip_y0 && y1 < precip_y1)
         {
             continue;
         }
 
-        const int16_t x = graph_x_for_time(transition, graph_start, graph_end, graph_plot_rect);
-        int16_t precip_y = precip_top_y_for_x(points_precip, num_entries, x);
-        if (precip_y < y_top_limit)
+        if (y0 < precip_y0)
         {
-            precip_y = y_top_limit;
+            y0 = precip_y0;
         }
-        graphics_draw_line(ctx, GPoint(x, precip_y), GPoint(x, y_bottom));
+        if (y1 < precip_y1)
+        {
+            y1 = precip_y1;
+        }
+
+        graphics_draw_line(ctx, GPoint(x, y0), GPoint(x + 1, y1));
     }
 }
 

@@ -67,14 +67,31 @@ mise install-emulator release
 # Choose emulator platform and build type
 mise install-emulator release aplite
 
-# Pass additional flags
-mise install-emulator -- --logs
+# Pass through pebble install flags
+mise install-emulator --logs
 
 # Set default emulator in environment
 PEBBLE_EMULATOR=aplite mise install-emulator
 
-# Pass through pebble install flags
-mise install-emulator --logs
+# Legacy pass-through separator (still works)
+mise install-emulator -- --logs
+
+# Take a screenshot from emulator (default platform: basalt)
+mise screenshot-emulator
+
+# Choose emulator platform
+mise screenshot-emulator aplite
+
+# Legacy flag form (still works)
+mise screenshot-emulator -- --emulator chalk
+
+# Set default emulator in environment
+PEBBLE_EMULATOR=aplite mise screenshot-emulator
+
+# Default output goes to screenshot/tmp/<timestamp>-<platform>.png
+
+# Provide explicit output path / additional screenshot args
+mise screenshot-emulator -- screenshot/my-capture.png --no-open --no-correction
 
 # Take a screenshot from phone
 mise screenshot-phone

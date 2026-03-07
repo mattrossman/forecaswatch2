@@ -340,8 +340,7 @@ static void draw_night_regions(GContext *ctx, GRect graph_plot_rect, time_t grap
 
     const int16_t hatch_spacing = NIGHT_HATCH_SPACING;
     const bool is_color = PBL_IF_COLOR_ELSE(true, false);
-    bool stroke_initialized = false;
-    bool stroke_is_night = false;
+    graphics_context_set_stroke_color(ctx, is_color ? NIGHT_HATCH_COLOR : GColorWhite);
 
     const int16_t y_top = graph_plot_rect.origin.y;
     for (int16_t x = graph_left; x < graph_right; ++x)
@@ -349,11 +348,9 @@ static void draw_night_regions(GContext *ctx, GRect graph_plot_rect, time_t grap
         const time_t timestamp = graph_time_for_x(x, graph_start, graph_end, graph_plot_rect);
         const bool is_night = is_night_at_time(&night_segments, timestamp);
 
-        if (!stroke_initialized || is_night != stroke_is_night)
+        if (!is_night)
         {
-            graphics_context_set_stroke_color(ctx, is_color ? (is_night ? NIGHT_HATCH_COLOR : DAY_HATCH_COLOR) : GColorWhite);
-            stroke_initialized = true;
-            stroke_is_night = is_night;
+            continue;
         }
 
         int16_t curve_y = solar_curve_y_for_time(&night_segments, timestamp, graph_plot_rect);
@@ -364,7 +361,7 @@ static void draw_night_regions(GContext *ctx, GRect graph_plot_rect, time_t grap
 
         for (int16_t y = y_top; y < curve_y; ++y)
         {
-            if (should_draw_hatch_pixel(x, y, hatch_spacing, is_night))
+            if (should_draw_hatch_pixel(x, y, hatch_spacing, true))
             {
                 graphics_draw_pixel(ctx, GPoint(x, y));
             }
@@ -436,6 +433,11 @@ static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, t
         for (int16_t x = graph_left; x < graph_right; ++x)
         {
             const time_t timestamp = graph_time_for_x(x, graph_start, graph_end, graph_plot_rect);
+            if (!is_night_at_time(&night_segments, timestamp))
+            {
+                continue;
+            }
+
             int16_t curve_y = solar_curve_y_for_time(&night_segments, timestamp, graph_plot_rect);
             const int16_t precip_y = clamped_precip_top_y_for_x(graph_plot_rect, points_precip, num_entries, x);
             if (curve_y <= precip_y)
@@ -455,18 +457,15 @@ static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, t
     }
 
     const bool is_color = PBL_IF_COLOR_ELSE(true, false);
-    bool stroke_initialized = false;
-    bool stroke_is_night = false;
+    graphics_context_set_stroke_color(ctx, is_color ? NIGHT_HATCH_COLOR_PRECIP : GColorWhite);
     for (int16_t x = graph_left; x < graph_right; ++x)
     {
         const time_t timestamp = graph_time_for_x(x, graph_start, graph_end, graph_plot_rect);
         const bool is_night = is_night_at_time(&night_segments, timestamp);
 
-        if (!stroke_initialized || is_night != stroke_is_night)
+        if (!is_night)
         {
-            graphics_context_set_stroke_color(ctx, is_color ? (is_night ? NIGHT_HATCH_COLOR_PRECIP : DAY_HATCH_COLOR_PRECIP) : GColorWhite);
-            stroke_initialized = true;
-            stroke_is_night = is_night;
+            continue;
         }
 
         int16_t curve_y = solar_curve_y_for_time(&night_segments, timestamp, graph_plot_rect);
@@ -482,7 +481,7 @@ static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, t
 
         for (int16_t y = precip_y; y < curve_y; ++y)
         {
-            if (should_draw_hatch_pixel(x, y, hatch_spacing, is_night))
+            if (should_draw_hatch_pixel(x, y, hatch_spacing, true))
             {
                 graphics_draw_pixel(ctx, GPoint(x, y));
             }

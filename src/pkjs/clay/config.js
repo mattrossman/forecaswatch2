@@ -1,4 +1,6 @@
 var meta = require('../../../package.json');
+var versionLabel = "v" + meta.version + (meta.buildProfile === "dev" ? " (dev)" : "");
+
 module.exports = [
     {
         "type": "heading",
@@ -267,6 +269,6 @@ module.exports = [
     },
     {
         "type": "text",
-        "defaultValue": "v" + meta.version
+        "defaultValue": versionLabel
     }
 ]

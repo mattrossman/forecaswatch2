@@ -9,9 +9,11 @@
 #define BOTTOM_AXIS_H 10          // Height of the bottom axis (hour labels)
 #define MARGIN_TEMP_H 7           // Height of margins for the temperature plot
 #define NIGHT_HATCH_SPACING PBL_IF_COLOR_ELSE(6, 7)
+#define DAY_HATCH_COLOR PBL_IF_COLOR_ELSE(GColorLightGray, GColorWhite)
 #define NIGHT_HATCH_COLOR GColorDarkGray
 #define PRECIP_FILL_COLOR PBL_IF_COLOR_ELSE(GColorCobaltBlue, GColorLightGray)
 #define NIGHT_PRECIP_FILL_COLOR PBL_IF_COLOR_ELSE(GColorDukeBlue, GColorLightGray)
+#define DAY_HATCH_COLOR_PRECIP PBL_IF_COLOR_ELSE(GColorPictonBlue, GColorWhite)
 #define NIGHT_HATCH_COLOR_PRECIP PBL_IF_COLOR_ELSE(GColorBlue, GColorWhite)
 #define NIGHT_BOUNDARY_COLOR PBL_IF_COLOR_ELSE(GColorDarkGray, GColorLightGray)
 #define NIGHT_BOUNDARY_COLOR_PRECIP PBL_IF_COLOR_ELSE(GColorVividCerulean, GColorWhite)
@@ -197,6 +199,60 @@ static time_t graph_time_for_x(int16_t x, time_t graph_start, time_t graph_end, 
     return graph_start + (time_t)((elapsed_pixels * total_seconds) / total_pixels);
 }
 
+static int16_t graph_x_for_time(time_t timestamp, time_t graph_start, time_t graph_end, GRect graph_plot_rect)
+{
+    const int16_t graph_left = graph_plot_rect.origin.x;
+    const int16_t graph_right = graph_plot_rect.origin.x + graph_plot_rect.size.w;
+
+    if (timestamp <= graph_start)
+    {
+        return graph_left;
+    }
+    if (timestamp >= graph_end)
+    {
+        return graph_right;
+    }
+
+    const int64_t elapsed = (int64_t)timestamp - graph_start;
+    const int64_t total = (int64_t)graph_end - graph_start;
+    return graph_left + (int16_t)((elapsed * graph_plot_rect.size.w) / total);
+}
+
+static bool is_night_at_time(const NightSegments *night_segments, time_t timestamp)
+{
+    for (int i = 0; i < night_segments->count; ++i)
+    {
+        const time_t segment_start = night_segments->segments[i].start;
+        const time_t segment_end = night_segments->segments[i].end;
+        if (timestamp >= segment_start && timestamp < segment_end)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static bool should_draw_hatch_pixel(int16_t x, int16_t y, int16_t spacing, bool solid)
+{
+    if (((x + y) % spacing) != 0)
+    {
+        return false;
+    }
+
+    if (PBL_IF_COLOR_ELSE(true, false))
+    {
+        return true;
+    }
+
+    if (solid)
+    {
+        return true;
+    }
+
+    return (x % 2) == 0;
+}
+
 static int32_t half_cycle_strength(time_t interval_start, time_t interval_end, time_t timestamp)
 {
     const int64_t duration = (int64_t)interval_end - interval_start;
@@ -283,12 +339,23 @@ static void draw_night_regions(GContext *ctx, GRect graph_plot_rect, time_t grap
     const int16_t graph_right = graph_plot_rect.origin.x + graph_plot_rect.size.w;
 
     const int16_t hatch_spacing = NIGHT_HATCH_SPACING;
-    graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(NIGHT_HATCH_COLOR, GColorWhite));
+    const bool is_color = PBL_IF_COLOR_ELSE(true, false);
+    bool stroke_initialized = false;
+    bool stroke_is_night = false;
 
     const int16_t y_top = graph_plot_rect.origin.y;
     for (int16_t x = graph_left; x < graph_right; ++x)
     {
         const time_t timestamp = graph_time_for_x(x, graph_start, graph_end, graph_plot_rect);
+        const bool is_night = is_night_at_time(&night_segments, timestamp);
+
+        if (!stroke_initialized || is_night != stroke_is_night)
+        {
+            graphics_context_set_stroke_color(ctx, is_color ? (is_night ? NIGHT_HATCH_COLOR : DAY_HATCH_COLOR) : GColorWhite);
+            stroke_initialized = true;
+            stroke_is_night = is_night;
+        }
+
         int16_t curve_y = solar_curve_y_for_time(&night_segments, timestamp, graph_plot_rect);
         if (curve_y < y_top)
         {
@@ -297,7 +364,7 @@ static void draw_night_regions(GContext *ctx, GRect graph_plot_rect, time_t grap
 
         for (int16_t y = y_top; y < curve_y; ++y)
         {
-            if (((x + y) % hatch_spacing) == 0)
+            if (should_draw_hatch_pixel(x, y, hatch_spacing, is_night))
             {
                 graphics_draw_pixel(ctx, GPoint(x, y));
             }
@@ -387,10 +454,21 @@ static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, t
         }
     }
 
-    graphics_context_set_stroke_color(ctx, NIGHT_HATCH_COLOR_PRECIP);
+    const bool is_color = PBL_IF_COLOR_ELSE(true, false);
+    bool stroke_initialized = false;
+    bool stroke_is_night = false;
     for (int16_t x = graph_left; x < graph_right; ++x)
     {
         const time_t timestamp = graph_time_for_x(x, graph_start, graph_end, graph_plot_rect);
+        const bool is_night = is_night_at_time(&night_segments, timestamp);
+
+        if (!stroke_initialized || is_night != stroke_is_night)
+        {
+            graphics_context_set_stroke_color(ctx, is_color ? (is_night ? NIGHT_HATCH_COLOR_PRECIP : DAY_HATCH_COLOR_PRECIP) : GColorWhite);
+            stroke_initialized = true;
+            stroke_is_night = is_night;
+        }
+
         int16_t curve_y = solar_curve_y_for_time(&night_segments, timestamp, graph_plot_rect);
         const int16_t precip_y = clamped_precip_top_y_for_x(graph_plot_rect, points_precip, num_entries, x);
         if (curve_y <= precip_y)
@@ -404,7 +482,7 @@ static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, t
 
         for (int16_t y = precip_y; y < curve_y; ++y)
         {
-            if (((x + y) % hatch_spacing) == 0)
+            if (should_draw_hatch_pixel(x, y, hatch_spacing, is_night))
             {
                 graphics_draw_pixel(ctx, GPoint(x, y));
             }
@@ -435,10 +513,30 @@ static void draw_night_boundaries(GContext *ctx, GRect graph_plot_rect, time_t g
 
         graphics_draw_line(ctx, GPoint(x, y0), GPoint(x + 1, y1));
     }
+
+    time_t sun_event_times[2] = {0, 0};
+    if (!get_valid_sun_events(sun_event_times, NULL))
+    {
+        return;
+    }
+
+    const int16_t y_top = graph_plot_rect.origin.y;
+    for (int i = 0; i < (int)(sizeof(sun_event_times) / sizeof(sun_event_times[0])); ++i)
+    {
+        const time_t transition = sun_event_times[i];
+        if (transition <= graph_start || transition >= graph_end)
+        {
+            continue;
+        }
+
+        const int16_t x = graph_x_for_time(transition, graph_start, graph_end, graph_plot_rect);
+        const int16_t curve_y = solar_curve_y_for_time(&night_segments, transition, graph_plot_rect);
+        graphics_draw_line(ctx, GPoint(x, y_top), GPoint(x, curve_y));
+    }
 }
 
 static void draw_night_boundaries_over_precip(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end,
-                                               const GPoint *points_precip, int num_entries)
+                                              const GPoint *points_precip, int num_entries)
 {
     const NightSegments night_segments = compute_night_segments(graph_start, graph_end);
     if (night_segments.count == 0)
@@ -475,6 +573,30 @@ static void draw_night_boundaries_over_precip(GContext *ctx, GRect graph_plot_re
         }
 
         graphics_draw_line(ctx, GPoint(x, y0), GPoint(x + 1, y1));
+    }
+
+    time_t sun_event_times[2] = {0, 0};
+    if (!get_valid_sun_events(sun_event_times, NULL))
+    {
+        return;
+    }
+
+    for (int i = 0; i < (int)(sizeof(sun_event_times) / sizeof(sun_event_times[0])); ++i)
+    {
+        const time_t transition = sun_event_times[i];
+        if (transition <= graph_start || transition >= graph_end)
+        {
+            continue;
+        }
+
+        const int16_t x = graph_x_for_time(transition, graph_start, graph_end, graph_plot_rect);
+        const int16_t curve_y = solar_curve_y_for_time(&night_segments, transition, graph_plot_rect);
+        const int16_t precip_y = clamped_precip_top_y_for_x(graph_plot_rect, points_precip, num_entries, x);
+
+        if (curve_y > precip_y)
+        {
+            graphics_draw_line(ctx, GPoint(x, precip_y), GPoint(x, curve_y));
+        }
     }
 }
 
@@ -600,11 +722,12 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     // Draw a line for the bottom axis
     graphics_context_set_stroke_color(ctx, render_spec.axis_color);
     graphics_context_set_stroke_width(ctx, 1);
-    graphics_draw_line(ctx, GPoint(graph_bounds.origin.x, h - BOTTOM_AXIS_H), GPoint(graph_bounds.origin.x + w, h - BOTTOM_AXIS_H));
+    const int16_t axis_y = h - BOTTOM_AXIS_H;
+    graphics_draw_line(ctx, GPoint(graph_bounds.origin.x, axis_y), GPoint(graph_bounds.origin.x + w, axis_y));
     // And for the left side axis
     graphics_context_set_fill_color(ctx, GColorBlack);
     graphics_fill_rect(ctx, GRect(0, 0, LEFT_AXIS_MARGIN_W, h - BOTTOM_AXIS_H), 0, GCornerNone); // Paint over plot bleeding
-    graphics_draw_line(ctx, GPoint(graph_bounds.origin.x, 0), GPoint(graph_bounds.origin.x, h - BOTTOM_AXIS_H));
+    graphics_draw_line(ctx, GPoint(graph_bounds.origin.x, 0), GPoint(graph_bounds.origin.x, axis_y));
 }
 
 static void text_layers_refresh()

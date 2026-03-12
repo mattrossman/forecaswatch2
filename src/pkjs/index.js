@@ -192,6 +192,10 @@ function needRefresh() {
         // Just covering all my bases
         return true;
     }
+    // If the last successful fetch was from a different provider, always refresh
+    if (lastFetchSuccess.id !== app.provider.id) {
+        return true;
+    }
     // If the most recent fetch is more than 30 minutes old
     return (Date.now() - roundDownMinutes(new Date(lastFetchSuccess.time), 30) > 1000 * 60 * 30);
 }

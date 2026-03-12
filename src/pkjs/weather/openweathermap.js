@@ -27,13 +27,13 @@ OpenWeatherMapProvider.prototype.withOwmResponse = function (lat, lon, callback)
 
     console.log("Requesting " + url)
     
-    request(url, 'GET', function (response) {
+    request(url, 'GET', (function (response) {
         var weatherData = JSON.parse(response);
         console.log('Found timezone: ' + weatherData.timezone);
         // cache weather data (use same request for sun events and weather forecast)
         this.weatherDataCache = weatherData;
         callback(weatherData);
-    });
+    }).bind(this));
 }
 
 OpenWeatherMapProvider.prototype.withWeatherData = function (lat, lon, callback) {
@@ -49,7 +49,7 @@ OpenWeatherMapProvider.prototype.withWeatherData = function (lat, lon, callback)
 // ============== IMPORTANT OVERRIDE ================
 OpenWeatherMapProvider.prototype.withSunEvents = function (lat, lon, callback) {
     console.log('This is the overridden implementation of withSunEvents')
-    this.withOwmResponse(lat, lon, (function (owmResponse) {
+    this.withWeatherData(lat, lon, (function (owmResponse) {
         var days = owmResponse.daily;
         var sunEvents = [
             { 'type': 'sunrise', 'date': new Date(days[0].sunrise * 1000) },
@@ -71,6 +71,9 @@ OpenWeatherMapProvider.prototype.withSunEvents = function (lat, lon, callback) {
 OpenWeatherMapProvider.prototype.withProviderData = function (lat, lon, force, callback) {
     // callBack expects that this.hasValidData() will be true
     console.log('This is the overridden implementation of withProviderData')
+    if (force) {
+        this.weatherDataCache = null;
+    }
     this.withWeatherData(lat, lon, (function (weatherData) {
         this.tempTrend = weatherData.hourly.map(function (entry) {
             return entry.temp;

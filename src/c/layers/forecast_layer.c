@@ -225,10 +225,10 @@ static void draw_night_hatch_rect(GContext *ctx, GRect rect, int16_t spacing)
     }
 }
 
-static void draw_night_regions(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end)
+static void draw_night_regions(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end,
+                               const NightSegments *night_segments)
 {
-    const NightSegments night_segments = compute_night_segments(graph_start, graph_end);
-    if (night_segments.count == 0)
+    if (!night_segments || night_segments->count == 0)
     {
         return;
     }
@@ -240,10 +240,10 @@ static void draw_night_regions(GContext *ctx, GRect graph_plot_rect, time_t grap
     const bool is_color = PBL_IF_COLOR_ELSE(true, false);
     graphics_context_set_stroke_color(ctx, is_color ? NIGHT_HATCH_COLOR : GColorWhite);
 
-    for (int i = 0; i < night_segments.count; ++i)
+    for (int i = 0; i < night_segments->count; ++i)
     {
-        int16_t x0 = graph_x_for_time(night_segments.segments[i].start, graph_start, graph_end, graph_plot_rect);
-        int16_t x1 = graph_x_for_time(night_segments.segments[i].end, graph_start, graph_end, graph_plot_rect);
+        int16_t x0 = graph_x_for_time(night_segments->segments[i].start, graph_start, graph_end, graph_plot_rect);
+        int16_t x1 = graph_x_for_time(night_segments->segments[i].end, graph_start, graph_end, graph_plot_rect);
 
         if (x0 < graph_left)
         {
@@ -307,10 +307,10 @@ static int16_t clamped_precip_top_y_for_x(GRect graph_plot_rect,
 }
 
 static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end,
+                                         const NightSegments *night_segments,
                                          const GPoint *points_precip, int num_entries)
 {
-    const NightSegments night_segments = compute_night_segments(graph_start, graph_end);
-    if (night_segments.count == 0)
+    if (!night_segments || night_segments->count == 0)
     {
         return;
     }
@@ -322,10 +322,10 @@ static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, t
     const int16_t hatch_spacing = NIGHT_HATCH_SPACING;
     const bool is_color = PBL_IF_COLOR_ELSE(true, false);
 
-    for (int i = 0; i < night_segments.count; ++i)
+    for (int i = 0; i < night_segments->count; ++i)
     {
-        int16_t x0 = graph_x_for_time(night_segments.segments[i].start, graph_start, graph_end, graph_plot_rect);
-        int16_t x1 = graph_x_for_time(night_segments.segments[i].end, graph_start, graph_end, graph_plot_rect);
+        int16_t x0 = graph_x_for_time(night_segments->segments[i].start, graph_start, graph_end, graph_plot_rect);
+        int16_t x1 = graph_x_for_time(night_segments->segments[i].end, graph_start, graph_end, graph_plot_rect);
 
         if (x0 < graph_left)
         {
@@ -366,10 +366,10 @@ static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, t
     }
 }
 
-static void draw_night_boundaries(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end)
+static void draw_night_boundaries(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end,
+                                  const NightSegments *night_segments)
 {
-    const NightSegments night_segments = compute_night_segments(graph_start, graph_end);
-    if (night_segments.count == 0)
+    if (!night_segments || night_segments->count == 0)
     {
         return;
     }
@@ -379,10 +379,10 @@ static void draw_night_boundaries(GContext *ctx, GRect graph_plot_rect, time_t g
 
     const int16_t y0 = graph_plot_rect.origin.y;
     const int16_t y1 = graph_plot_rect.origin.y + graph_plot_rect.size.h - 1;
-    for (int i = 0; i < night_segments.count; ++i)
+    for (int i = 0; i < night_segments->count; ++i)
     {
-        const time_t segment_start = night_segments.segments[i].start;
-        const time_t segment_end = night_segments.segments[i].end;
+        const time_t segment_start = night_segments->segments[i].start;
+        const time_t segment_end = night_segments->segments[i].end;
 
         if (segment_start > graph_start && segment_start < graph_end)
         {
@@ -399,10 +399,10 @@ static void draw_night_boundaries(GContext *ctx, GRect graph_plot_rect, time_t g
 }
 
 static void draw_night_boundaries_over_precip(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end,
-                                              const GPoint *points_precip, int num_entries)
+                                               const NightSegments *night_segments,
+                                               const GPoint *points_precip, int num_entries)
 {
-    const NightSegments night_segments = compute_night_segments(graph_start, graph_end);
-    if (night_segments.count == 0)
+    if (!night_segments || night_segments->count == 0)
     {
         return;
     }
@@ -411,10 +411,10 @@ static void draw_night_boundaries_over_precip(GContext *ctx, GRect graph_plot_re
     graphics_context_set_stroke_width(ctx, 1);
 
     const int16_t y_bottom = graph_plot_rect.origin.y + graph_plot_rect.size.h - 1;
-    for (int i = 0; i < night_segments.count; ++i)
+    for (int i = 0; i < night_segments->count; ++i)
     {
-        const time_t segment_start = night_segments.segments[i].start;
-        const time_t segment_end = night_segments.segments[i].end;
+        const time_t segment_start = night_segments->segments[i].start;
+        const time_t segment_end = night_segments->segments[i].end;
 
         if (segment_start > graph_start && segment_start < graph_end)
         {
@@ -453,6 +453,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
 
     const time_t forecast_start = persist_get_forecast_start();
     const time_t forecast_end = forecast_start + (num_entries - 1) * FORECAST_STEP_SECONDS;
+    NightSegments night_segments = {0};
     struct tm *forecast_start_local = localtime(&forecast_start);
     int16_t temps[num_entries];
     uint8_t precips[num_entries];
@@ -474,8 +475,9 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     float entry_w = (float)graph_bounds.size.w / (num_entries - 1);
     if (render_spec.draw_night_overlay)
     {
-        draw_night_regions(ctx, graph_plot_rect, forecast_start, forecast_end);
-        draw_night_boundaries(ctx, graph_plot_rect, forecast_start, forecast_end);
+        night_segments = compute_night_segments(forecast_start, forecast_end);
+        draw_night_regions(ctx, graph_plot_rect, forecast_start, forecast_end, &night_segments);
+        draw_night_boundaries(ctx, graph_plot_rect, forecast_start, forecast_end, &night_segments);
     }
 
     graphics_context_set_text_color(ctx, GColorWhite);
@@ -537,8 +539,10 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
 
     if (render_spec.draw_night_overlay)
     {
-        draw_night_hatch_over_precip(ctx, graph_plot_rect, forecast_start, forecast_end, points_precip, num_entries);
-        draw_night_boundaries_over_precip(ctx, graph_plot_rect, forecast_start, forecast_end, points_precip, num_entries);
+        draw_night_hatch_over_precip(ctx, graph_plot_rect, forecast_start, forecast_end, &night_segments,
+                                     points_precip, num_entries);
+        draw_night_boundaries_over_precip(ctx, graph_plot_rect, forecast_start, forecast_end, &night_segments,
+                                          points_precip, num_entries);
     }
 
     // Draw the precipitation line

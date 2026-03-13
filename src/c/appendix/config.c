@@ -95,6 +95,9 @@ GFont config_time_font() {
         [TIME_FONT_BITHAM] = FONT_KEY_BITHAM_42_MEDIUM_NUMBERS
     };
     int16_t font_index = g_config->time_font;
+    const int16_t font_count = (int16_t)(sizeof(font_keys) / sizeof(font_keys[0]));
+    if (font_index < 0 || font_index >= font_count)
+        font_index = TIME_FONT_ROBOTO;
     return fonts_get_system_font(font_keys[font_index]);
 }
 

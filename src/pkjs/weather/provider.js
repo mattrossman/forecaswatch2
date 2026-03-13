@@ -1,4 +1,4 @@
-const SunCalc = require('suncalc')
+var SunCalc = require('suncalc')
 
 function request(url, type, callback) {
     var xhr = new XMLHttpRequest();
@@ -28,11 +28,11 @@ WeatherProvider.prototype.withSunEvents = function(lat, lon, callback) {
     /* The callback runs with an array of the next two sun events (i.e. 24 hours worth),
      * where each sun event contains a 'type' ('sunrise' or 'sunset') and a 'date' (of type Date)
      */
-    const dateNow = new Date()
-    const dateTomorrow = new Date().setDate(dateNow.getDate() + 1)
+    var dateNow = new Date()
+    var dateTomorrow = new Date().setDate(dateNow.getDate() + 1)
 
-    const resultsToday = SunCalc.getTimes(dateNow, lat, lon)
-    const resultsTomorrow = SunCalc.getTimes(dateTomorrow, lat, lon)
+    var resultsToday = SunCalc.getTimes(dateNow, lat, lon)
+    var resultsTomorrow = SunCalc.getTimes(dateTomorrow, lat, lon)
 
     /**
      * @param {SunCalc.GetTimesResult} results 
@@ -74,7 +74,7 @@ WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
 }
 
 // https://github.com/mattrossman/forecaswatch2/issues/59#issue-1317582743
-const r_lat_long = /^([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)$/;
+var r_lat_long = /^([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)$/;
 
 WeatherProvider.prototype.withGeocodeCoordinates = function(callback) {
     // callback(lattitude, longtitude)

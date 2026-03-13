@@ -120,11 +120,20 @@ function clayTryDefaults() {
         return;
     }
 
-    persistClay = JSON.parse(persistClayString);
-    if (!persistClay.hasOwnProperty('nightShading')) {
-        persistClay.nightShading = true;
-        localStorage.setItem('clay-settings', JSON.stringify(persistClay));
+    try {
+        persistClay = JSON.parse(persistClayString);
     }
+    catch (ex) {
+        console.log('Malformed clay settings found, resetting defaults');
+        persistClay = {
+            provider: 'wunderground',
+            location: '',
+            nightShading: true,
+        }
+        localStorage.setItem('clay-settings', JSON.stringify(persistClay));
+        return;
+    }
+
 }
 
 function getDevConfig() {

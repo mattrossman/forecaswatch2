@@ -1,4 +1,5 @@
 {
   "displayName": "FCW2",
-  "uuid": "7ed9b053-1521-4e49-be8b-6e12c68978ae"
+  "uuid": "7ed9b053-1521-4e49-be8b-6e12c68978ae",
+  "buildProfile": "release"
 }

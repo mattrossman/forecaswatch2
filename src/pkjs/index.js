@@ -1,6 +1,7 @@
 
 var WundergroundProvider = require('./weather/wunderground.js');
 var OpenWeatherMapProvider = require('./weather/openweathermap.js')
+var MockProvider = require('./weather/mock.js');
 var Clay = require('./clay/_source.js');
 var clayConfig = require('./clay/config.js');
 var customClay = require('./clay/inject.js');
@@ -36,7 +37,8 @@ Pebble.addEventListener('webviewclosed', function(e) {
 Pebble.addEventListener('ready',
     function (e) {
         clayTryDefaults();
-        clayTryDevConfig();
+        app.devConfig = getDevConfig();
+        clayTryDevConfig(app.devConfig);
         console.log('PebbleKit JS ready!');
         app.settings = getClaySettings();
         refreshProvider();
@@ -51,7 +53,7 @@ function startTick() {
 }
 
 function sendClaySettings() {
-    payload = {
+    var payload = {
         "CLAY_CELSIUS": app.settings.temperatureUnits === 'c',
         "CLAY_TIME_LEAD_ZERO": app.settings.timeLeadingZero,
         "CLAY_AXIS_12H": app.settings.axisTimeFormat === '12h',
@@ -68,6 +70,7 @@ function sendClaySettings() {
         "CLAY_COLOR_SATURDAY": app.settings.hasOwnProperty('colorSaturday') ? app.settings.colorSaturday : 16777215,
         "CLAY_COLOR_US_FEDERAL": app.settings.hasOwnProperty('colorUSFederal') ? app.settings.colorUSFederal : 16777215,
         "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : 16777215,
+        "CLAY_NIGHT_SHADING": app.settings.hasOwnProperty('nightShading') ? app.settings.nightShading : true,
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));
@@ -89,6 +92,9 @@ function setProvider(providerId) {
         case 'wunderground':
             app.provider = new WundergroundProvider();
             break;
+        case 'mock':
+            app.provider = new MockProvider(app.devConfig || {});
+            break;
         default:
             console.log('Unknown provider: "' + providerId + '", defaulting to wunderground');
             clay.setSettings("provider", "wunderground");
@@ -101,35 +107,71 @@ function clayTryDefaults() {
     /* Clay only considers `defaultValue` upon first startup, but we need
      * defaults set even if the user has not made a custom config
      */
-    var persistClay = localStorage.getItem('clay-settings');
-    if (persistClay === null) {
+    var persistClayString = localStorage.getItem('clay-settings');
+    var persistClay;
+    if (persistClayString === null) {
         console.log('No clay settings found, setting defaults');
         persistClay = {
             provider: 'wunderground',
-            location: ''
+            location: '',
+            nightShading: true,
         }
         localStorage.setItem('clay-settings', JSON.stringify(persistClay));
+        return;
+    }
+
+    try {
+        persistClay = JSON.parse(persistClayString);
+    }
+    catch (ex) {
+        console.log('Malformed clay settings found, resetting defaults');
+        persistClay = {
+            provider: 'wunderground',
+            location: '',
+            nightShading: true,
+        }
+        localStorage.setItem('clay-settings', JSON.stringify(persistClay));
+        return;
+    }
+
+}
+
+function getDevConfig() {
+    try {
+        return require('./dev-config.js');
+    }
+    catch (ex) {
+        console.log('No developer configuration file found');
+        return {};
     }
 }
 
-function clayTryDevConfig() {
+function clayTryDevConfig(devConfig) {
     /* Use values from a dev-config.js file to configure clay settings
      * by iterating over the exported properties
      */
-    try {
-        var devConfig = require('./dev-config.js');
-        var persistClay = getClaySettings();
-        for (var prop in devConfig) {
-            if (Object.prototype.hasOwnProperty.call(devConfig, prop)) {
-                persistClay[prop] = devConfig[prop];
-                console.log('Found dev setting: ' + prop + '=' + devConfig[prop]);
+    var persistClay;
+    var prop;
+
+    var localOnlyDevConfigKeys = {
+        emuTime: true,
+        emuTimeFormat: true,
+        mockCity: true,
+        mockScenario: true,
+    };
+
+    persistClay = getClaySettings();
+    for (prop in devConfig) {
+        if (Object.prototype.hasOwnProperty.call(devConfig, prop)) {
+            if (Object.prototype.hasOwnProperty.call(localOnlyDevConfigKeys, prop)) {
+                console.log('Found local-only dev setting: ' + prop);
+                continue;
             }
+            persistClay[prop] = devConfig[prop];
+            console.log('Found dev setting: ' + prop + '=' + devConfig[prop]);
         }
-        localStorage.setItem('clay-settings', JSON.stringify(persistClay));
     }
-    catch (ex) {
-        console.log("No developer configuration file found");
-    }
+    localStorage.setItem('clay-settings', JSON.stringify(persistClay));
 }
 
 function getClaySettings() {

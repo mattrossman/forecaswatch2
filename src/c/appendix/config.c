@@ -4,15 +4,40 @@
 
 // NOTE: g_config is a global config variable
 
+static const Config s_config_defaults = (Config) {
+    .celsius = false,
+    .time_lead_zero = false,
+    .axis_12h = false,
+    .start_mon = false,
+    .prev_week = true,
+    .show_qt = true,
+    .show_bt = true,
+    .show_bt_disconnect = true,
+    .vibe = false,
+    .show_am_pm = false,
+    .time_font = TIME_FONT_ROBOTO,
+    .color_today = GColorBlack,
+    .color_saturday = GColorWhite,
+    .color_sunday = GColorWhite,
+    .color_us_federal = GColorWhite,
+    .color_time = GColorWhite,
+    .night_shading = true
+};
+
+static void config_read_or_default(Config *config) {
+    *config = s_config_defaults;
+    persist_get_config(config);
+}
+
 void config_load() {
     g_config = (Config*) malloc(sizeof(Config));
-    persist_get_config(g_config);
+    config_read_or_default(g_config);
 }
 
 void config_refresh() {
     free(g_config);  // Clear out the old config
     g_config = (Config*) malloc(sizeof(Config));
-    persist_get_config(g_config);  // Then reload
+    config_read_or_default(g_config);  // Then reload
 }
 
 void config_unload() {
@@ -65,11 +90,14 @@ int config_n_today() {
 
 GFont config_time_font() {
     const char *font_keys[] = {
-        FONT_KEY_ROBOTO_BOLD_SUBSET_49,
-        FONT_KEY_LECO_42_NUMBERS,
-        FONT_KEY_BITHAM_42_MEDIUM_NUMBERS
+        [TIME_FONT_ROBOTO] = FONT_KEY_ROBOTO_BOLD_SUBSET_49,
+        [TIME_FONT_LECO] = FONT_KEY_LECO_42_NUMBERS,
+        [TIME_FONT_BITHAM] = FONT_KEY_BITHAM_42_MEDIUM_NUMBERS
     };
     int16_t font_index = g_config->time_font;
+    const int16_t font_count = (int16_t)(sizeof(font_keys) / sizeof(font_keys[0]));
+    if (font_index < 0 || font_index >= font_count)
+        font_index = TIME_FONT_ROBOTO;
     return fonts_get_system_font(font_keys[font_index]);
 }
 

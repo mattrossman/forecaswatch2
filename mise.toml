@@ -32,6 +32,22 @@ description = "Build and install dev build on phone"
 alias = "install"
 run = "scripts/install-phone.sh"
 
+[tasks.install-cloud]
+description = "Build and install on CloudPebble (default: dev)"
+alias = "cloud"
+run = "scripts/install-cloud.sh"
+
 [tasks.install-emulator]
-description = "Build and install on basalt emulator (default: dev)"
-run = "scripts/install-emulator.sh"
+description = "Build and install on emulator (default profile: dev, emulator: basalt)"
+alias = "emu"
+run = "pebble wipe && scripts/install-emulator.sh"
+
+[tasks.screenshot-phone]
+description = "Take a screenshot from phone"
+alias = "screenshot"
+run = "scripts/screenshot-phone.sh"
+
+[tasks.screenshot-emulator]
+description = "Take a screenshot from emulator (default: basalt)"
+alias = "screenshot-emu"
+run = "scripts/screenshot-emulator.sh"

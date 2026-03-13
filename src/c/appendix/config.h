@@ -2,6 +2,12 @@
 
 #include <pebble.h>
 
+enum TimeFont {
+    TIME_FONT_ROBOTO = 0,
+    TIME_FONT_LECO = 1,
+    TIME_FONT_BITHAM = 2,
+};
+
 typedef struct {
     bool celsius;
     bool time_lead_zero;
@@ -19,6 +25,7 @@ typedef struct {
     GColor color_sunday;
     GColor color_us_federal;
     GColor color_time;
+    bool night_shading;
 } Config;
 
 Config *g_config;

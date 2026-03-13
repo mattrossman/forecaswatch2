@@ -1,4 +1,6 @@
 var meta = require('../../../package.json');
+var versionLabel = "v" + meta.version + (meta.buildProfile === "dev" ? " (dev)" : "");
+
 module.exports = [
     {
         "type": "heading",
@@ -171,6 +173,13 @@ module.exports = [
                 ]
             },
             {
+                "type": "toggle",
+                "label": "Night shading",
+                "messageKey": "nightShading",
+                "defaultValue": true,
+                "description": "Show night hatch shading and sunrise/sunset boundaries on the forecast graph"
+            },
+            {
                 "type": "radiogroup",
                 "label": "Provider",
                 "messageKey": "provider",
@@ -260,6 +269,6 @@ module.exports = [
     },
     {
         "type": "text",
-        "defaultValue": "v" + meta.version
+        "defaultValue": versionLabel
     }
 ]

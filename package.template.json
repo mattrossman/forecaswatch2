@@ -2,6 +2,7 @@
   "name": "forecaswatch2",
   "author": "Matt Rossman",
   "version": "1.25.0",
+  "buildProfile": "{{buildProfile}}",
   "keywords": [
     "pebble-app"
   ],
@@ -83,7 +84,8 @@
       "CLAY_COLOR_SATURDAY",
       "CLAY_COLOR_SUNDAY",
       "CLAY_COLOR_US_FEDERAL",
-      "CLAY_COLOR_TIME"
+      "CLAY_COLOR_TIME",
+      "CLAY_NIGHT_SHADING"
     ]
   }
 }

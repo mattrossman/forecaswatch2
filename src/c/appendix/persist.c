@@ -47,7 +47,7 @@ void persist_init() {
             .axis_12h = false,
             .start_mon = false,
             .prev_week = true,
-            .time_font = 0,
+            .time_font = TIME_FONT_ROBOTO,
             .color_today = GColorBlack,
             .show_qt = true,
             .show_bt = true,
@@ -57,7 +57,8 @@ void persist_init() {
             .color_saturday = GColorWhite,	
             .color_sunday = GColorWhite,
             .color_us_federal = GColorWhite,
-            .color_time = GColorWhite
+            .color_time = GColorWhite,
+            .night_shading = true
         };
         persist_set_config(config);
     }

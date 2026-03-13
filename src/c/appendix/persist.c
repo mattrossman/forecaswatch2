@@ -47,7 +47,7 @@ void persist_init() {
             .axis_12h = false,
             .start_mon = false,
             .prev_week = true,
-            .time_font = 0,
+            .time_font = TIME_FONT_ROBOTO,
             .color_today = GColorBlack,
             .show_qt = true,
             .show_bt = true,

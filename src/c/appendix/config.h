@@ -2,6 +2,12 @@
 
 #include <pebble.h>
 
+enum TimeFont {
+    TIME_FONT_ROBOTO = 0,
+    TIME_FONT_LECO = 1,
+    TIME_FONT_BITHAM = 2,
+};
+
 typedef struct {
     bool celsius;
     bool time_lead_zero;

@@ -192,24 +192,20 @@ static int16_t graph_x_for_time(time_t timestamp, time_t graph_start, time_t gra
     return graph_left + (int16_t)((elapsed * graph_plot_rect.size.w) / total);
 }
 
-static bool should_draw_hatch_pixel(int16_t x, int16_t y, int16_t spacing, bool solid)
+static int16_t aligned_hatch_start_y(int16_t x, int16_t y_start, int16_t spacing)
 {
-    if (((x + y) % spacing) != 0)
+    int16_t modulo = (x + y_start) % spacing;
+    if (modulo < 0)
     {
-        return false;
+        modulo += spacing;
     }
 
-    if (PBL_IF_COLOR_ELSE(true, false))
+    if (modulo == 0)
     {
-        return true;
+        return y_start;
     }
 
-    if (solid)
-    {
-        return true;
-    }
-
-    return (x % 2) == 0;
+    return y_start + (spacing - modulo);
 }
 
 static void draw_night_hatch_rect(GContext *ctx, GRect rect, int16_t spacing)
@@ -221,14 +217,12 @@ static void draw_night_hatch_rect(GContext *ctx, GRect rect, int16_t spacing)
 
     const int16_t x_end = rect.origin.x + rect.size.w;
     const int16_t y_end = rect.origin.y + rect.size.h;
-    for (int16_t y = rect.origin.y; y < y_end; ++y)
+    for (int16_t x = rect.origin.x; x < x_end; ++x)
     {
-        for (int16_t x = rect.origin.x; x < x_end; ++x)
+        int16_t hatch_y = aligned_hatch_start_y(x, rect.origin.y, spacing);
+        for (int16_t y = hatch_y; y < y_end; y += spacing)
         {
-            if (should_draw_hatch_pixel(x, y, spacing, true))
-            {
-                graphics_draw_pixel(ctx, GPoint(x, y));
-            }
+            graphics_draw_pixel(ctx, GPoint(x, y));
         }
     }
 }
@@ -325,8 +319,10 @@ static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, t
 
     const int16_t graph_left = graph_plot_rect.origin.x;
     const int16_t graph_right = graph_plot_rect.origin.x + graph_plot_rect.size.w;
-    const int16_t y_bottom = graph_plot_rect.origin.y + graph_plot_rect.size.h;
+    const int16_t y_bottom_exclusive = graph_plot_rect.origin.y + graph_plot_rect.size.h;
+    const int16_t y_bottom_inclusive = y_bottom_exclusive - 1;
     const int16_t hatch_spacing = NIGHT_HATCH_SPACING;
+    const bool is_color = PBL_IF_COLOR_ELSE(true, false);
 
     for (int i = 0; i < night_segments.count; ++i)
     {
@@ -346,30 +342,27 @@ static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, t
             continue;
         }
 
-        if (PBL_IF_COLOR_ELSE(true, false))
+        if (is_color)
         {
             graphics_context_set_stroke_color(ctx, NIGHT_PRECIP_FILL_COLOR);
             for (int16_t x = x0; x < x1; ++x)
             {
                 const int16_t precip_y = clamped_precip_top_y_for_x(graph_plot_rect, points_precip, num_entries, x);
-                for (int16_t y = precip_y; y < y_bottom; ++y)
+                if (precip_y <= y_bottom_inclusive)
                 {
-                    graphics_draw_pixel(ctx, GPoint(x, y));
+                    graphics_draw_line(ctx, GPoint(x, precip_y), GPoint(x, y_bottom_inclusive));
                 }
             }
         }
 
-        const bool is_color = PBL_IF_COLOR_ELSE(true, false);
         graphics_context_set_stroke_color(ctx, is_color ? NIGHT_HATCH_COLOR_PRECIP : GColorWhite);
         for (int16_t x = x0; x < x1; ++x)
         {
             const int16_t precip_y = clamped_precip_top_y_for_x(graph_plot_rect, points_precip, num_entries, x);
-            for (int16_t y = precip_y; y < y_bottom; ++y)
+            int16_t hatch_y = aligned_hatch_start_y(x, precip_y, hatch_spacing);
+            for (int16_t y = hatch_y; y < y_bottom_exclusive; y += hatch_spacing)
             {
-                if (should_draw_hatch_pixel(x, y, hatch_spacing, true))
-                {
-                    graphics_draw_pixel(ctx, GPoint(x, y));
-                }
+                graphics_draw_pixel(ctx, GPoint(x, y));
             }
         }
     }
@@ -455,6 +448,8 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     const int num_entries = persist_get_num_entries();
     if (num_entries < 2)
     {
+        graphics_context_set_fill_color(ctx, GColorBlack);
+        graphics_fill_rect(ctx, bounds, 0, GCornerNone);
         return;
     }
 
@@ -474,6 +469,8 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     int lo, hi;
     min_max(temps, num_entries, &lo, &hi);
     int range = hi - lo;
+    const int temp_plot_h = h - MARGIN_TEMP_H * 2 - BOTTOM_AXIS_H;
+    const int range_safe = range > 0 ? range : 1;
 
     // Draw a bounding box for each data entry (the -1 is since we don't want a gap on either side)
     float entry_w = (float)graph_bounds.size.w / (num_entries - 1);
@@ -499,7 +496,11 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
 
         // Save a point for the temperature reading
         int temp = temps[i];
-        int temp_h = (float)(temp - lo) / range * (h - MARGIN_TEMP_H * 2 - BOTTOM_AXIS_H);
+        int temp_h = temp_plot_h / 2;
+        if (range > 0)
+        {
+            temp_h = (int)(((int32_t)(temp - lo) * temp_plot_h) / range_safe);
+        }
         points_temp[i] = GPoint(entry_x, h - temp_h - MARGIN_TEMP_H - BOTTOM_AXIS_H);
 
         if (i % entries_per_label == 0)

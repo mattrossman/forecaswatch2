@@ -68,10 +68,8 @@ static RenderSpec make_render_spec()
     return spec;
 }
 
-static ForecastLayout compute_layout(GRect bounds, RenderSpec spec)
+static ForecastLayout compute_layout(GRect bounds)
 {
-    (void)spec;
-
     ForecastLayout layout = {
         .graph_bounds = GRect(LEFT_AXIS_MARGIN_W, 0, bounds.size.w - LEFT_AXIS_MARGIN_W, bounds.size.h)};
     layout.graph_plot_rect = GRect(layout.graph_bounds.origin.x, 0, layout.graph_bounds.size.w, layout.graph_bounds.size.h - BOTTOM_AXIS_H);
@@ -438,7 +436,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
 {
     GRect bounds = layer_get_bounds(layer);
     RenderSpec render_spec = make_render_spec();
-    ForecastLayout layout = compute_layout(bounds, render_spec);
+    ForecastLayout layout = compute_layout(bounds);
     GRect graph_bounds = layout.graph_bounds;
     GRect graph_plot_rect = layout.graph_plot_rect;
     int w = layout.w;

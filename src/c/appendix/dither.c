@@ -1,6 +1,6 @@
 #include "dither.h"
 
-// 8x8 Bayer threshold matrix (from Pebble's feature-frame-buffer example app).
+// 8x8 Bayer threshold matrix (from Pebble's example https://github.com/pebble-examples/feature-frame-buffer).
 static const uint8_t s_dither_matrix[8][8] = {
     {  0, 128,  32, 160,   8, 136,  40, 168},
     {192,  64, 224,  96, 200,  72, 232, 104},

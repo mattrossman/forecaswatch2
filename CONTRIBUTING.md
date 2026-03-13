@@ -106,12 +106,59 @@ mise screenshot-phone -- screenshot/my-capture.png
 ```
 
 ## Config
-You can create a file `src/pkjs/dev-config.js` to set values for Clay keys (for convenience), e.g.
+You can create `src/pkjs/dev-config.js` to override Clay keys and local dev behavior.
+
+Example:
 
 ```javascript
-var owmApiKey = 'abc123';
-module.exports.owmApiKey = owmApiKey;
+module.exports.owmApiKey = 'abc123';
 ```
+
+### Mock weather (emulator/dev)
+
+Use these keys in `src/pkjs/dev-config.js`:
+
+- `provider = 'mock'` enables the mock provider.
+- `mockCity` sets the city label independently.
+- `mockScenario` selects the active built-in scenario.
+
+Scenario data is tracked in git inside `src/pkjs/weather/mock.js` (`MOCK_SCENARIOS`).
+
+Minimal shape:
+
+```javascript
+module.exports.provider = 'mock';
+module.exports.mockCity = 'New York, NY';
+module.exports.mockScenario = 'clearMorning';
+```
+
+Notes:
+
+- If `mockScenario` is missing/invalid, the app falls back to the first built-in scenario.
+- To add/edit scenarios, update `MOCK_SCENARIOS` in `src/pkjs/weather/mock.js`.
+- `startEpoch` and `sunEvents[].epoch` should be coherent in emulator local time (the graph and shading use watch localtime).
+
+### Emulator time overrides (applied automatically)
+
+`scripts/install-emulator.sh` reads these keys from `dev-config.js` after install:
+
+- `emuTimeFormat`: `12h` or `24h`
+- `emuTime`: `HH:MM:SS` or Unix seconds (e.g. `1772870400`)
+
+Then run:
+
+```bash
+mise install-emulator --logs
+```
+
+Reset behavior when keys are removed:
+
+- `emuTimeFormat` defaults to `24h`
+- `emuTime` fallback order is:
+  1. explicit `emuTime` in `dev-config.js`
+  2. `emuTime` of active mock scenario (when `provider = 'mock'`, if present)
+  3. `startEpoch` of active mock scenario (when `provider = 'mock'`)
+  4. current host time
 
 ## Upgrading pebble-tool
 

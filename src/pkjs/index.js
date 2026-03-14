@@ -97,10 +97,24 @@ function maybeShowReleaseNotification(hadExistingInstall, forceShow) {
     var appVersion = pkg.version;
     var releaseNotification = pkg.releaseNotification;
     var reasons;
-    var hasReleaseNotification = !!(
+    var isNotificationEnabled = !!(
+        releaseNotification &&
+        releaseNotification.enabled === true
+    );
+    var hasReleaseTitle = !!(
         releaseNotification &&
         releaseNotification.title &&
-        releaseNotification.body
+        String(releaseNotification.title).trim() !== ''
+    );
+    var hasReleaseBody = !!(
+        releaseNotification &&
+        releaseNotification.body &&
+        String(releaseNotification.body).trim() !== ''
+    );
+    var hasReleaseNotification = !!(
+        isNotificationEnabled &&
+        hasReleaseTitle &&
+        hasReleaseBody
     );
     var maxNotified = localStorage.getItem(KEY_MAX_NOTIFIED_VERSION) || '0.0.0';
     var isNewer = compareSemver(appVersion, maxNotified) > 0;
@@ -115,6 +129,9 @@ function maybeShowReleaseNotification(hadExistingInstall, forceShow) {
         ' maxNotified=' + maxNotified +
         ' isNewer=' + isNewer +
         ' forceShow=' + !!forceShow +
+        ' releaseNotificationEnabled=' + isNotificationEnabled +
+        ' hasReleaseTitle=' + hasReleaseTitle +
+        ' hasReleaseBody=' + hasReleaseBody +
         ' hasReleaseNotification=' + hasReleaseNotification
     );
 
@@ -126,8 +143,17 @@ function maybeShowReleaseNotification(hadExistingInstall, forceShow) {
         if (!isNewer) {
             reasons.push('not-newer-than-max_notified_version');
         }
+        if (!isNotificationEnabled) {
+            reasons.push('releaseNotification-disabled');
+        }
+        if (!hasReleaseTitle) {
+            reasons.push('missing-releaseNotification-title');
+        }
+        if (!hasReleaseBody) {
+            reasons.push('missing-releaseNotification-body');
+        }
         if (!hasReleaseNotification) {
-            reasons.push('missing-releaseNotification-title-or-body');
+            reasons.push('releaseNotification-not-eligible');
         }
         console.log('[release-notification] skip: ' + reasons.join(','));
     }

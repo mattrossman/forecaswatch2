@@ -49,6 +49,12 @@ mise install-phone <PHONE_IP>
 # Explicit release install
 mise install-phone <PHONE_IP> release
 
+# Pass through pebble install flags
+mise install-phone --logs
+
+# Legacy pass-through separator (still works)
+mise install-phone -- --logs
+
 # Install dev build via CloudPebble (default profile)
 mise install-cloud
 

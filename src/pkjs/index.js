@@ -184,7 +184,7 @@ function sendClaySettings() {
         "CLAY_COLOR_SATURDAY": app.settings.hasOwnProperty('colorSaturday') ? app.settings.colorSaturday : 16777215,
         "CLAY_COLOR_US_FEDERAL": app.settings.hasOwnProperty('colorUSFederal') ? app.settings.colorUSFederal : 16777215,
         "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : 16777215,
-        "CLAY_NIGHT_SHADING": app.settings.hasOwnProperty('nightShading') ? app.settings.nightShading : true,
+        "CLAY_DAY_NIGHT_SHADING": app.settings.hasOwnProperty('dayNightShading') ? app.settings.dayNightShading : true,
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));
@@ -228,7 +228,7 @@ function clayTryDefaults() {
         persistClay = {
             provider: 'wunderground',
             location: '',
-            nightShading: true,
+            dayNightShading: true,
         }
         localStorage.setItem('clay-settings', JSON.stringify(persistClay));
         return;
@@ -242,7 +242,7 @@ function clayTryDefaults() {
         persistClay = {
             provider: 'wunderground',
             location: '',
-            nightShading: true,
+            dayNightShading: true,
         }
         localStorage.setItem('clay-settings', JSON.stringify(persistClay));
         return;

@@ -21,7 +21,7 @@ static const Config s_config_defaults = (Config) {
     .color_sunday = GColorWhite,
     .color_us_federal = GColorWhite,
     .color_time = GColorWhite,
-    .night_shading = true
+    .day_night_shading = true
 };
 
 static void config_read_or_default(Config *config) {

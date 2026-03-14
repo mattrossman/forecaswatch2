@@ -174,10 +174,10 @@ module.exports = [
             },
             {
                 "type": "toggle",
-                "label": "Night shading",
-                "messageKey": "nightShading",
+                "label": "Day/night shading",
+                "messageKey": "dayNightShading",
                 "defaultValue": true,
-                "description": "Show night hatch shading and sunrise/sunset boundaries on the forecast graph"
+                "description": "Show hatch shading between sunset and sunrise to distinguish day and night on the forecast graph."
             },
             {
                 "type": "radiogroup",

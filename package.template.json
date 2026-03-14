@@ -4,7 +4,7 @@
   "version": "1.25.0",
   "releaseNotification": {
     "title": "New in v1.26.0!",
-    "body": "TODO: add release notes"
+    "body": "Forecast graph now shows hatch shading between sunset and sunrise to distinguish day and night.\n\nDay/night shading is on by default and can be turned off in the Weather section of the watchface settings."
   },
   "buildProfile": "{{buildProfile}}",
   "keywords": [
@@ -89,7 +89,7 @@
       "CLAY_COLOR_SUNDAY",
       "CLAY_COLOR_US_FEDERAL",
       "CLAY_COLOR_TIME",
-      "CLAY_NIGHT_SHADING"
+      "CLAY_DAY_NIGHT_SHADING"
     ]
   }
 }

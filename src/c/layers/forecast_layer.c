@@ -57,7 +57,7 @@ static TextLayer *s_lo_layer;
 static RenderSpec make_render_spec()
 {
     RenderSpec spec = {
-        .draw_night_overlay = g_config->night_shading,
+        .draw_night_overlay = g_config->day_night_shading,
         .axis_color = PBL_IF_COLOR_ELSE(GColorOrange, GColorWhite)};
 
     if (spec.draw_night_overlay)

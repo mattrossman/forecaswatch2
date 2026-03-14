@@ -29,6 +29,7 @@ const fs = require('fs');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const rn = pkg.releaseNotification || {};
 const hasEnabled = Object.prototype.hasOwnProperty.call(rn, 'enabled');
+// Explicit enablement: only a literal boolean true turns this on.
 const enabled = rn.enabled === true;
 const title = typeof rn.title === 'string' ? rn.title.trim() : '';
 const body = typeof rn.body === 'string' ? rn.body.trim() : '';

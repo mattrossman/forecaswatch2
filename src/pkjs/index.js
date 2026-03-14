@@ -96,21 +96,14 @@ function compareSemver(a, b) {
 function maybeShowReleaseNotification(hadExistingInstall, forceShow) {
     var appVersion = pkg.version;
     var releaseNotification = pkg.releaseNotification;
-    var reasons;
+    var releaseTitle = releaseNotification && releaseNotification.title ? String(releaseNotification.title).trim() : '';
+    var releaseBody = releaseNotification && releaseNotification.body ? String(releaseNotification.body).trim() : '';
     var isNotificationEnabled = !!(
         releaseNotification &&
         releaseNotification.enabled === true
     );
-    var hasReleaseTitle = !!(
-        releaseNotification &&
-        releaseNotification.title &&
-        String(releaseNotification.title).trim() !== ''
-    );
-    var hasReleaseBody = !!(
-        releaseNotification &&
-        releaseNotification.body &&
-        String(releaseNotification.body).trim() !== ''
-    );
+    var hasReleaseTitle = releaseTitle !== '';
+    var hasReleaseBody = releaseBody !== '';
     var hasReleaseNotification = !!(
         isNotificationEnabled &&
         hasReleaseTitle &&
@@ -129,6 +122,7 @@ function maybeShowReleaseNotification(hadExistingInstall, forceShow) {
         ' maxNotified=' + maxNotified +
         ' isNewer=' + isNewer +
         ' forceShow=' + !!forceShow +
+        ' shouldNotify=' + shouldNotify +
         ' releaseNotificationEnabled=' + isNotificationEnabled +
         ' hasReleaseTitle=' + hasReleaseTitle +
         ' hasReleaseBody=' + hasReleaseBody +
@@ -136,31 +130,12 @@ function maybeShowReleaseNotification(hadExistingInstall, forceShow) {
     );
 
     if (!shouldNotify) {
-        reasons = [];
-        if (!hadExistingInstall) {
-            reasons.push('first-install-or-missing-clay-settings');
-        }
-        if (!isNewer) {
-            reasons.push('not-newer-than-max_notified_version');
-        }
-        if (!isNotificationEnabled) {
-            reasons.push('releaseNotification-disabled');
-        }
-        if (!hasReleaseTitle) {
-            reasons.push('missing-releaseNotification-title');
-        }
-        if (!hasReleaseBody) {
-            reasons.push('missing-releaseNotification-body');
-        }
-        if (!hasReleaseNotification) {
-            reasons.push('releaseNotification-not-eligible');
-        }
-        console.log('[release-notification] skip: ' + reasons.join(','));
+        console.log('[release-notification] skip');
     }
 
     if (shouldNotify) {
         console.log('[release-notification] showing notification');
-        Pebble.showSimpleNotificationOnPebble(releaseNotification.title, releaseNotification.body);
+        Pebble.showSimpleNotificationOnPebble(releaseTitle, releaseBody);
     }
 
     if (isNewer) {

@@ -2,6 +2,10 @@
   "name": "forecaswatch2",
   "author": "Matt Rossman",
   "version": "1.25.0",
+  "releaseNotification": {
+    "title": "New in v1.26.0!",
+    "body": "TODO: add release notes"
+  },
   "buildProfile": "{{buildProfile}}",
   "keywords": [
     "pebble-app"

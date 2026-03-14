@@ -5,8 +5,10 @@ var MockProvider = require('./weather/mock.js');
 var Clay = require('./clay/_source.js');
 var clayConfig = require('./clay/config.js');
 var customClay = require('./clay/inject.js');
+var pkg = require('../../package.json');
 var clay = new Clay(clayConfig, customClay, { autoHandleEvents: false });
 var app = {};  // Namespace for global app variables
+var KEY_MAX_NOTIFIED_VERSION = 'max_notified_version';
 
 Pebble.addEventListener('showConfiguration', function(e) {
     // Set the userData here rather than in the Clay() constructor so it's actually up to date
@@ -36,8 +38,14 @@ Pebble.addEventListener('webviewclosed', function(e) {
 // Listen for when the watchface is opened
 Pebble.addEventListener('ready',
     function (e) {
-        clayTryDefaults();
         app.devConfig = getDevConfig();
+        maybeHandleDevStorageReset(app.devConfig);
+        var hadExistingInstall = localStorage.getItem('clay-settings') !== null;
+        maybeShowReleaseNotification(
+            hadExistingInstall,
+            !!app.devConfig.forceShowReleaseNotificationOnBoot
+        );
+        clayTryDefaults();
         clayTryDevConfig(app.devConfig);
         console.log('PebbleKit JS ready!');
         app.settings = getClaySettings();
@@ -45,6 +53,113 @@ Pebble.addEventListener('ready',
         startTick();
     }
 );
+
+/**
+ * Parse a semver-like string into numeric major/minor/patch parts.
+ *
+ * @param {string} v Version string such as "1.25.0" or "v1.25.0-beta+build".
+ * @returns {number[]} Tuple-like array: [major, minor, patch].
+ */
+function parseSemver(v) {
+    var core = String(v || '0.0.0').replace(/^v/, '').split('-')[0].split('+')[0];
+    var p = core.split('.');
+    return [
+        parseInt(p[0], 10) || 0,
+        parseInt(p[1], 10) || 0,
+        parseInt(p[2], 10) || 0
+    ];
+}
+
+/**
+ * Compare two semver-like version strings.
+ *
+ * @param {string} a Left-hand version.
+ * @param {string} b Right-hand version.
+ * @returns {number} 1 when a>b, -1 when a<b, 0 when equal.
+ */
+function compareSemver(a, b) {
+    var pa = parseSemver(a);
+    var pb = parseSemver(b);
+    if (pa[0] !== pb[0]) return pa[0] > pb[0] ? 1 : -1;
+    if (pa[1] !== pb[1]) return pa[1] > pb[1] ? 1 : -1;
+    if (pa[2] !== pb[2]) return pa[2] > pb[2] ? 1 : -1;
+    return 0;
+}
+
+/**
+ * Show the release notification exactly once for eligible upgrades.
+ *
+ * @param {boolean} hadExistingInstall True when this launch is not first install.
+ * @param {boolean} forceShow True to show release notification on every boot in dev.
+ * @returns {void}
+ */
+function maybeShowReleaseNotification(hadExistingInstall, forceShow) {
+    var appVersion = pkg.version;
+    var releaseNotification = pkg.releaseNotification;
+    var releaseTitle = releaseNotification && releaseNotification.title ? String(releaseNotification.title).trim() : '';
+    var releaseBody = releaseNotification && releaseNotification.body ? String(releaseNotification.body).trim() : '';
+    var isNotificationEnabled = !!(
+        releaseNotification &&
+        releaseNotification.enabled === true
+    );
+    var hasReleaseTitle = releaseTitle !== '';
+    var hasReleaseBody = releaseBody !== '';
+    var hasReleaseNotification = !!(
+        isNotificationEnabled &&
+        hasReleaseTitle &&
+        hasReleaseBody
+    );
+    var maxNotified = localStorage.getItem(KEY_MAX_NOTIFIED_VERSION) || '0.0.0';
+    var isNewer = compareSemver(appVersion, maxNotified) > 0;
+    var shouldNotify = (
+        (hadExistingInstall && isNewer && hasReleaseNotification) ||
+        (forceShow && hasReleaseNotification)
+    );
+
+    console.log(
+        '[release-notification] appVersion=' + appVersion +
+        ' hadExistingInstall=' + hadExistingInstall +
+        ' maxNotified=' + maxNotified +
+        ' isNewer=' + isNewer +
+        ' forceShow=' + !!forceShow +
+        ' shouldNotify=' + shouldNotify +
+        ' releaseNotificationEnabled=' + isNotificationEnabled +
+        ' hasReleaseTitle=' + hasReleaseTitle +
+        ' hasReleaseBody=' + hasReleaseBody +
+        ' hasReleaseNotification=' + hasReleaseNotification
+    );
+
+    if (!shouldNotify) {
+        console.log('[release-notification] skip');
+    }
+
+    if (shouldNotify) {
+        console.log('[release-notification] showing notification');
+        Pebble.showSimpleNotificationOnPebble(releaseTitle, releaseBody);
+    }
+
+    if (isNewer) {
+        localStorage.setItem(KEY_MAX_NOTIFIED_VERSION, appVersion);
+        console.log('[release-notification] set max_notified_version=' + appVersion);
+    } else {
+        console.log('[release-notification] keep max_notified_version=' + maxNotified);
+    }
+}
+
+/**
+ * Optionally clear PKJS localStorage on boot when enabled in dev-config.js.
+ *
+ * @param {Object} devConfig Developer configuration object.
+ * @returns {void}
+ */
+function maybeHandleDevStorageReset(devConfig) {
+    var shouldClear = !!(devConfig && devConfig.clearPkjsStorageOnBoot);
+
+    if (shouldClear) {
+        console.log('[dev] clearPkjsStorageOnBoot=true, clearing localStorage');
+        localStorage.clear();
+    }
+}
 
 function startTick() {
     console.log('Tick from PKJS!');
@@ -70,7 +185,7 @@ function sendClaySettings() {
         "CLAY_COLOR_SATURDAY": app.settings.hasOwnProperty('colorSaturday') ? app.settings.colorSaturday : 16777215,
         "CLAY_COLOR_US_FEDERAL": app.settings.hasOwnProperty('colorUSFederal') ? app.settings.colorUSFederal : 16777215,
         "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : 16777215,
-        "CLAY_NIGHT_SHADING": app.settings.hasOwnProperty('nightShading') ? app.settings.nightShading : true,
+        "CLAY_DAY_NIGHT_SHADING": app.settings.hasOwnProperty('dayNightShading') ? app.settings.dayNightShading : true,
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));
@@ -114,7 +229,7 @@ function clayTryDefaults() {
         persistClay = {
             provider: 'wunderground',
             location: '',
-            nightShading: true,
+            dayNightShading: true,
         }
         localStorage.setItem('clay-settings', JSON.stringify(persistClay));
         return;
@@ -128,7 +243,7 @@ function clayTryDefaults() {
         persistClay = {
             provider: 'wunderground',
             location: '',
-            nightShading: true,
+            dayNightShading: true,
         }
         localStorage.setItem('clay-settings', JSON.stringify(persistClay));
         return;
@@ -158,6 +273,8 @@ function clayTryDevConfig(devConfig) {
         emuTimeFormat: true,
         mockCity: true,
         mockScenario: true,
+        clearPkjsStorageOnBoot: true,
+        forceShowReleaseNotificationOnBoot: true,
     };
 
     persistClay = getClaySettings();

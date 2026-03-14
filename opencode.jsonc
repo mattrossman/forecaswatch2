@@ -6,7 +6,8 @@
       "pebble": "allow"
     },
     "bash": {
-      "mise build": "allow"
+      "mise build": "allow",
+      "pebble logs *": "allow"
     }
   }
 }

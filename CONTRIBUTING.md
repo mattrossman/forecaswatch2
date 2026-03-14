@@ -120,6 +120,42 @@ Example:
 module.exports.owmApiKey = 'abc123';
 ```
 
+### PKJS storage reset (dev)
+
+Use this key in `src/pkjs/dev-config.js` to force a PKJS `localStorage` reset on each app boot while enabled:
+
+- `clearPkjsStorageOnBoot = true`
+
+Example:
+
+```javascript
+module.exports.clearPkjsStorageOnBoot = true;
+```
+
+Notes:
+
+- Keep this set to `true` only while testing first-install behavior.
+- Set it back to `false` before testing upgrade-notification behavior.
+- This is local-only dev behavior and is not written into Clay settings.
+
+### Release notification preview (dev)
+
+Use this key in `src/pkjs/dev-config.js` to always show the configured release notification on app boot:
+
+- `forceShowReleaseNotificationOnBoot = true`
+
+Example:
+
+```javascript
+module.exports.forceShowReleaseNotificationOnBoot = true;
+```
+
+Notes:
+
+- This bypasses upgrade gating only for showing the notification (helpful for copy/visual iteration).
+- Set it back to `false` (or remove it) when testing normal upgrade behavior.
+- This is local-only dev behavior and is not written into Clay settings.
+
 ### Mock weather (emulator/dev)
 
 Use these keys in `src/pkjs/dev-config.js`:

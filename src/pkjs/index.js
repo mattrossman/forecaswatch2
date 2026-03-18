@@ -57,29 +57,20 @@ Pebble.addEventListener('ready',
             app.watchInfo = null;
             console.log('Unable to read watch info: ' + ex.message);
         }
-        app.telemetry = createTelemetryClient(getRuntimeTelemetryConfig(app.devConfig));
+        app.telemetry = createTelemetryClient(getRuntimeTelemetryConfig());
         refreshProvider();
         startTick();
     }
 );
 
 /**
- * Build telemetry runtime config from package.json and local dev overrides.
+ * Build telemetry runtime config from package.json.
  *
- * @param {Object} devConfig Developer configuration object.
  * @returns {{endpoint: string, appVersion: string, buildProfile: string}} Runtime telemetry config.
  */
-function getRuntimeTelemetryConfig(devConfig) {
+function getRuntimeTelemetryConfig() {
     var telemetry = pkg.telemetry || {};
     var endpoint = typeof telemetry.endpoint === 'string' ? telemetry.endpoint : '';
-
-    if (devConfig && typeof devConfig.telemetryEndpoint === 'string') {
-        endpoint = devConfig.telemetryEndpoint;
-    }
-
-    if (devConfig && devConfig.telemetryDisable === true) {
-        endpoint = '';
-    }
 
     return {
         endpoint: endpoint,
@@ -309,8 +300,6 @@ function clayTryDevConfig(devConfig) {
         mockScenario: true,
         clearPkjsStorageOnBoot: true,
         forceShowReleaseNotificationOnBoot: true,
-        telemetryEndpoint: true,
-        telemetryDisable: true,
     };
 
     persistClay = getClaySettings();

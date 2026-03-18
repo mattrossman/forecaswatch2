@@ -47,22 +47,16 @@ Start the local Supabase stack from the repo root:
 supabase start
 ```
 
-Set required local function environment variables in `supabase/functions/.env.local`:
+Copy `.env.example` to `.env`, then populate the telemetry keys there:
 
 ```bash
-TELEMETRY_HASH_SECRET=<paste-openssl-value>
+cp .env.example .env
 ```
 
 Serve the telemetry edge function locally (from repo root):
 
 ```bash
-supabase functions serve telemetry-ingest --no-verify-jwt
-```
-
-Then point PKJS telemetry at local function via `src/pkjs/dev-config.js`:
-
-```javascript
-module.exports.telemetryEndpoint = 'http://127.0.0.1:54321/functions/v1/telemetry-ingest';
+mise telemetry-serve
 ```
 
 For emulator validation, run:
@@ -99,7 +93,7 @@ supabase db push
 Deploy the telemetry function:
 
 ```bash
-supabase functions deploy telemetry-ingest --no-verify-jwt
+supabase functions deploy telemetry-ingest
 ```
 
 Wire release and preview builds to hosted telemetry by setting repository secret(s) used by CI workflows:

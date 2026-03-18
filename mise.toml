@@ -22,6 +22,10 @@ _.file = ".env"
 description = "Prepare package.json from profile (default: dev)"
 run = "scripts/prepare-package.sh"
 
+[tasks.telemetry-serve]
+description = "Serve telemetry ingest function locally"
+run = "supabase functions serve telemetry-ingest --env-file .env"
+
 [tasks.clean]
 description = "Clean build artifacts"
 run = "pebble clean"

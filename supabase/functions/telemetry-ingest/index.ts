@@ -4,13 +4,6 @@ import { z } from "zod";
 const MAX_BODY_BYTES = 4096;
 const MAX_EVENTS_PER_HOUR = 60;
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
 const providerSchema = z.enum(["wunderground", "openweathermap", "mock"]);
 
 const settingsSchema = z
@@ -52,16 +45,6 @@ const telemetryPayloadSchema = z.object({
 
 type TelemetryPayload = z.infer<typeof telemetryPayloadSchema>;
 
-function jsonResponse(status: number, body: Record<string, unknown>) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      ...CORS_HEADERS,
-      "Content-Type": "application/json",
-    },
-  });
-}
-
 function encodeUtf8(value: string) {
   return new TextEncoder().encode(value);
 }
@@ -85,32 +68,28 @@ async function hmacSha256Hex(secret: string, message: string) {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: CORS_HEADERS });
-  }
-
   if (req.method !== "POST") {
-    return jsonResponse(405, { error: "method_not_allowed" });
+    return Response.json({ error: "method_not_allowed" }, { status: 405 });
   }
 
   const rawBody = await req.text();
   if (encodeUtf8(rawBody).length > MAX_BODY_BYTES) {
-    return jsonResponse(413, { error: "payload_too_large" });
+    return Response.json({ error: "payload_too_large" }, { status: 413 });
   }
 
   let parsed: unknown;
   try {
     parsed = JSON.parse(rawBody);
   } catch (_error) {
-    return jsonResponse(400, { error: "invalid_json" });
+    return Response.json({ error: "invalid_json" }, { status: 400 });
   }
 
   const payloadResult = telemetryPayloadSchema.safeParse(parsed);
   if (!payloadResult.success) {
-    return jsonResponse(400, {
+    return Response.json({
       error: "invalid_payload",
       detail: payloadResult.error.issues[0]?.message || "invalid_payload",
-    });
+    }, { status: 400 });
   }
 
   const payload: TelemetryPayload = payloadResult.data;
@@ -151,11 +130,11 @@ Deno.serve(async (req) => {
     .gte("received_at", oneHourAgo);
 
   if (rate.error) {
-    return jsonResponse(500, { error: "rate_check_failed" });
+    return Response.json({ error: "rate_check_failed" }, { status: 500 });
   }
 
   if ((rate.count || 0) >= MAX_EVENTS_PER_HOUR) {
-    return jsonResponse(429, { error: "rate_limit_exceeded" });
+    return Response.json({ error: "rate_limit_exceeded" }, { status: 429 });
   }
 
   const insertResult = await supabase.from("telemetry_weather_fetch").insert({
@@ -174,8 +153,8 @@ Deno.serve(async (req) => {
   });
 
   if (insertResult.error) {
-    return jsonResponse(500, { error: "insert_failed" });
+    return Response.json({ error: "insert_failed" }, { status: 500 });
   }
 
-  return jsonResponse(202, { status: "accepted" });
+  return Response.json({ status: "accepted" }, { status: 202 });
 });

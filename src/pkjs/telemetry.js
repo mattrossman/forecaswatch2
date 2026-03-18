@@ -60,6 +60,117 @@ function buildWatchMetadata(watchInfo) {
 }
 
 /**
+ * Truncate a string to a maximum length.
+ *
+ * @param {string} value Input string.
+ * @param {number} maxLength Max number of characters.
+ * @returns {string} Truncated string.
+ */
+function truncateString(value, maxLength) {
+    if (typeof value !== 'string') {
+        return '';
+    }
+
+    if (typeof maxLength !== 'number' || maxLength < 1) {
+        return value;
+    }
+
+    if (value.length <= maxLength) {
+        return value;
+    }
+
+    if (maxLength <= 3) {
+        return value.slice(0, maxLength);
+    }
+
+    return value.slice(0, maxLength - 3) + '...';
+}
+
+/**
+ * Normalize any failure value into a readable telemetry error string.
+ *
+ * @param {*} value Failure payload from fetch flow.
+ * @param {number} maxLength Max serialized error length.
+ * @returns {string} Human-readable error string.
+ */
+function serializeError(value, maxLength) {
+    var out = '';
+    var base;
+    var name;
+    var message;
+    var stack;
+    var lines;
+    var frames;
+    var i;
+
+    if (value instanceof Error || (value && typeof value === 'object' && (typeof value.message === 'string' || typeof value.stack === 'string'))) {
+        name = (typeof value.name === 'string' && value.name.trim() !== '') ? value.name.trim() : 'Error';
+        message = typeof value.message === 'string' ? value.message.trim() : '';
+        base = message !== '' ? (name + ': ' + message) : name;
+
+        stack = typeof value.stack === 'string' ? value.stack : '';
+        if (stack.trim() !== '') {
+            lines = stack.split('\n').map(function(line) {
+                return line.trim();
+            }).filter(function(line) {
+                return line !== '';
+            });
+            frames = [];
+            for (i = 0; i < lines.length; i += 1) {
+                if (i === 0 && (lines[i] === base || lines[i] === message || lines[i].indexOf(name + ':') === 0)) {
+                    continue;
+                }
+                frames.push(lines[i]);
+                if (frames.length >= 3) {
+                    break;
+                }
+            }
+
+            if (frames.length > 0) {
+                out = base + ' | stack: ' + frames.join(' <- ');
+            }
+            else {
+                out = base;
+            }
+        }
+        else {
+            out = base;
+        }
+    }
+    else if (typeof value === 'string') {
+        out = value.trim();
+    }
+    else if (value && typeof value === 'object') {
+        if (typeof value.stage === 'string' && value.stage.trim() !== '' && typeof value.code === 'string' && value.code.trim() !== '') {
+            out = value.stage.trim() + ': ' + value.code.trim();
+            if (typeof value.detail === 'string' && value.detail.trim() !== '') {
+                out += ' (' + value.detail.trim() + ')';
+            }
+        }
+        else if (typeof value.message === 'string' && value.message.trim() !== '') {
+            out = value.message.trim();
+        }
+        else {
+            try {
+                out = JSON.stringify(value);
+            }
+            catch (ex) {
+                out = String(value);
+            }
+        }
+    }
+    else if (typeof value !== 'undefined' && value !== null) {
+        out = String(value);
+    }
+
+    if (out === '') {
+        out = 'unknown error';
+    }
+
+    return truncateString(out, maxLength);
+}
+
+/**
  * Create a telemetry client for weather fetch events.
  *
  * @param {Object} options Telemetry client options.
@@ -108,6 +219,8 @@ function createTelemetryClient(options) {
         var accountToken;
         var watchToken;
         var watchMeta;
+        var success;
+        var error;
 
         if (endpoint === '') {
             return;
@@ -139,6 +252,8 @@ function createTelemetryClient(options) {
         }
 
         watchMeta = buildWatchMetadata(event.watchInfo);
+        success = Boolean(event.success);
+        error = success ? null : serializeError(event.error, 512);
 
         send({
             eventType: 'weather_fetch',
@@ -146,9 +261,8 @@ function createTelemetryClient(options) {
             accountToken: accountToken,
             watchToken: watchToken,
             provider: event.provider,
-            success: !!event.success,
-            errorStage: typeof event.errorStage === 'string' ? event.errorStage : null,
-            errorCode: typeof event.errorCode === 'string' ? event.errorCode : null,
+            success: success,
+            error: error,
             countryCode: normalizeCountryCode(event.countryCode),
             settings: buildSettingsSnapshot(event.settings),
             appVersion: appVersion,

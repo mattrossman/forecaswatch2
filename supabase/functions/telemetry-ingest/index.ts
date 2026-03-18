@@ -31,8 +31,7 @@ const telemetryPayloadSchema = z.object({
   watchToken: z.string().nullable().optional(),
   provider: providerSchema,
   success: z.boolean(),
-  errorStage: z.string().nullable(),
-  errorCode: z.string().nullable(),
+  error: z.string().trim().min(1).max(512).nullable(),
   countryCode: z.string().nullable(),
   settings: settingsSchema.default({}),
   appVersion: z.string().trim().min(1, { message: "invalid_app_version" }),
@@ -41,6 +40,22 @@ const telemetryPayloadSchema = z.object({
   }),
   watchPlatform: z.string().nullable(),
   watchModel: z.string().nullable(),
+}).superRefine((payload, ctx) => {
+  if (payload.success && payload.error !== null) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "error_must_be_null_on_success",
+      path: ["error"],
+    });
+  }
+
+  if (!payload.success && payload.error === null) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "error_required_on_failure",
+      path: ["error"],
+    });
+  }
 });
 
 type TelemetryPayload = z.infer<typeof telemetryPayloadSchema>;
@@ -142,8 +157,7 @@ Deno.serve(async (req) => {
     watch_token_hash: watchTokenHash,
     provider: payload.provider,
     success: payload.success,
-    error_stage: payload.errorStage,
-    error_code: payload.errorCode,
+    error: payload.error,
     country_code: payload.countryCode,
     settings_json: payload.settings,
     app_version: payload.appVersion,

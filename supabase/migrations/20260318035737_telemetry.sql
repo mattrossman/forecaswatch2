@@ -8,8 +8,7 @@ create type "public"."weather_provider" as enum ('wunderground', 'openweathermap
     "watch_token_hash" text,
     "provider" public.weather_provider not null,
     "success" boolean not null,
-    "error_stage" text,
-    "error_code" text,
+    "error" text,
     "country_code" text,
     "settings_json" jsonb not null default '{}'::jsonb,
     "app_version" text not null,
@@ -29,7 +28,7 @@ CREATE UNIQUE INDEX telemetry_weather_fetch_pkey ON public.telemetry_weather_fet
 
 alter table "public"."telemetry_weather_fetch" add constraint "telemetry_weather_fetch_pkey" PRIMARY KEY using index "telemetry_weather_fetch_pkey";
 
-alter table "public"."telemetry_weather_fetch" add constraint "telemetry_weather_fetch_check" CHECK ((((success = true) AND (error_stage IS NULL) AND (error_code IS NULL)) OR ((success = false) AND (error_stage IS NOT NULL) AND (error_code IS NOT NULL)))) not valid;
+alter table "public"."telemetry_weather_fetch" add constraint "telemetry_weather_fetch_check" CHECK ((((success = true) AND (error IS NULL)) OR ((success = false) AND (error IS NOT NULL) AND (length(btrim(error)) > 0)))) not valid;
 
 alter table "public"."telemetry_weather_fetch" validate constraint "telemetry_weather_fetch_check";
 
@@ -83,6 +82,5 @@ grant update on table "public"."telemetry_weather_fetch" to "service_role";
   to anon, authenticated
 using (false)
 with check (false);
-
 
 

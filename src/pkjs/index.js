@@ -350,13 +350,12 @@ function fetch(provider, force) {
         },
         function(failure) {
             // Failure
-            console.log('[!] Provider failed to update weather');
+            console.log('[!] Provider failed to update weather: ' + JSON.stringify(failure));
             maybeTrackWeatherFetch({
                 provider: provider.id,
                 success: false,
                 countryCode: provider.countryCode,
-                errorStage: failure && failure.stage ? failure.stage : 'unknown',
-                errorCode: failure && failure.code ? failure.code : 'unknown',
+                error: failure,
                 settings: app.settings,
                 watchInfo: app.watchInfo,
                 durationMs: Date.now() - fetchStart

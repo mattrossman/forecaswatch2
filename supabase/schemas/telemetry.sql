@@ -7,8 +7,7 @@ create table public.telemetry_weather_fetch (
   watch_token_hash text,
   provider public.weather_provider not null,
   success boolean not null,
-  error_stage text,
-  error_code text,
+  error text,
   country_code text,
   settings_json jsonb not null default '{}'::jsonb,
   app_version text not null,
@@ -18,7 +17,7 @@ create table public.telemetry_weather_fetch (
   watch_platform text,
   watch_model text,
   
-  check ((success = true and error_stage is null and error_code is null) or (success = false and error_stage is not null and error_code is not null))
+  check ((success = true and error is null) or (success = false and error is not null and length(btrim(error)) > 0))
 );
 
 alter table public.telemetry_weather_fetch enable row level security;

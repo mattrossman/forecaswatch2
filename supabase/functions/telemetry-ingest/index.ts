@@ -35,6 +35,7 @@ const telemetryPayloadSchema = z.object({
   accountToken: z.string().trim().min(1, {
     message: "invalid_account_token",
   }),
+  watchToken: z.string().nullable().optional(),
   provider: providerSchema,
   success: z.boolean(),
   errorStage: z.string().nullable(),
@@ -117,42 +118,36 @@ Deno.serve(async (req) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const telemetryHashSecret = Deno.env.get("TELEMETRY_HASH_SECRET");
-  const missingEnv: string[] = [];
 
   if (!supabaseUrl) {
-    missingEnv.push("SUPABASE_URL");
+    throw new Error("SUPABASE_URL is not set");
   }
 
   if (!serviceRoleKey) {
-    missingEnv.push("SUPABASE_SERVICE_ROLE_KEY");
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set");
   }
 
   if (!telemetryHashSecret) {
-    missingEnv.push("TELEMETRY_HASH_SECRET");
-  }
-
-  if (missingEnv.length > 0) {
-    console.error("server_not_configured", missingEnv);
-    return jsonResponse(500, {
-      error: "server_not_configured",
-      missing: missingEnv,
-    });
+    throw new Error("TELEMETRY_HASH_SECRET is not set");
   }
 
   const supabase = createClient(
-    supabaseUrl as string,
-    serviceRoleKey as string,
+    supabaseUrl,
+    serviceRoleKey,
   );
-  const userIdHash = await hmacSha256Hex(
-    telemetryHashSecret as string,
+  const accountTokenHash = await hmacSha256Hex(
+    telemetryHashSecret,
     payload.accountToken,
   );
+  const watchTokenHash = payload.watchToken && payload.watchToken.trim() !== ""
+    ? await hmacSha256Hex(telemetryHashSecret, payload.watchToken)
+    : null;
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
   const rate = await supabase
     .from("telemetry_weather_fetch")
     .select("id", { count: "exact", head: true })
-    .eq("user_id_hash", userIdHash)
+    .eq("account_token_hash", accountTokenHash)
     .gte("received_at", oneHourAgo);
 
   if (rate.error) {
@@ -164,7 +159,8 @@ Deno.serve(async (req) => {
   }
 
   const insertResult = await supabase.from("telemetry_weather_fetch").insert({
-    user_id_hash: userIdHash,
+    account_token_hash: accountTokenHash,
+    watch_token_hash: watchTokenHash,
     provider: payload.provider,
     success: payload.success,
     error_stage: payload.errorStage,

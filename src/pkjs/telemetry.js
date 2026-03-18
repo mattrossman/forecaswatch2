@@ -97,6 +97,7 @@ function createTelemetryClient(options) {
      */
     function trackWeatherFetch(event) {
         var accountToken;
+        var watchToken;
         var watchMeta;
 
         if (endpoint === '') {
@@ -116,12 +117,25 @@ function createTelemetryClient(options) {
             return;
         }
 
+        try {
+            watchToken = Pebble.getWatchToken();
+        }
+        catch (ex) {
+            watchToken = null;
+            console.log('[telemetry] getWatchToken failed: ' + ex.message);
+        }
+
+        if (typeof watchToken !== 'string' || watchToken.trim() === '') {
+            watchToken = null;
+        }
+
         watchMeta = buildWatchMetadata(event.watchInfo);
 
         send({
             eventType: 'weather_fetch',
             timestampUtc: new Date().toISOString(),
             accountToken: accountToken,
+            watchToken: watchToken,
             provider: event.provider,
             success: !!event.success,
             errorStage: typeof event.errorStage === 'string' ? event.errorStage : null,

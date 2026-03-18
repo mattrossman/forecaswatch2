@@ -37,6 +37,8 @@ jobs:
 
       - name: Build .pbw
         if: ${{ steps.release.outputs.release_created }}
+        env:
+          TELEMETRY_ENDPOINT: ${{ secrets.TELEMETRY_ENDPOINT }}
         run: mise build release
 
       - name: Verify release asset exists

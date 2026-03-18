@@ -28,6 +28,7 @@ node -e "
 const fs = require('fs');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const rn = pkg.releaseNotification || {};
+const telemetryEndpoint = typeof process.env.TELEMETRY_ENDPOINT === 'string' ? process.env.TELEMETRY_ENDPOINT.trim() : '';
 const hasEnabled = Object.prototype.hasOwnProperty.call(rn, 'enabled');
 // Explicit enablement: only a literal boolean true turns this on.
 const enabled = rn.enabled === true;
@@ -49,6 +50,13 @@ if (enabled && title.length === 0) {
 if (enabled && body.length === 0) {
   throw new Error('releaseNotification.enabled is true but releaseNotification.body is empty or missing');
 }
+
+pkg.telemetry = {
+  enabled: telemetryEndpoint.length > 0,
+  endpoint: telemetryEndpoint,
+};
+
+fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
 "
 
 printf 'prepared %s using %s\n' "$output_file" "$profile_file"

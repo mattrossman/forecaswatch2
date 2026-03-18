@@ -2,6 +2,7 @@
 var WundergroundProvider = require('./weather/wunderground.js');
 var OpenWeatherMapProvider = require('./weather/openweathermap.js')
 var MockProvider = require('./weather/mock.js');
+var createTelemetryClient = require('./telemetry.js');
 var Clay = require('./clay/_source.js');
 var clayConfig = require('./clay/config.js');
 var customClay = require('./clay/inject.js');
@@ -49,10 +50,43 @@ Pebble.addEventListener('ready',
         clayTryDevConfig(app.devConfig);
         console.log('PebbleKit JS ready!');
         app.settings = getClaySettings();
+        try {
+            app.watchInfo = Pebble.getActiveWatchInfo();
+        }
+        catch (ex) {
+            app.watchInfo = null;
+            console.log('Unable to read watch info: ' + ex.message);
+        }
+        app.telemetry = createTelemetryClient(getRuntimeTelemetryConfig(app.devConfig));
         refreshProvider();
         startTick();
     }
 );
+
+/**
+ * Build telemetry runtime config from package.json and local dev overrides.
+ *
+ * @param {Object} devConfig Developer configuration object.
+ * @returns {{endpoint: string, appVersion: string, buildProfile: string}} Runtime telemetry config.
+ */
+function getRuntimeTelemetryConfig(devConfig) {
+    var telemetry = pkg.telemetry || {};
+    var endpoint = typeof telemetry.endpoint === 'string' ? telemetry.endpoint : '';
+
+    if (devConfig && typeof devConfig.telemetryEndpoint === 'string') {
+        endpoint = devConfig.telemetryEndpoint;
+    }
+
+    if (devConfig && devConfig.telemetryDisable === true) {
+        endpoint = '';
+    }
+
+    return {
+        endpoint: endpoint,
+        appVersion: pkg.version,
+        buildProfile: pkg.buildProfile
+    };
+}
 
 /**
  * Parse a semver-like string into numeric major/minor/patch parts.
@@ -275,6 +309,8 @@ function clayTryDevConfig(devConfig) {
         mockScenario: true,
         clearPkjsStorageOnBoot: true,
         forceShowReleaseNotificationOnBoot: true,
+        telemetryEndpoint: true,
+        telemetryDisable: true,
     };
 
     persistClay = getClaySettings();
@@ -302,6 +338,7 @@ function getClaySettings() {
  */
 function fetch(provider, force) {
     console.log('Fetching from ' + provider.name);
+    var fetchStart = Date.now();
     var fetchStatus = {
         time: new Date(),
         id: provider.id,
@@ -312,14 +349,45 @@ function fetch(provider, force) {
         function() {
             // Sucess, update recent fetch time
             localStorage.setItem('lastFetchSuccess', JSON.stringify(fetchStatus));
-            console.log('Successfully fetched weather!')
+            console.log('Successfully fetched weather!');
+            maybeTrackWeatherFetch({
+                provider: provider.id,
+                success: true,
+                countryCode: provider.countryCode,
+                settings: app.settings,
+                watchInfo: app.watchInfo,
+                durationMs: Date.now() - fetchStart
+            });
         },
-        function() {
+        function(failure) {
             // Failure
-            console.log('[!] Provider failed to update weather')
+            console.log('[!] Provider failed to update weather');
+            maybeTrackWeatherFetch({
+                provider: provider.id,
+                success: false,
+                countryCode: provider.countryCode,
+                errorStage: failure && failure.stage ? failure.stage : 'unknown',
+                errorCode: failure && failure.code ? failure.code : 'unknown',
+                settings: app.settings,
+                watchInfo: app.watchInfo,
+                durationMs: Date.now() - fetchStart
+            });
         },
         force
     )
+}
+
+/**
+ * Send a weather fetch telemetry event when telemetry is enabled.
+ *
+ * @param {Object} event Telemetry event details.
+ * @returns {void}
+ */
+function maybeTrackWeatherFetch(event) {
+    if (!app.telemetry || app.telemetry.enabled !== true) {
+        return;
+    }
+    app.telemetry.trackWeatherFetch(event || {});
 }
 
 function tryFetch(provider) {

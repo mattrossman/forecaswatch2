@@ -11,6 +11,10 @@ module.exports = [
         "defaultValue": "Contribute on <a href=\"https://github.com/mattrossman/forecaswatch2\">GitHub!</a>"
     },
     {
+        "type": "text",
+        "defaultValue": "Anonymous telemetry is enabled to improve reliability and understand usage patterns. Learn more in the <a href=\"https://github.com/mattrossman/forecaswatch2#telemetry\">Telemetry section</a>."
+    },
+    {
         "type": "section",
         "items": [
             {

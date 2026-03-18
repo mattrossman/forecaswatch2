@@ -20,6 +20,96 @@ mise build release
 
 This builds the project with the Pebble SDK provisioned by mise. The `.pbw` output can be found in the `build` directory.
 
+## Supabase (telemetry)
+
+Telemetry uses Supabase Edge Functions + Postgres.
+
+Install/update the CLI through mise's aqua backend (already pinned in `mise.toml`):
+
+```bash
+mise install
+supabase --version
+```
+
+Create a local telemetry hash secret (`TELEMETRY_HASH_SECRET`):
+
+```bash
+openssl rand -hex 32
+```
+
+Use this value for `TELEMETRY_HASH_SECRET`.
+
+### Local stack and emulator testing
+
+Start the local Supabase stack from the repo root:
+
+```bash
+supabase start
+```
+
+Set required local function environment variables in `supabase/functions/.env.local`:
+
+```bash
+TELEMETRY_HASH_SECRET=<paste-openssl-value>
+```
+
+Serve the telemetry edge function locally (from repo root):
+
+```bash
+supabase functions serve telemetry-ingest --no-verify-jwt
+```
+
+Then point PKJS telemetry at local function via `src/pkjs/dev-config.js`:
+
+```javascript
+module.exports.telemetryEndpoint = 'http://127.0.0.1:54321/functions/v1/telemetry-ingest';
+```
+
+For emulator validation, run:
+
+```bash
+mise install-emulator --logs
+```
+
+To verify inserts locally, open Supabase Studio at `http://127.0.0.1:54323` and inspect `public.telemetry_weather_fetch`.
+
+### Hosted deployment (Supabase cloud)
+
+Authenticate and link the repo to your Supabase project:
+
+```bash
+supabase login
+supabase link --project-ref <your-project-ref>
+```
+
+Set function secrets in the hosted project:
+
+```bash
+supabase secrets set \
+  TELEMETRY_HASH_SECRET=<paste-openssl-value>
+```
+
+Apply database migrations:
+
+```bash
+supabase db push --dry-run
+supabase db push
+```
+
+Deploy the telemetry function:
+
+```bash
+supabase functions deploy telemetry-ingest --no-verify-jwt
+```
+
+Wire release and preview builds to hosted telemetry by setting repository secret(s) used by CI workflows:
+
+- `TELEMETRY_ENDPOINT=https://<your-project-ref>.supabase.co/functions/v1/telemetry-ingest`
+
+### Optional: Supabase GitHub integration
+
+If you use Supabase GitHub sync/branching, Supabase can auto-apply migrations and deploy functions from the `supabase/` directory when branches/PRs update. Enable it in Supabase Dashboard > Project Settings > Integrations.
+
 `package.json` is generated from `package.template.json` and profile data in `profiles/`.
 
 - Release profile: `profiles/package.release.json`

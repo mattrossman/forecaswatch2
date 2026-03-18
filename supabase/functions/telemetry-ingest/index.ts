@@ -6,6 +6,20 @@ const MAX_EVENTS_PER_HOUR = 60;
 
 const providerSchema = z.enum(["wunderground", "openweathermap", "mock"]);
 
+const firmwareSchema = z.object({
+  major: z.number().int().nonnegative().optional(),
+  minor: z.number().int().nonnegative().optional(),
+  patch: z.number().int().nonnegative().optional(),
+  suffix: z.string().optional(),
+}).strip();
+
+const watchInfoSchema = z.object({
+  platform: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+  language: z.string().nullable().optional(),
+  firmware: firmwareSchema.optional(),
+}).strip();
+
 const settingsSchema = z
   .object({
     temperatureUnits: z.string().optional(),
@@ -38,8 +52,7 @@ const telemetryPayloadSchema = z.object({
   buildProfile: z.string().trim().min(1, {
     message: "invalid_build_profile",
   }),
-  watchPlatform: z.string().nullable(),
-  watchModel: z.string().nullable(),
+  watchInfo: watchInfoSchema.default({}),
 }).superRefine((payload, ctx) => {
   if (payload.success && payload.error !== null) {
     ctx.addIssue({
@@ -162,8 +175,7 @@ Deno.serve(async (req) => {
     settings_json: payload.settings,
     app_version: payload.appVersion,
     build_profile: payload.buildProfile,
-    watch_platform: payload.watchPlatform,
-    watch_model: payload.watchModel,
+    watch_info: payload.watchInfo,
   });
 
   if (insertResult.error) {

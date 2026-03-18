@@ -40,22 +40,38 @@ function normalizeCountryCode(code) {
 }
 
 /**
- * Build telemetry-safe watch metadata.
+ * Build telemetry-safe WatchInfo snapshot.
  *
  * @param {Object} watchInfo Pebble active watch info.
- * @returns {{watchPlatform: string|null, watchModel: string|null}} Watch metadata.
+ * @returns {Object} Normalized WatchInfo payload.
  */
-function buildWatchMetadata(watchInfo) {
+function buildWatchInfoSnapshot(watchInfo) {
+    var firmware = {};
+
     if (!watchInfo || typeof watchInfo !== 'object') {
-        return {
-            watchPlatform: null,
-            watchModel: null
-        };
+        return {};
+    }
+
+    if (watchInfo.firmware && typeof watchInfo.firmware === 'object') {
+        if (typeof watchInfo.firmware.major === 'number' && isFinite(watchInfo.firmware.major)) {
+            firmware.major = Math.floor(watchInfo.firmware.major);
+        }
+        if (typeof watchInfo.firmware.minor === 'number' && isFinite(watchInfo.firmware.minor)) {
+            firmware.minor = Math.floor(watchInfo.firmware.minor);
+        }
+        if (typeof watchInfo.firmware.patch === 'number' && isFinite(watchInfo.firmware.patch)) {
+            firmware.patch = Math.floor(watchInfo.firmware.patch);
+        }
+        if (typeof watchInfo.firmware.suffix === 'string') {
+            firmware.suffix = watchInfo.firmware.suffix;
+        }
     }
 
     return {
-        watchPlatform: typeof watchInfo.platform === 'string' ? watchInfo.platform : null,
-        watchModel: typeof watchInfo.model === 'string' ? watchInfo.model : null
+        platform: typeof watchInfo.platform === 'string' ? watchInfo.platform : null,
+        model: typeof watchInfo.model === 'string' ? watchInfo.model : null,
+        language: typeof watchInfo.language === 'string' ? watchInfo.language : null,
+        firmware: firmware
     };
 }
 
@@ -218,7 +234,7 @@ function createTelemetryClient(options) {
     function trackWeatherFetch(event) {
         var accountToken;
         var watchToken;
-        var watchMeta;
+        var watchInfo;
         var success;
         var error;
 
@@ -251,7 +267,7 @@ function createTelemetryClient(options) {
             watchToken = null;
         }
 
-        watchMeta = buildWatchMetadata(event.watchInfo);
+        watchInfo = buildWatchInfoSnapshot(event.watchInfo);
         success = Boolean(event.success);
         error = success ? null : serializeError(event.error, 512);
 
@@ -267,8 +283,7 @@ function createTelemetryClient(options) {
             settings: buildSettingsSnapshot(event.settings),
             appVersion: appVersion,
             buildProfile: buildProfile,
-            watchPlatform: watchMeta.watchPlatform,
-            watchModel: watchMeta.watchModel
+            watchInfo: watchInfo
         });
     }
 

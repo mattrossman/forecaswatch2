@@ -13,8 +13,7 @@ create type "public"."weather_provider" as enum ('wunderground', 'openweathermap
     "settings_json" jsonb not null default '{}'::jsonb,
     "app_version" text not null,
     "build_profile" text not null,
-    "watch_platform" text,
-    "watch_model" text
+    "watch_info" jsonb not null default '{}'::jsonb
       );
 
 
@@ -31,6 +30,14 @@ alter table "public"."telemetry_weather_fetch" add constraint "telemetry_weather
 alter table "public"."telemetry_weather_fetch" add constraint "telemetry_weather_fetch_check" CHECK ((((success = true) AND (error IS NULL)) OR ((success = false) AND (error IS NOT NULL) AND (length(btrim(error)) > 0)))) not valid;
 
 alter table "public"."telemetry_weather_fetch" validate constraint "telemetry_weather_fetch_check";
+
+alter table "public"."telemetry_weather_fetch" add constraint "telemetry_weather_fetch_settings_json_check" CHECK ((jsonb_typeof(settings_json) = 'object'::text)) not valid;
+
+alter table "public"."telemetry_weather_fetch" validate constraint "telemetry_weather_fetch_settings_json_check";
+
+alter table "public"."telemetry_weather_fetch" add constraint "telemetry_weather_fetch_watch_info_check" CHECK ((jsonb_typeof(watch_info) = 'object'::text)) not valid;
+
+alter table "public"."telemetry_weather_fetch" validate constraint "telemetry_weather_fetch_watch_info_check";
 
 grant delete on table "public"."telemetry_weather_fetch" to "anon";
 
@@ -82,5 +89,6 @@ grant update on table "public"."telemetry_weather_fetch" to "service_role";
   to anon, authenticated
 using (false)
 with check (false);
+
 
 

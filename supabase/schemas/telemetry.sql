@@ -12,12 +12,11 @@ create table public.telemetry_weather_fetch (
   settings_json jsonb not null default '{}'::jsonb,
   app_version text not null,
   build_profile text not null,
-
-  -- https://developer.repebble.com/docs/pebblekit-js/Pebble/#WatchInfo
-  watch_platform text,
-  watch_model text,
+  watch_info jsonb not null default '{}'::jsonb, -- https://developer.repebble.com/docs/pebblekit-js/Pebble/#WatchInfo
   
-  check ((success = true and error is null) or (success = false and error is not null and length(btrim(error)) > 0))
+  check ((success = true and error is null) or (success = false and error is not null and length(btrim(error)) > 0)),
+  check (jsonb_typeof(settings_json) = 'object'),
+  check (jsonb_typeof(watch_info) = 'object')
 );
 
 alter table public.telemetry_weather_fetch enable row level security;

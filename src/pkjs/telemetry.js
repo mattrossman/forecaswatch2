@@ -73,12 +73,21 @@ function createTelemetryClient(options) {
     var appVersion = options && typeof options.appVersion === 'string' ? options.appVersion : '0.0.0';
     var buildProfile = options && typeof options.buildProfile === 'string' ? options.buildProfile : 'unknown';
 
+    if (endpoint === '') {
+        console.log('[telemetry] disabled (no endpoint configured)');
+    }
+    else {
+        console.log('[telemetry] enabled endpoint=' + endpoint);
+    }
+
     function send(payload) {
         var xhr = new XMLHttpRequest();
         xhr.open('POST', endpoint);
         xhr.setRequestHeader('Content-Type', 'application/json');
+        console.log('[telemetry] sending event=' + payload.eventType + ' endpoint=' + endpoint);
         xhr.onload = function() {
             if (xhr.status >= 200 && xhr.status < 300) {
+                console.log('[telemetry] sent event=' + payload.eventType + ' status=' + xhr.status);
                 return;
             }
             console.log('[telemetry] non-2xx status=' + xhr.status + ' body=' + xhr.responseText);

@@ -40,7 +40,7 @@ jobs:
 
       - name: Build dev .pbw
         env:
-          TELEMETRY_ENDPOINT: ${{ secrets.TELEMETRY_ENDPOINT }}
+          TELEMETRY_ENDPOINT: ${{ secrets.TELEMETRY_ENDPOINT_PREVIEW }}
         run: mise build dev
 
       - name: Verify artifact exists

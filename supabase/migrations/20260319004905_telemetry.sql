@@ -13,7 +13,8 @@ create type "public"."weather_provider" as enum ('wunderground', 'openweathermap
     "settings_json" jsonb not null default '{}'::jsonb,
     "app_version" text not null,
     "build_profile" text not null,
-    "watch_info" jsonb not null default '{}'::jsonb
+    "watch_info" jsonb not null default '{}'::jsonb,
+    "duration_ms" integer
       );
 
 
@@ -30,6 +31,10 @@ alter table "public"."telemetry_weather_fetch" add constraint "telemetry_weather
 alter table "public"."telemetry_weather_fetch" add constraint "telemetry_weather_fetch_check" CHECK ((((success = true) AND (error IS NULL)) OR ((success = false) AND (error IS NOT NULL) AND (length(btrim(error)) > 0)))) not valid;
 
 alter table "public"."telemetry_weather_fetch" validate constraint "telemetry_weather_fetch_check";
+
+alter table "public"."telemetry_weather_fetch" add constraint "telemetry_weather_fetch_duration_ms_check" CHECK ((duration_ms >= 0)) not valid;
+
+alter table "public"."telemetry_weather_fetch" validate constraint "telemetry_weather_fetch_duration_ms_check";
 
 alter table "public"."telemetry_weather_fetch" add constraint "telemetry_weather_fetch_settings_json_check" CHECK ((jsonb_typeof(settings_json) = 'object'::text)) not valid;
 

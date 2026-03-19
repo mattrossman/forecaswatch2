@@ -1,32 +1,5 @@
 var WeatherProvider = require('./provider.js');
-
-/**
- * Perform an HTTP request and return response text.
- *
- * @param {string} url Request URL.
- * @param {string} type HTTP method.
- * @param {Function} onSuccess Callback with response text.
- * @param {Function} onFailure Callback with error details.
- * @returns {void}
- */
-function request(url, type, onSuccess, onFailure) {
-    var xhr = new XMLHttpRequest();
-    xhr.onload = function() {
-        if (xhr.status >= 200 && xhr.status < 300) {
-            onSuccess(this.responseText);
-            return;
-        }
-        onFailure({ code: 'http_status', detail: 'status_' + xhr.status });
-    };
-    xhr.onerror = function() {
-        onFailure({ code: 'network_error', detail: 'xhr_error' });
-    };
-    xhr.ontimeout = function() {
-        onFailure({ code: 'timeout', detail: 'xhr_timeout' });
-    };
-    xhr.open(type, url);
-    xhr.send();
-}
+var request = WeatherProvider.request;
 
 var WundergroundProvider = function() {
     this._super.call(this);

@@ -1,5 +1,7 @@
 var SunCalc = require('suncalc');
 
+var XHR_TIMEOUT_MS = 5000;
+
 /**
  * Perform an HTTP request and return response text.
  *
@@ -11,6 +13,7 @@ var SunCalc = require('suncalc');
  */
 function request(url, type, onSuccess, onFailure) {
     var xhr = new XMLHttpRequest();
+    xhr.timeout = XHR_TIMEOUT_MS;
     xhr.onload = function() {
         if (xhr.status >= 200 && xhr.status < 300) {
             onSuccess(this.responseText);
@@ -240,6 +243,7 @@ WeatherProvider.prototype.fetch = function(onSuccess, onFailure, force) {
 
     this.withCoordinates((function(lat, lon) {
         this.withCityName(lat, lon, (function(cityName, countryCode) {
+            this.countryCode = countryCode;
             this.withSunEvents(lat, lon, (function(sunEvents) {
                 this.withProviderData(lat, lon, force, (function() {
                     var payload;
@@ -249,7 +253,6 @@ WeatherProvider.prototype.fetch = function(onSuccess, onFailure, force) {
                         console.log('Lets get the payload for ' + cityName);
                         // Send to Pebble
                         this.cityName = cityName;
-                        this.countryCode = countryCode;
                         this.sunEvents = sunEvents;
                         payload = this.getPayload();
                         Pebble.sendAppMessage(
@@ -335,5 +338,7 @@ WeatherProvider.prototype.getPayload = function() {
     };
     return payload;
 };
+
+WeatherProvider.request = request;
 
 module.exports = WeatherProvider;

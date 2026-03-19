@@ -53,6 +53,7 @@ const telemetryPayloadSchema = z.object({
     message: "invalid_build_profile",
   }),
   watchInfo: watchInfoSchema.default({}),
+  durationMs: z.number().int().nonnegative().nullable().optional(),
 }).superRefine((payload, ctx) => {
   if (payload.success && payload.error !== null) {
     ctx.addIssue({
@@ -98,6 +99,11 @@ async function hmacSha256Hex(secret: string, message: string) {
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return Response.json({ error: "method_not_allowed" }, { status: 405 });
+  }
+
+  const contentLength = parseInt(req.headers.get("content-length") || "0", 10);
+  if (contentLength > MAX_BODY_BYTES) {
+    return Response.json({ error: "payload_too_large" }, { status: 413 });
   }
 
   const rawBody = await req.text();
@@ -176,6 +182,7 @@ Deno.serve(async (req) => {
     app_version: payload.appVersion,
     build_profile: payload.buildProfile,
     watch_info: payload.watchInfo,
+    duration_ms: payload.durationMs ?? null,
   });
 
   if (insertResult.error) {

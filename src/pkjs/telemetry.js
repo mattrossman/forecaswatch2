@@ -283,7 +283,8 @@ function createTelemetryClient(options) {
             settings: buildSettingsSnapshot(event.settings),
             appVersion: appVersion,
             buildProfile: buildProfile,
-            watchInfo: watchInfo
+            watchInfo: watchInfo,
+            durationMs: typeof event.durationMs === 'number' ? event.durationMs : null
         });
     }
 

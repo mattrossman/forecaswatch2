@@ -8,12 +8,23 @@ lockfile = true
 # https://mise.jdx.dev/dev-tools/backends/pipx.html
 "pipx:pebble-tool" = "5.0.28"
 
+# https://deno.com/
+deno = "2.1.4"
+
+# https://github.com/supabase/cli
+# https://mise.jdx.dev/dev-tools/backends/aqua.html
+"aqua:supabase/cli" = "2.78.1"
+
 [env]
 _.file = ".env"
 
 [tasks.prepare-package]
 description = "Prepare package.json from profile (default: dev)"
 run = "scripts/prepare-package.sh"
+
+[tasks.telemetry-serve]
+description = "Serve telemetry ingest function locally"
+run = "supabase functions serve telemetry-ingest --env-file .env"
 
 [tasks.clean]
 description = "Clean build artifacts"

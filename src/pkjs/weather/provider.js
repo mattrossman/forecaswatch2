@@ -1,118 +1,211 @@
-var SunCalc = require('suncalc')
+var SunCalc = require('suncalc');
 
-function request(url, type, callback) {
+var XHR_TIMEOUT_MS = 5000;
+
+/**
+ * Perform an HTTP request and return response text.
+ *
+ * @param {string} url Request URL.
+ * @param {string} type HTTP method.
+ * @param {Function} onSuccess Callback with response text.
+ * @param {Function} onFailure Callback with error details.
+ * @returns {void}
+ */
+function request(url, type, onSuccess, onFailure) {
     var xhr = new XMLHttpRequest();
+    xhr.timeout = XHR_TIMEOUT_MS;
     xhr.onload = function() {
-        callback(this.responseText);
+        if (xhr.status >= 200 && xhr.status < 300) {
+            onSuccess(this.responseText);
+            return;
+        }
+        onFailure({
+            code: 'http_status',
+            detail: 'status_' + xhr.status
+        });
+    };
+    xhr.onerror = function() {
+        onFailure({
+            code: 'network_error',
+            detail: 'xhr_error'
+        });
+    };
+    xhr.ontimeout = function() {
+        onFailure({
+            code: 'timeout',
+            detail: 'xhr_timeout'
+        });
     };
     xhr.open(type, url);
     xhr.send();
+}
+
+/**
+ * Build a normalized fetch failure payload.
+ *
+ * @param {string} stage Failure stage identifier.
+ * @param {string} code Failure code identifier.
+ * @returns {{stage: string, code: string}} Normalized failure object.
+ */
+function failure(stage, code) {
+    return {
+        stage: stage,
+        code: code
+    };
 }
 
 var WeatherProvider = function() {
     this.numEntries = 24;
     this.name = 'Template';
     this.id = 'interface';
-    this.location = null;  // Address query used for overriding the GPS
-}
+    this.location = null; // Address query used for overriding the GPS
+    this.countryCode = null;
+};
 
 WeatherProvider.prototype.gpsEnable = function() {
     this.location = null;
-}
+};
 
 WeatherProvider.prototype.gpsOverride = function(location) {
     this.location = location;
-}
+};
 
-WeatherProvider.prototype.withSunEvents = function(lat, lon, callback) {
+WeatherProvider.prototype.withSunEvents = function(lat, lon, callback, onFailure) {
     /* The callback runs with an array of the next two sun events (i.e. 24 hours worth),
      * where each sun event contains a 'type' ('sunrise' or 'sunset') and a 'date' (of type Date)
      */
-    var dateNow = new Date()
-    var dateTomorrow = new Date().setDate(dateNow.getDate() + 1)
+    var dateNow = new Date();
+    var dateTomorrow = new Date().setDate(dateNow.getDate() + 1);
 
-    var resultsToday = SunCalc.getTimes(dateNow, lat, lon)
-    var resultsTomorrow = SunCalc.getTimes(dateTomorrow, lat, lon)
+    var resultsToday;
+    var resultsTomorrow;
+
+    try {
+        resultsToday = SunCalc.getTimes(dateNow, lat, lon);
+        resultsTomorrow = SunCalc.getTimes(dateTomorrow, lat, lon);
+    }
+    catch (ex) {
+        onFailure(failure('sun_events', 'calc_error'));
+        return;
+    }
 
     /**
-     * @param {SunCalc.GetTimesResult} results 
+     * @param {SunCalc.GetTimesResult} results
      * @returns {{ type: 'sunrise'|'sunset', date: Date }[]}
      */
     var processResults = function(results) {
         return [
             {
-                'type': 'sunrise',
-                'date': results.sunrise
+                type: 'sunrise',
+                date: results.sunrise
             },
             {
-                'type': 'sunset',
-                'date': results.sunset
+                type: 'sunset',
+                date: results.sunset
             }
-        ]
-    }
+        ];
+    };
 
-    var sunEvents = processResults(resultsToday).concat(processResults(resultsTomorrow))
-    var nextSunEvents = sunEvents.filter(function (sunEvent) {
+    var sunEvents = processResults(resultsToday).concat(processResults(resultsTomorrow));
+    var nextSunEvents = sunEvents.filter(function(sunEvent) {
         return sunEvent.date > dateNow;
     });
     var next24HourSunEvents = nextSunEvents.slice(0, 2);
     console.log('The next ' + sunEvents[0].type + ' is at ' + sunEvents[0].date.toTimeString());
     console.log('The next ' + sunEvents[1].type + ' is at ' + sunEvents[1].date.toTimeString());
     callback(next24HourSunEvents);
-}
+};
 
-WeatherProvider.prototype.withCityName = function(lat, lon, callback) {
-    // callback(cityName)
+WeatherProvider.prototype.withCityName = function(lat, lon, callback, onFailure) {
+    // callback(cityName, countryCode)
     var url = 'https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?f=json&langCode=EN&location='
         + lon + ',' + lat;
-    request(url, 'GET', function (response) {
-        var address = JSON.parse(response).address || {};
-        var name = address.District || address.City || address.Region || 'Unknown';
-        console.log('Running callback with city: ' + name);
-        callback(name);
-    });
-}
+
+    request(
+        url,
+        'GET',
+        function(response) {
+            var body;
+            var address;
+            var name;
+            var countryCode;
+            try {
+                body = JSON.parse(response);
+            }
+            catch (ex) {
+                onFailure(failure('reverse_geocode', 'parse_error'));
+                return;
+            }
+
+            address = body.address || {};
+            name = address.District || address.City || address.Region || 'Unknown';
+            countryCode = address.CountryCode || null;
+            console.log('Running callback with city: ' + name + ', countryCode=' + countryCode);
+            callback(name, countryCode);
+        },
+        function(error) {
+            console.log('[!] Reverse geocode failed: ' + JSON.stringify(error));
+            onFailure(failure('reverse_geocode', error.code));
+        }
+    );
+};
 
 // https://github.com/mattrossman/forecaswatch2/issues/59#issue-1317582743
 var r_lat_long = /^([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)$/;
 
-WeatherProvider.prototype.withGeocodeCoordinates = function(callback) {
-    // callback(lattitude, longtitude)
-    var locationiq_key = 'pk.5a61972cde94491774bcfaa0705d5a0d';
-    var url = 'https://us1.locationiq.com/v1/search.php?key=' + locationiq_key
+WeatherProvider.prototype.withGeocodeCoordinates = function(callback, onFailure) {
+    // callback(latitude, longitude)
+    var locationiqKey = 'pk.5a61972cde94491774bcfaa0705d5a0d';
+    var url = 'https://us1.locationiq.com/v1/search.php?key=' + locationiqKey
         + '&q=' + encodeURIComponent(this.location)
         + '&format=json';
     var m = this.location.match(r_lat_long);
+    var latitude;
+    var longitude;
 
-    console.log('WeatherProvider.prototype.withGeocodeCoordinates lets regex, this.location: ' + JSON.stringify(this.location));
-    if (m != null) {
-        var latitude = m[1];
-        var longitude = m[2];
-
-        console.log('regex matched, override is lat/long')
+    console.log('WeatherProvider.prototype.withGeocodeCoordinates regex, this.location: ' + JSON.stringify(this.location));
+    if (m !== null) {
+        latitude = m[1];
+        longitude = m[2];
+        console.log('regex matched, override is lat/long');
         callback(latitude, longitude);
-    }
-    else {
-        console.log('regex failed, about to look up lat/long for override')
-        request(url, 'GET', (function (response) {
-            var locations = JSON.parse(response);
-            if (locations.length === 0) {
-                console.log('[!] No geocoding results')
-            }
-            else {
-                var closest = locations[0];
-                console.log('Query ' + this.location + ' geocoded to ' + closest.lat + ', ' + closest.lon);
-                JSON.stringify('closest.lat ' + JSON.stringify(closest.lat));
-                JSON.stringify('closest ' + JSON.stringify(closest));
-                callback(closest.lat, closest.lon);
-            }
-        }).bind(this));
+        return;
     }
 
-}
+    console.log('regex failed, about to look up lat/long for override');
+    request(
+        url,
+        'GET',
+        (function(response) {
+            var locations;
+            var closest;
+            try {
+                locations = JSON.parse(response);
+            }
+            catch (ex) {
+                onFailure(failure('forward_geocode', 'parse_error'));
+                return;
+            }
 
-WeatherProvider.prototype.withGpsCoordinates = function(callback) {
-    // callback(lattitude, longtitude)
+            if (!Array.isArray(locations) || locations.length === 0) {
+                console.log('[!] No geocoding results');
+                onFailure(failure('forward_geocode', 'no_results'));
+                return;
+            }
+
+            closest = locations[0];
+            console.log('Query ' + this.location + ' geocoded to ' + closest.lat + ', ' + closest.lon);
+            callback(closest.lat, closest.lon);
+        }).bind(this),
+        function(error) {
+            console.log('[!] Forward geocode failed: ' + JSON.stringify(error));
+            onFailure(failure('forward_geocode', error.code));
+        }
+    );
+};
+
+WeatherProvider.prototype.withGpsCoordinates = function(callback, onFailure) {
+    // callback(latitude, longitude)
     var options = {
         enableHighAccuracy: true,
         maximumAge: 10000,
@@ -124,31 +217,36 @@ WeatherProvider.prototype.withGpsCoordinates = function(callback) {
     }
     function error(err) {
         console.log('location error (' + err.code + '): ' + err.message);
+        onFailure(failure('coordinates', 'gps_' + err.code));
     }
     navigator.geolocation.getCurrentPosition(success, error, options);
-}
+};
 
-WeatherProvider.prototype.withCoordinates = function(callback) {
+WeatherProvider.prototype.withCoordinates = function(callback, onFailure) {
     if (this.location === null) {
-        console.log('Using GPS')
-        this.withGpsCoordinates(callback);
+        console.log('Using GPS');
+        this.withGpsCoordinates(callback, onFailure);
+        return;
     }
-    else {
-        console.log('Using geocoded coordinates')
-        this.withGeocodeCoordinates(callback);
-    }
-}
 
-WeatherProvider.prototype.withProviderData = function(lat, lon, force, callback) {
-    console.log('This is the fallback implementation of withProviderData')
-    callback();
-}
+    console.log('Using geocoded coordinates');
+    this.withGeocodeCoordinates(callback, onFailure);
+};
+
+WeatherProvider.prototype.withProviderData = function(lat, lon, force, onSuccess, onFailure) {
+    console.log('This is the fallback implementation of withProviderData');
+    onSuccess();
+};
 
 WeatherProvider.prototype.fetch = function(onSuccess, onFailure, force) {
+    this.countryCode = null;
+
     this.withCoordinates((function(lat, lon) {
-        this.withCityName(lat, lon, (function(cityName) {
+        this.withCityName(lat, lon, (function(cityName, countryCode) {
+            this.countryCode = countryCode;
             this.withSunEvents(lat, lon, (function(sunEvents) {
                 this.withProviderData(lat, lon, force, (function() {
+                    var payload;
                     // if `this` (the provider) contains valid weather details,
                     // then we can safely call this.getPayload()
                     if (this.hasValidData()) {
@@ -157,26 +255,35 @@ WeatherProvider.prototype.fetch = function(onSuccess, onFailure, force) {
                         this.cityName = cityName;
                         this.sunEvents = sunEvents;
                         payload = this.getPayload();
-                        Pebble.sendAppMessage(payload,
-                            function (e) {
+                        Pebble.sendAppMessage(
+                            payload,
+                            function(e) {
                                 console.log('Weather info sent to Pebble successfully!');
                                 onSuccess();
                             },
-                            function (e) {
+                            function(e) {
                                 console.log('Error sending weather info to Pebble!');
-                                onFailure();
+                                onFailure(failure('app_message', 'nack'));
                             }
                         );
                     }
                     else {
-                        console.log('Fetch cancelled: insufficient data.')
-                        onFailure();
+                        console.log('Fetch cancelled: insufficient data.');
+                        onFailure(failure('provider_data', 'invalid_data'));
                     }
-                }).bind(this));
-            }).bind(this));
-        }).bind(this));
-    }).bind(this));
-}
+                }).bind(this), function(providerFailure) {
+                    onFailure(providerFailure || failure('provider_data', 'unknown_error'));
+                });
+            }).bind(this), function(sunFailure) {
+                onFailure(sunFailure || failure('sun_events', 'unknown_error'));
+            });
+        }).bind(this), function(cityFailure) {
+            onFailure(cityFailure || failure('reverse_geocode', 'unknown_error'));
+        });
+    }).bind(this), function(coordinateFailure) {
+        onFailure(coordinateFailure || failure('coordinates', 'unknown_error'));
+    });
+};
 
 WeatherProvider.prototype.hasValidData = function() {
     // all fields are set
@@ -203,7 +310,7 @@ WeatherProvider.prototype.hasValidData = function() {
         console.log('Data does not pass the checks.');
         return false;
     }
-}
+};
 
 WeatherProvider.prototype.getPayload = function() {
     // Get the rounded (integer) temperatures for those hours
@@ -214,22 +321,24 @@ WeatherProvider.prototype.getPayload = function() {
         return Math.round(probability * 100);
     });
     var tempsIntView = new Int16Array(temps);
-    var tempsByteArray = Array.prototype.slice.call(new Uint8Array(tempsIntView.buffer))
+    var tempsByteArray = Array.prototype.slice.call(new Uint8Array(tempsIntView.buffer));
     var sunEventsIntView = new Int32Array(this.sunEvents.map(function(sunEvent) {
-        return sunEvent.date.getTime() / 1000;  // Seconds since epoch
+        return sunEvent.date.getTime() / 1000; // Seconds since epoch
     }));
-    var sunEventsByteArray = Array.prototype.slice.call(new Uint8Array(sunEventsIntView.buffer))
+    var sunEventsByteArray = Array.prototype.slice.call(new Uint8Array(sunEventsIntView.buffer));
     var payload = {
-        'TEMP_TREND_INT16': tempsByteArray,
-        'PRECIP_TREND_UINT8': precips, // Holds values within [0,100]
-        'FORECAST_START': this.startTime,
-        'NUM_ENTRIES': this.numEntries,
-        'CURRENT_TEMP': Math.round(this.currentTemp),
-        'CITY': this.cityName,
+        TEMP_TREND_INT16: tempsByteArray,
+        PRECIP_TREND_UINT8: precips, // Holds values within [0,100]
+        FORECAST_START: this.startTime,
+        NUM_ENTRIES: this.numEntries,
+        CURRENT_TEMP: Math.round(this.currentTemp),
+        CITY: this.cityName,
         // The first byte determines whether the list of events starts on a sunrise (0) or sunset (1)
-        'SUN_EVENTS': [this.sunEvents[0].type == 'sunrise' ? 0 : 1].concat(sunEventsByteArray)
-    }
+        SUN_EVENTS: [this.sunEvents[0].type === 'sunrise' ? 0 : 1].concat(sunEventsByteArray)
+    };
     return payload;
-}
+};
+
+WeatherProvider.request = request;
 
 module.exports = WeatherProvider;

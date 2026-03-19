@@ -2,6 +2,8 @@
 !.gitignore
 !.travis.yml
 !.github/
+!.vscode/
+!.vscode/**
 !.env.example
 !.release-please-manifest.json
 build

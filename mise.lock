@@ -1,3 +1,12 @@
+[[tools."aqua:supabase/cli"]]
+version = "2.78.1"
+backend = "aqua:supabase/cli"
+"platforms.macos-arm64" = { checksum = "sha256:0fc3414e10e012be5f8e379a077fc4b29a0c41b3ff533f3ea85638c9113616e3", url = "https://github.com/supabase/cli/releases/download/v2.78.1/supabase_darwin_arm64.tar.gz"}
+
+[[tools.deno]]
+version = "2.1.4"
+backend = "core:deno"
+
 [[tools."pipx:pebble-tool"]]
 version = "5.0.28"
 backend = "pipx:pebble-tool"

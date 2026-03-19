@@ -270,5 +270,9 @@ module.exports = [
     {
         "type": "text",
         "defaultValue": versionLabel
+    },
+    {
+        "type": "text",
+        "defaultValue": "<span style=\"color:#9aa0a6;font-size:0.82em;line-height:1.35;\">Anonymous telemetry is enabled to improve weather reliability and understand usage patterns.<br>Learn more in the <a href=\"https://github.com/mattrossman/forecaswatch2#telemetry\">Telemetry section</a>.</span>"
     }
 ]

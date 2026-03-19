@@ -57,3 +57,13 @@ For more cutting-edge features, download the latest [`forecaswatch2.pbw`](https:
 ## Developers
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for developer setup and workflow.
+
+## Telemetry
+
+ForecasWatch2 includes anonymous telemetry to improve reliability and understand usage patterns.
+
+- Collected: weather fetch success/failure, provider, coarse country code, app/watch metadata, and a small allowlist of non-sensitive settings.
+- Not collected: precise location (lat/lon), city/state, manual location string, OpenWeatherMap API key.
+- Purpose: estimate DAU, understand country distribution at a coarse level, detect weather-fetch errors, and learn which settings are commonly used.
+
+If you have concerns, open an issue in this repository.

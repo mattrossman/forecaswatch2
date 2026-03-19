@@ -133,7 +133,7 @@ function serializeError(value, maxLength) {
             });
             frames = [];
             for (i = 0; i < lines.length; i += 1) {
-                if (i === 0 && (lines[i] === base || lines[i] === message || lines[i].indexOf(name + ':') === 0)) {
+                if (lines[i] === base || lines[i] === message || lines[i].indexOf(name + ':') === 0) {
                     continue;
                 }
                 frames.push(lines[i]);

@@ -16,6 +16,7 @@ static void battery_state_handler(BatteryChargeState charge) {
     battery_layer_refresh();
 }
 
+#ifdef PBL_COLOR
 static GColor get_battery_color(int level) {
     if (level >= 50)
         return GColorGreen;
@@ -24,6 +25,7 @@ static GColor get_battery_color(int level) {
     else
         return GColorRed;
 }
+#endif
 
 static void draw_power_icon(GContext *ctx, int h, GBitmap *icon_bitmap) {
     GRect icon_bounds = gbitmap_get_bounds(icon_bitmap);

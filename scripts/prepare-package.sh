@@ -27,29 +27,39 @@ npx --yes mustache "$profile_file" "$template_file" > "$output_file"
 node -e "
 const fs = require('fs');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-const rn = pkg.releaseNotification || {};
+delete pkg.releaseNotification;
+
+const manifestPath = 'release-notifications.json';
+let manifest = {};
+if (fs.existsSync(manifestPath)) {
+  try {
+    manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  } catch (e) {
+    throw new Error('release-notifications.json: invalid JSON (' + e.message + ')');
+  }
+}
+if (manifest === null || typeof manifest !== 'object' || Array.isArray(manifest)) {
+  throw new Error('release-notifications.json must be a JSON object');
+}
+
+const ver = typeof pkg.version === 'string' ? pkg.version : '';
+const entry = ver && Object.prototype.hasOwnProperty.call(manifest, ver) ? manifest[ver] : undefined;
+if (entry !== undefined) {
+  if (entry === null || typeof entry !== 'object' || Array.isArray(entry)) {
+    throw new Error('release-notifications.json[' + JSON.stringify(ver) + '] must be an object with title and body');
+  }
+  const title = typeof entry.title === 'string' ? entry.title.trim() : '';
+  const body = typeof entry.body === 'string' ? entry.body.trim() : '';
+  if (title.length === 0) {
+    throw new Error('release-notifications.json[' + JSON.stringify(ver) + '].title must be a non-empty string');
+  }
+  if (body.length === 0) {
+    throw new Error('release-notifications.json[' + JSON.stringify(ver) + '].body must be a non-empty string');
+  }
+  pkg.releaseNotification = { enabled: true, title, body };
+}
+
 const telemetryEndpoint = typeof process.env.TELEMETRY_ENDPOINT === 'string' ? process.env.TELEMETRY_ENDPOINT.trim() : '';
-const hasEnabled = Object.prototype.hasOwnProperty.call(rn, 'enabled');
-// Explicit enablement: only a literal boolean true turns this on.
-const enabled = rn.enabled === true;
-const title = typeof rn.title === 'string' ? rn.title.trim() : '';
-const body = typeof rn.body === 'string' ? rn.body.trim() : '';
-
-if (hasEnabled && typeof rn.enabled !== 'boolean') {
-  throw new Error('releaseNotification.enabled must be a boolean (true or false) when present');
-}
-
-if ((title.length > 0 || body.length > 0) && !hasEnabled) {
-  throw new Error('releaseNotification.title/body are set but releaseNotification.enabled is missing; set enabled to true or false explicitly');
-}
-
-if (enabled && title.length === 0) {
-  throw new Error('releaseNotification.enabled is true but releaseNotification.title is empty or missing');
-}
-
-if (enabled && body.length === 0) {
-  throw new Error('releaseNotification.enabled is true but releaseNotification.body is empty or missing');
-}
 
 pkg.telemetry = {
   enabled: telemetryEndpoint.length > 0,

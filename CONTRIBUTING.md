@@ -111,6 +111,8 @@ If you use Supabase GitHub sync/branching, Supabase can auto-apply migrations an
 
 `mise build` and `mise build release` automatically generate `package.json` from the template/profile before building.
 
+Release notification copy (optional “what’s new” toast on upgrade) lives in `release-notifications.json`, keyed by the exact `version` string from the template (e.g. `"1.26.0"`). `prepare-package` copies only the entry for the version being built into `package.json`; versions with no key ship without a notification.
+
 If you want to regenerate `package.json` without building:
 
 ```bash
@@ -224,7 +226,7 @@ Notes:
 
 ### Release notification preview (dev)
 
-Use this key in `src/pkjs/dev-config.js` to always show the configured release notification on app boot:
+Use this key in `src/pkjs/dev-config.js` to always show the **bundled** release notification (from `release-notifications.json` for the current `package.json` version) on app boot:
 
 - `forceShowReleaseNotificationOnBoot = true`
 

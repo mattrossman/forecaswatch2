@@ -2,11 +2,6 @@
   "name": "forecaswatch2",
   "author": "Matt Rossman",
   "version": "1.25.0",
-  "releaseNotification": {
-    "enabled": true,
-    "title": "New in v1.26.0!",
-    "body": "Forecast graph now shows hatch shading between sunset and sunrise to distinguish day and night.\n\nDay/night shading is on by default and can be turned off in the Weather section of the watchface settings."
-  },
   "buildProfile": "{{buildProfile}}",
   "keywords": [
     "pebble-app"

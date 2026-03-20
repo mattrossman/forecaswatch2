@@ -17,3 +17,5 @@ screenshot/**/*
 !.agents
 node_modules
 package.json
+!opencode.jsonc
+!AGENTS.md

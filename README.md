@@ -60,10 +60,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for developer setup and workflow.
 
 ## Telemetry
 
-ForecasWatch2 includes anonymous telemetry to improve reliability and understand usage patterns.
+ForecasWatch2 includes privacy-respecting telemetry. I do not collect precise location or API keys. Account and watch identifiers are stored only as server-side HMAC hashes—enough for rough usage stats (e.g. DAU), not as readable IDs.
 
-- Collected: weather fetch success/failure, provider, coarse country code, app/watch metadata, and a small allowlist of non-sensitive settings.
-- Not collected: precise location (lat/lon), city/state, manual location string, OpenWeatherMap API key.
-- Purpose: estimate DAU, understand country distribution at a coarse level, detect weather-fetch errors, and learn which settings are commonly used.
+- Collected: each weather fetch’s outcome and duration, provider, coarse country code when available, app and watch metadata, and an allowlist of non-sensitive settings.
+- Not collected: coordinates (lat/lon), city/state, manual location strings, or your API keys.
+- Purpose: estimate DAU, see coarse country mix, spot weather-fetch failures, and learn which settings are common.
 
-If you have concerns, open an issue in this repository.
+If you have concerns [open an issue](https://github.com/mattrossman/forecaswatch2/issues).

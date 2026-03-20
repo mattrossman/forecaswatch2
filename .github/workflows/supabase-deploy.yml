@@ -1,0 +1,44 @@
+# Deploys migrations + Edge Functions to the linked Supabase project on merge to main.
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_ACCESS_TOKEN — https://supabase.com/dashboard/account/tokens
+#   SUPABASE_PROJECT_ID   — project ref from dashboard URL …/project/<ref>
+#   SUPABASE_DB_PASSWORD  — Database password (Project Settings → Database)
+#
+# See: https://supabase.com/docs/guides/cli/managing-environments
+name: Deploy Supabase
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/**'
+      - 'mise.toml'
+      - 'mise.lock'
+      - '.github/workflows/supabase-deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: github.repository == 'mattrossman/forecaswatch2'
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v3
+        with:
+          install: true
+          cache: true
+
+      - run: supabase link --project-ref "$SUPABASE_PROJECT_ID"
+
+      - run: supabase db push --yes
+
+      - run: supabase functions deploy

@@ -50,7 +50,8 @@ static void main_window_unload(Window *window) {
 
 static void minute_handler(struct tm *tick_time, TimeUnits units_changed) {
     time_layer_tick();
-    if (tick_time->tm_hour == 0) {
+    /* tm_hour==0 missed day changes from emulator time jumps (same clock, new date). */
+    if (units_changed & DAY_UNIT) {
         calendar_layer_refresh();
         calendar_status_layer_refresh();
     }
@@ -73,7 +74,7 @@ void main_window_create() {
     });
 
     // Register with TickTimerService
-    tick_timer_service_subscribe(MINUTE_UNIT, minute_handler);
+    tick_timer_service_subscribe(MINUTE_UNIT | DAY_UNIT, minute_handler);
 
     // Show the window on the watch with animated=true
     window_stack_push(s_main_window, true);

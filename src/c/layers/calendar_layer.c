@@ -9,24 +9,20 @@
 static Layer *s_calendar_layer;
 static TextLayer *s_calendar_text_layers[NUM_WEEKS * DAYS_PER_WEEK];
 
-
-static struct tm *relative_tm(int days_from_today)
+/* Copy struct tm out of localtime's static buffer — see localtime(3). */
+static struct tm relative_tm(int days_from_today)
 {
     /* Get a time structure for n days from today (only accurate to the day)
     Use this function to avoid edge cases from daylight savings time
     */
     time_t timestamp = time(NULL);
-    tm *local_time = localtime(&timestamp);
+    struct tm *local_time = localtime(&timestamp);
     // Set arbitrary hour so there's no daylight savings rounding error:
-    local_time->tm_hour = 5; 
+    local_time->tm_hour = 5;
     timestamp = mktime(local_time) + days_from_today * SECONDS_PER_DAY;
-    return localtime(&timestamp);
-}
-
-static int relative_day_of_month(int days_from_today) {
-    // What is the day of the month n days from today?
-    tm *local_time = relative_tm(days_from_today);
-    return local_time->tm_mday;
+    struct tm *result = localtime(&timestamp);
+    struct tm out = *result;
+    return out;
 }
 
 static bool is_us_federal_holiday(struct tm *t)
@@ -72,6 +68,7 @@ static bool is_us_federal_holiday(struct tm *t)
     return false;
 }
 
+#ifdef PBL_COLOR
 static GColor date_color(struct tm *t) {
     // Get color for a date, considering weekends and holidays
     if (is_us_federal_holiday(t))
@@ -82,14 +79,16 @@ static GColor date_color(struct tm *t) {
         return g_config->color_saturday;
     return GColorWhite;
 }
+#endif
 
 static GColor today_color() {
     // Either follow the date color or override to configured value
-    struct tm *t = relative_tm(0);
-    return PBL_IF_COLOR_ELSE(
-        gcolor_equal(g_config->color_today, GColorBlack) ? date_color(t) : g_config->color_today,
-        GColorWhite
-    );
+#ifdef PBL_COLOR
+    struct tm t = relative_tm(0);
+    return gcolor_equal(g_config->color_today, GColorBlack) ? date_color(&t) : g_config->color_today;
+#else
+    return GColorWhite;
+#endif
 }
 
 static void calendar_update_proc(Layer *layer, GContext *ctx) {
@@ -143,27 +142,27 @@ void calendar_layer_refresh() {
     // Fill each box with an appropriate relative day number
     for (int i = 0; i < NUM_WEEKS * DAYS_PER_WEEK; ++i) {
         char *buffer = s_calendar_box_buffers[i];
-        struct tm *t = relative_tm(i - i_today);
-        
+        struct tm t = relative_tm(i - i_today);
+
         // Set the text color
         if (i == i_today) {
             GColor text_color = gcolor_legible_over(today_color());
             text_layer_set_text_color(s_calendar_text_layers[i], text_color);
         }
         else {
-            GColor text_color = PBL_IF_COLOR_ELSE(date_color(t), GColorWhite);
+            GColor text_color = PBL_IF_COLOR_ELSE(date_color(&t), GColorWhite);
             text_layer_set_text_color(s_calendar_text_layers[i], text_color);
         }
 
         // Use bold font for today, and holidays/weekends if colored
-        bool highlight_holiday = (config_highlight_holidays() && is_us_federal_holiday(t));
-        bool highlight_sunday = (config_highlight_sundays() && t->tm_wday == 0);
-        bool highlight_saturday = (config_highlight_saturdays() && t->tm_wday == 6);
+        bool highlight_holiday = (config_highlight_holidays() && is_us_federal_holiday(&t));
+        bool highlight_sunday = (config_highlight_sundays() && t.tm_wday == 0);
+        bool highlight_saturday = (config_highlight_saturdays() && t.tm_wday == 6);
         bool bold = (i == i_today) || highlight_holiday || highlight_sunday || highlight_saturday;
         text_layer_set_font(s_calendar_text_layers[i],
             fonts_get_system_font(bold ? FONT_KEY_GOTHIC_18_BOLD : FONT_KEY_GOTHIC_18));
 
-        snprintf(buffer, 4, "%d", t->tm_mday);  
+        snprintf(buffer, 4, "%d", t.tm_mday);
         text_layer_set_text(s_calendar_text_layers[i], buffer);
     }
 }

@@ -4,6 +4,8 @@
 #include "c/layers/forecast_layer.h"
 #include "c/layers/weather_status_layer.h"
 #include "c/layers/loading_layer.h"
+#include "c/layers/calendar_layer.h"
+#include "c/layers/calendar_status_layer.h"
 #include "c/windows/main_window.h"
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
@@ -59,6 +61,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         loading_layer_refresh();
         forecast_layer_refresh();
         weather_status_layer_refresh();
+        calendar_layer_refresh();
+        calendar_status_layer_refresh();
     }
     else if (clay_celsius_tuple && clay_time_lead_zero_tuple && clay_axis_12h_tuple && clay_start_mon_tuple && clay_prev_week_tuple
         && clay_color_today_tuple && clay_time_font_tuple && clay_vibe_tuple && clay_show_qt_tuple && clay_show_bt_tuple

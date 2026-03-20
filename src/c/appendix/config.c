@@ -4,28 +4,34 @@
 
 // NOTE: g_config is a global config variable
 
-static const Config s_config_defaults = (Config) {
-    .celsius = false,
-    .time_lead_zero = false,
-    .axis_12h = false,
-    .start_mon = false,
-    .prev_week = true,
-    .show_qt = true,
-    .show_bt = true,
-    .show_bt_disconnect = true,
-    .vibe = false,
-    .show_am_pm = false,
-    .time_font = TIME_FONT_ROBOTO,
-    .color_today = GColorBlack,
-    .color_saturday = GColorWhite,
-    .color_sunday = GColorWhite,
-    .color_us_federal = GColorWhite,
-    .color_time = GColorWhite,
-    .day_night_shading = true
-};
+// Returns defaults as a function (not a static const) because GColor values like
+// GColorBlack expand to "compound literals" — C's syntax for inline struct values.
+// The C standard doesn't allow these in static variable initializers, so we use a
+// function instead. See: https://gcc.gnu.org/onlinedocs/gcc/Compound-Literals.html
+static Config config_defaults(void) {
+    return (Config) {
+        .celsius = false,
+        .time_lead_zero = false,
+        .axis_12h = false,
+        .start_mon = false,
+        .prev_week = true,
+        .show_qt = true,
+        .show_bt = true,
+        .show_bt_disconnect = true,
+        .vibe = false,
+        .show_am_pm = false,
+        .time_font = TIME_FONT_ROBOTO,
+        .color_today = GColorBlack,
+        .color_saturday = GColorWhite,
+        .color_sunday = GColorWhite,
+        .color_us_federal = GColorWhite,
+        .color_time = GColorWhite,
+        .day_night_shading = true
+    };
+}
 
 static void config_read_or_default(Config *config) {
-    *config = s_config_defaults;
+    *config = config_defaults();
     persist_get_config(config);
 }
 

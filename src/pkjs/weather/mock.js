@@ -21,6 +21,26 @@ var MOCK_SCENARIOS = {
             { type: 'sunset', epoch: 1772923800 },
         ],
     },
+    extremeCold: {
+        startEpoch: 1772870400,
+        currentTemp: -3,
+        temps: [-9, -10, -10, -9, -8, -7, -7, -5, -4, -3, -2, -2, 0, 1, 3, 5, 5, 3, 1, -1, -2, -4, -6, -8],
+        precipPct: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 4, 3, 1, 0, 0, 0, 0, 0, 0],
+        sunEvents: [
+            { type: 'sunrise', epoch: 1772883000 },
+            { type: 'sunset', epoch: 1772923800 },
+        ],
+    },
+    extremeHot: {
+        startEpoch: 1772870400,
+        currentTemp: 105,
+        temps: [100, 101, 100, 102, 103, 104, 103, 105, 104, 106, 105, 107, 108, 107, 106, 108, 107, 105, 104, 103, 102, 101, 100, 101],
+        precipPct: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 4, 3, 1, 0, 0, 0, 0, 0, 0],
+        sunEvents: [
+            { type: 'sunrise', epoch: 1772883000 },
+            { type: 'sunset', epoch: 1772923800 },
+        ],
+    },
     rainyNight: {
         startEpoch: 1772906400,
         currentTemp: 38,

@@ -3,7 +3,13 @@
 #include "c/appendix/math.h"
 #include "c/appendix/config.h"
 
-#define LEFT_AXIS_MARGIN_W 17
+#define LEFT_AXIS_LABEL_STRIP_MIN_W 15
+#define LEFT_AXIS_LABEL_TO_GRAPH_GAP 2
+#define LEFT_AXIS_GRAPH_INSET_DEFAULT (LEFT_AXIS_LABEL_STRIP_MIN_W + LEFT_AXIS_LABEL_TO_GRAPH_GAP)
+#define TEMP_LABEL_PAD 2
+#define TEMP_LABEL_H 20
+#define TEMP_LABEL_MEASURE_BOX_W 200
+#define TEMP_LABEL_MEASURE_BOX_H 40
 #define BOTTOM_AXIS_FONT_OFFSET 4 // Adjustment for whitespace at top of font
 #define LABEL_PADDING 20          // Minimum width a label should cover
 #define BOTTOM_AXIS_H 10          // Height of the bottom axis (hour labels)
@@ -53,6 +59,7 @@ typedef struct
 static Layer *s_forecast_layer;
 static TextLayer *s_hi_layer;
 static TextLayer *s_lo_layer;
+static int s_axis_left_w = LEFT_AXIS_GRAPH_INSET_DEFAULT;
 
 static RenderSpec make_render_spec()
 {
@@ -70,12 +77,11 @@ static RenderSpec make_render_spec()
 
 static ForecastLayout compute_layout(GRect bounds)
 {
-    ForecastLayout layout = {
-        .graph_bounds = GRect(LEFT_AXIS_MARGIN_W, 0, bounds.size.w - LEFT_AXIS_MARGIN_W, bounds.size.h)};
+    ForecastLayout layout;
+    layout.graph_bounds = GRect(s_axis_left_w, 0, bounds.size.w - s_axis_left_w, bounds.size.h);
     layout.graph_plot_rect = GRect(layout.graph_bounds.origin.x, 0, layout.graph_bounds.size.w, layout.graph_bounds.size.h - BOTTOM_AXIS_H);
     layout.w = layout.graph_bounds.size.w;
     layout.h = layout.graph_bounds.size.h;
-
     return layout;
 }
 
@@ -570,18 +576,50 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     graphics_draw_line(ctx, GPoint(graph_bounds.origin.x, axis_y), GPoint(graph_bounds.origin.x + w, axis_y));
     // And for the left side axis
     graphics_context_set_fill_color(ctx, GColorBlack);
-    graphics_fill_rect(ctx, GRect(0, 0, LEFT_AXIS_MARGIN_W, h - BOTTOM_AXIS_H), 0, GCornerNone); // Paint over plot bleeding
+    graphics_fill_rect(ctx, GRect(0, 0, s_axis_left_w, h - BOTTOM_AXIS_H), 0, GCornerNone); // Paint over plot bleeding
     graphics_draw_line(ctx, GPoint(graph_bounds.origin.x, 0), GPoint(graph_bounds.origin.x, axis_y));
+}
+
+static int temp_label_string_width(const char *text)
+{
+    const GFont font = fonts_get_system_font(FONT_KEY_GOTHIC_18);
+    const GRect box = GRect(0, 0, TEMP_LABEL_MEASURE_BOX_W, TEMP_LABEL_MEASURE_BOX_H);
+    const GSize sz = graphics_text_layout_get_content_size(text, font, box, GTextOverflowModeFill,
+                                                           GTextAlignmentRight);
+    return sz.w;
 }
 
 static void text_layers_refresh()
 {
-    static char s_buffer_lo[4], s_buffer_hi[4];
+    static char s_buffer_lo[12], s_buffer_hi[12];
 
     snprintf(s_buffer_hi, sizeof(s_buffer_hi), "%d", config_localize_temp(persist_get_temp_hi()));
-    text_layer_set_text(s_hi_layer, s_buffer_hi);
-
     snprintf(s_buffer_lo, sizeof(s_buffer_lo), "%d", config_localize_temp(persist_get_temp_lo()));
+
+    int content_w = temp_label_string_width(s_buffer_hi);
+    const int w_lo = temp_label_string_width(s_buffer_lo);
+    if (w_lo > content_w)
+    {
+        content_w = w_lo;
+    }
+    content_w += TEMP_LABEL_PAD;
+
+    int label_strip_w = content_w;
+    if (label_strip_w < LEFT_AXIS_LABEL_STRIP_MIN_W)
+    {
+        label_strip_w = LEFT_AXIS_LABEL_STRIP_MIN_W;
+    }
+    const int graph_inset_w = label_strip_w + LEFT_AXIS_LABEL_TO_GRAPH_GAP;
+
+    if (graph_inset_w != s_axis_left_w)
+    {
+        s_axis_left_w = graph_inset_w;
+    }
+
+    text_layer_set_size(s_hi_layer, GSize(label_strip_w, TEMP_LABEL_H));
+    text_layer_set_size(s_lo_layer, GSize(label_strip_w, TEMP_LABEL_H));
+
+    text_layer_set_text(s_hi_layer, s_buffer_hi);
     text_layer_set_text(s_lo_layer, s_buffer_lo);
 }
 
@@ -590,7 +628,7 @@ void forecast_layer_create(Layer *parent_layer, GRect frame)
     s_forecast_layer = layer_create(frame);
 
     // Temperature HIGH
-    s_hi_layer = text_layer_create(GRect(0, -3, 15, 20));
+    s_hi_layer = text_layer_create(GRect(0, -3, LEFT_AXIS_LABEL_STRIP_MIN_W, TEMP_LABEL_H));
     text_layer_set_background_color(s_hi_layer, GColorClear);
     text_layer_set_text_alignment(s_hi_layer, GTextAlignmentRight);
     text_layer_set_text_color(s_hi_layer, GColorWhite);
@@ -598,7 +636,7 @@ void forecast_layer_create(Layer *parent_layer, GRect frame)
     layer_add_child(s_forecast_layer, text_layer_get_layer(s_hi_layer));
 
     // Temperature LOW
-    s_lo_layer = text_layer_create(GRect(0, 22, 15, 20));
+    s_lo_layer = text_layer_create(GRect(0, 22, LEFT_AXIS_LABEL_STRIP_MIN_W, TEMP_LABEL_H));
     text_layer_set_background_color(s_lo_layer, GColorClear);
     text_layer_set_text_alignment(s_lo_layer, GTextAlignmentRight);
     text_layer_set_text_color(s_lo_layer, GColorWhite);
@@ -616,8 +654,8 @@ void forecast_layer_create(Layer *parent_layer, GRect frame)
 
 void forecast_layer_refresh()
 {
-    layer_mark_dirty(s_forecast_layer);
     text_layers_refresh();
+    layer_mark_dirty(s_forecast_layer);
 }
 
 void forecast_layer_destroy()

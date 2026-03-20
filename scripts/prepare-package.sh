@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+# Same as build.sh: npm_config_devdir is for node-gyp, not npm — see scripts/build.sh comment.
+unset npm_config_devdir NPM_CONFIG_DEVDIR 2>/dev/null || true
+
 profile="${1:-dev}"
 
 if [[ "$profile" != "release" && "$profile" != "dev" ]]; then

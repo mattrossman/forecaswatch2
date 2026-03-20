@@ -32,6 +32,11 @@ def build(ctx):
     cached_env = ctx.env
     for platform in ctx.env.TARGET_PLATFORMS:
         ctx.env = ctx.all_envs[platform]
+        if platform == 'aplite':
+            # Hides GCC nag about strftime in Pebble's headers (aplite only).
+            ctx.env.append_unique('CFLAGS', ['-Wno-builtin-declaration-mismatch'])
+        # Hides linker nag about "this binary has a read+write+exec memory region" (SDK default layout).
+        ctx.env.append_unique('LINKFLAGS', ['-Wl,--no-warn-rwx-segments'])
         ctx.set_group(ctx.env.PLATFORM_NAME)
         app_elf = '{}/pebble-app.elf'.format(ctx.env.BUILD_DIR)
         ctx.pbl_build(source=ctx.path.ant_glob('src/c/**/*.c'), target=app_elf, bin_type='app')

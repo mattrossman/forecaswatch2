@@ -2,6 +2,11 @@
 
 set -euo pipefail
 
+# node-gyp uses npm_config_devdir for its cache; npm 10+ warns because "devdir" is not an npm core
+# config key (see https://github.com/nodejs/node-gyp/issues/3192). Cursor's sandbox and some other
+# environments inject it — unset so Pebble's npm/npx steps don't spam the log.
+unset npm_config_devdir NPM_CONFIG_DEVDIR 2>/dev/null || true
+
 profile="dev"
 
 if [[ "${1:-}" == "release" || "${1:-}" == "dev" ]]; then

@@ -23,12 +23,6 @@ static struct tm *relative_tm(int days_from_today)
     return localtime(&timestamp);
 }
 
-static int relative_day_of_month(int days_from_today) {
-    // What is the day of the month n days from today?
-    tm *local_time = relative_tm(days_from_today);
-    return local_time->tm_mday;
-}
-
 static bool is_us_federal_holiday(struct tm *t)
 {
     // No holidays on weekends (ensures we don't register a false positive for special cases)
@@ -72,6 +66,7 @@ static bool is_us_federal_holiday(struct tm *t)
     return false;
 }
 
+#ifdef PBL_COLOR
 static GColor date_color(struct tm *t) {
     // Get color for a date, considering weekends and holidays
     if (is_us_federal_holiday(t))
@@ -82,14 +77,15 @@ static GColor date_color(struct tm *t) {
         return g_config->color_saturday;
     return GColorWhite;
 }
+#endif
 
-static GColor today_color() {
-    // Either follow the date color or override to configured value
+static GColor today_color(void) {
+#ifdef PBL_COLOR
     struct tm *t = relative_tm(0);
-    return PBL_IF_COLOR_ELSE(
-        gcolor_equal(g_config->color_today, GColorBlack) ? date_color(t) : g_config->color_today,
-        GColorWhite
-    );
+    return gcolor_equal(g_config->color_today, GColorBlack) ? date_color(t) : g_config->color_today;
+#else
+    return GColorWhite;
+#endif
 }
 
 static void calendar_update_proc(Layer *layer, GContext *ctx) {

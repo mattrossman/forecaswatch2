@@ -2,7 +2,7 @@
 #include "persist.h"
 #include "math.h"
 
-// NOTE: g_config is a global config variable
+Config *g_config;
 
 static const Config s_config_defaults = (Config) {
     .celsius = false,

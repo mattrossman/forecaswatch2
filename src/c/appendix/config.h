@@ -28,7 +28,7 @@ typedef struct {
     bool day_night_shading;
 } Config;
 
-Config *g_config;
+extern Config *g_config;
 
 void config_load();
 

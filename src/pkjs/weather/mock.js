@@ -21,6 +21,18 @@ var MOCK_SCENARIOS = {
             { type: 'sunset', epoch: 1772923800 },
         ],
     },
+    // Min -10°F max 5°F: sidebar hi/lo for testing wide vs narrow labels (e.g. −10 vs 5 in °F).
+    // Wavy hourlies (not a ramp) so the temp trace reads naturally.
+    extremeCold: {
+        startEpoch: 1772870400,
+        currentTemp: -3,
+        temps: [-9, -10, -10, -9, -8, -7, -7, -5, -4, -3, -2, -2, 0, 1, 3, 5, 5, 3, 1, -1, -2, -4, -6, -8],
+        precipPct: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 4, 3, 1, 0, 0, 0, 0, 0, 0],
+        sunEvents: [
+            { type: 'sunrise', epoch: 1772883000 },
+            { type: 'sunset', epoch: 1772923800 },
+        ],
+    },
     rainyNight: {
         startEpoch: 1772906400,
         currentTemp: 38,

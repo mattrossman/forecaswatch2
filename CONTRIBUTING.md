@@ -226,20 +226,20 @@ Notes:
 
 ### Release notification preview (dev)
 
-Use this key in `src/pkjs/dev-config.js` to always show the **bundled** release notification (from `release-notifications.json` for the current `package.json` version) on app boot:
+Use this key in `src/pkjs/dev-config.js` to always show the notification for a **specific version key** from `release-notifications.json` on every app boot (ignores upgrade gating):
 
-- `forceShowReleaseNotificationOnBoot = true`
+- `forceShowReleaseNotificationOnBoot = '1.26.0'` (string must match a key in `release-notifications.json` exactly)
 
 Example:
 
 ```javascript
-module.exports.forceShowReleaseNotificationOnBoot = true;
+module.exports.forceShowReleaseNotificationOnBoot = '1.26.0';
 ```
 
 Notes:
 
-- This bypasses upgrade gating only for showing the notification (helpful for copy/visual iteration).
-- Set it back to `false` (or remove it) when testing normal upgrade behavior.
+- Useful when `package.json` is still on an older version but you want to iterate on copy for the next release entry.
+- Remove the key (or comment it out) when testing normal upgrade behavior.
 - This is local-only dev behavior and is not written into Clay settings.
 
 ### Mock weather (emulator/dev)

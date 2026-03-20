@@ -7,6 +7,22 @@ var Clay = require('./clay/_source.js');
 var clayConfig = require('./clay/config.js');
 var customClay = require('./clay/inject.js');
 var pkg = require('../../package.json');
+
+/**
+ * Full release-notification manifest (dev: force-show by version). Omitted from bundle if missing.
+ *
+ * @returns {Object|null} Parsed release-notifications.json or null.
+ */
+function loadReleaseNotificationsManifest() {
+    try {
+        return require('../../release-notifications.json');
+    }
+    catch (ex) {
+        return null;
+    }
+}
+
+var releaseNotificationsManifest = loadReleaseNotificationsManifest();
 var clay = new Clay(clayConfig, customClay, { autoHandleEvents: false });
 var app = {};  // Namespace for global app variables
 var KEY_MAX_NOTIFIED_VERSION = 'max_notified_version';
@@ -44,7 +60,7 @@ Pebble.addEventListener('ready',
         var hadExistingInstall = localStorage.getItem('clay-settings') !== null;
         maybeShowReleaseNotification(
             hadExistingInstall,
-            !!app.devConfig.forceShowReleaseNotificationOnBoot
+            app.devConfig.forceShowReleaseNotificationOnBoot
         );
         clayTryDefaults();
         clayTryDevConfig(app.devConfig);
@@ -112,46 +128,109 @@ function compareSemver(a, b) {
 }
 
 /**
- * Show the release notification exactly once for eligible upgrades.
+ * Normalize bundled pkg.releaseNotification into title/body or null.
+ *
+ * @param {Object|undefined} releaseNotification Field from package.json.
+ * @returns {{title: string, body: string}|null} Payload or null when disabled/empty.
+ */
+function getBundledReleaseNotificationPayload(releaseNotification) {
+    if (
+        !releaseNotification ||
+        releaseNotification.enabled !== true
+    ) {
+        return null;
+    }
+    var title = releaseNotification.title ? String(releaseNotification.title).trim() : '';
+    var body = releaseNotification.body ? String(releaseNotification.body).trim() : '';
+    if (title === '' || body === '') {
+        return null;
+    }
+    return { title: title, body: body };
+}
+
+/**
+ * Look up a release notification in release-notifications.json (dev force-show).
+ *
+ * @param {string} versionKey Exact version key, e.g. "1.26.0".
+ * @returns {{title: string, body: string}|null} Payload or null when missing/invalid.
+ */
+function getReleaseNotificationFromManifest(versionKey) {
+    var manifest = releaseNotificationsManifest;
+    if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) {
+        return null;
+    }
+    var entry = Object.prototype.hasOwnProperty.call(manifest, versionKey)
+        ? manifest[versionKey]
+        : undefined;
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+        return null;
+    }
+    var title = entry.title ? String(entry.title).trim() : '';
+    var body = entry.body ? String(entry.body).trim() : '';
+    if (title === '' || body === '') {
+        return null;
+    }
+    return { title: title, body: body };
+}
+
+/**
+ * Parse dev-config force-show value: non-empty string = manifest version key.
+ *
+ * @param {*} forceVersionSpec From dev-config.forceShowReleaseNotificationOnBoot.
+ * @returns {string} Trimmed version key or '' when disabled.
+ */
+function normalizeForceReleaseVersionSpec(forceVersionSpec) {
+    if (typeof forceVersionSpec !== 'string') {
+        return '';
+    }
+    return forceVersionSpec.trim();
+}
+
+/**
+ * Show the release notification exactly once for eligible upgrades, or every boot when dev forces a manifest version.
  *
  * @param {boolean} hadExistingInstall True when this launch is not first install.
- * @param {boolean} forceShow True to show release notification on every boot in dev.
+ * @param {*} forceVersionSpec Dev: exact version key in release-notifications.json (e.g. "1.26.0"), or falsy.
  * @returns {void}
  */
-function maybeShowReleaseNotification(hadExistingInstall, forceShow) {
+function maybeShowReleaseNotification(hadExistingInstall, forceVersionSpec) {
     var appVersion = pkg.version;
-    var releaseNotification = pkg.releaseNotification;
-    var releaseTitle = releaseNotification && releaseNotification.title ? String(releaseNotification.title).trim() : '';
-    var releaseBody = releaseNotification && releaseNotification.body ? String(releaseNotification.body).trim() : '';
-    var isNotificationEnabled = !!(
-        releaseNotification &&
-        releaseNotification.enabled === true
-    );
-    var hasReleaseTitle = releaseTitle !== '';
-    var hasReleaseBody = releaseBody !== '';
-    var hasReleaseNotification = !!(
-        isNotificationEnabled &&
-        hasReleaseTitle &&
-        hasReleaseBody
-    );
+    var forceKey = normalizeForceReleaseVersionSpec(forceVersionSpec);
+    var forcePayload = forceKey !== '' ? getReleaseNotificationFromManifest(forceKey) : null;
+    if (forceKey !== '' && !forcePayload) {
+        console.log(
+            '[release-notification] force version ' + JSON.stringify(forceKey) +
+            ' not found or invalid in release-notifications.json'
+        );
+    }
+
+    var bundledPayload = getBundledReleaseNotificationPayload(pkg.releaseNotification);
     var maxNotified = localStorage.getItem(KEY_MAX_NOTIFIED_VERSION) || '0.0.0';
     var isNewer = compareSemver(appVersion, maxNotified) > 0;
-    var shouldNotify = (
-        (hadExistingInstall && isNewer && hasReleaseNotification) ||
-        (forceShow && hasReleaseNotification)
-    );
+    var shouldNotifyUpgrade = hadExistingInstall && isNewer && bundledPayload !== null;
+    var shouldNotifyForce = forcePayload !== null;
+    var shouldNotify = shouldNotifyUpgrade || shouldNotifyForce;
+    var title = '';
+    var body = '';
+    if (shouldNotifyForce) {
+        title = forcePayload.title;
+        body = forcePayload.body;
+    }
+    else if (shouldNotifyUpgrade) {
+        title = bundledPayload.title;
+        body = bundledPayload.body;
+    }
 
     console.log(
         '[release-notification] appVersion=' + appVersion +
         ' hadExistingInstall=' + hadExistingInstall +
         ' maxNotified=' + maxNotified +
         ' isNewer=' + isNewer +
-        ' forceShow=' + !!forceShow +
+        ' forceVersionKey=' + (forceKey !== '' ? forceKey : '(none)') +
         ' shouldNotify=' + shouldNotify +
-        ' releaseNotificationEnabled=' + isNotificationEnabled +
-        ' hasReleaseTitle=' + hasReleaseTitle +
-        ' hasReleaseBody=' + hasReleaseBody +
-        ' hasReleaseNotification=' + hasReleaseNotification
+        ' shouldNotifyUpgrade=' + shouldNotifyUpgrade +
+        ' shouldNotifyForce=' + shouldNotifyForce +
+        ' bundledPayload=' + Boolean(bundledPayload)
     );
 
     if (!shouldNotify) {
@@ -160,13 +239,14 @@ function maybeShowReleaseNotification(hadExistingInstall, forceShow) {
 
     if (shouldNotify) {
         console.log('[release-notification] showing notification');
-        Pebble.showSimpleNotificationOnPebble(releaseTitle, releaseBody);
+        Pebble.showSimpleNotificationOnPebble(title, body);
     }
 
     if (isNewer) {
         localStorage.setItem(KEY_MAX_NOTIFIED_VERSION, appVersion);
         console.log('[release-notification] set max_notified_version=' + appVersion);
-    } else {
+    }
+    else {
         console.log('[release-notification] keep max_notified_version=' + maxNotified);
     }
 }

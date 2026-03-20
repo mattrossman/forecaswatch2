@@ -11,6 +11,16 @@
           "type": "json",
           "path": "package.template.json",
           "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "package-lock.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "package-lock.json",
+          "jsonpath": "$.packages[''].version"
         }
       ]
     }

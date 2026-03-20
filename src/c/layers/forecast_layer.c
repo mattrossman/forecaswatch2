@@ -614,7 +614,6 @@ static void text_layers_refresh()
     if (graph_inset_w != s_axis_left_w)
     {
         s_axis_left_w = graph_inset_w;
-        layer_mark_dirty(s_forecast_layer);
     }
 
     text_layer_set_size(s_hi_layer, GSize(label_strip_w, TEMP_LABEL_H));

@@ -4,6 +4,10 @@
 
 // NOTE: g_config is a global config variable
 
+// Returns defaults as a function (not a static const) because GColor values like
+// GColorBlack expand to "compound literals" — C's syntax for inline struct values.
+// The C standard doesn't allow these in static variable initializers, so we use a
+// function instead. See: https://gcc.gnu.org/onlinedocs/gcc/Compound-Literals.html
 static Config config_defaults(void) {
     return (Config) {
         .celsius = false,

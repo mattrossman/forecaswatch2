@@ -196,11 +196,15 @@ function serializeError(value, maxLength) {
  * @returns {{enabled: boolean, trackWeatherFetch: Function}} Telemetry client.
  */
 function createTelemetryClient(options) {
+    var enabled = !options || options.enabled !== false;
     var endpoint = options && typeof options.endpoint === 'string' ? options.endpoint.trim() : '';
     var appVersion = options && typeof options.appVersion === 'string' ? options.appVersion : '0.0.0';
     var buildProfile = options && typeof options.buildProfile === 'string' ? options.buildProfile : 'unknown';
 
-    if (endpoint === '') {
+    if (!enabled) {
+        console.log('[telemetry] disabled by user setting');
+    }
+    else if (endpoint === '') {
         console.log('[telemetry] disabled (no endpoint configured)');
     }
     else {
@@ -238,7 +242,8 @@ function createTelemetryClient(options) {
         var success;
         var error;
 
-        if (endpoint === '') {
+        if (!enabled || endpoint === '') {
+            console.log('[telemetry] telemetry disabled');
             return;
         }
 
@@ -289,7 +294,7 @@ function createTelemetryClient(options) {
     }
 
     return {
-        enabled: endpoint !== '',
+        enabled: enabled && endpoint !== '',
         trackWeatherFetch: trackWeatherFetch
     };
 }

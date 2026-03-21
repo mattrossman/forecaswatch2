@@ -268,11 +268,27 @@ module.exports = [
         "defaultValue": "Save Settings"
     },
     {
+        "type": "section",
+        "items": [
+            {
+                "type": "heading",
+                "defaultValue": "Privacy"
+            },
+            {
+                "type": "toggle",
+                "label": "Share anonymous telemetry",
+                "messageKey": "telemetryEnabled",
+                "defaultValue": true,
+                "description": "Share privacy-respecting weather telemetry to improve reliability and understand usage patterns."
+            }
+        ]
+    },
+    {
         "type": "text",
         "defaultValue": versionLabel
     },
     {
         "type": "text",
-        "defaultValue": "<span style=\"color:#9aa0a6;font-size:0.82em;line-height:1.35;\">Privacy-respecting weather telemetry is enabled to improve reliability and understand usage patterns.<br>Learn more in the <a href=\"https://github.com/mattrossman/forecaswatch2#telemetry\">Telemetry section</a>.</span>"
+        "defaultValue": "<span style=\"color:#9aa0a6;font-size:0.82em;line-height:1.35;\">Learn more about what gets sent in the <a href=\"https://github.com/mattrossman/forecaswatch2#telemetry\">Telemetry section</a>.</span>"
     }
 ]

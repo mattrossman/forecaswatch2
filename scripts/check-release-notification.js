@@ -12,23 +12,6 @@ function readJson(filePath) {
 }
 
 /**
- * True when the PR appears to be managed by release-please.
- * @param {Object} event GitHub pull_request event payload.
- * @returns {boolean} Whether release notification enforcement should run.
- */
-function isReleasePleasePr(event) {
-  const pr = event.pull_request || {};
-  const labels = Array.isArray(pr.labels) ? pr.labels.map((label) => label.name) : [];
-  const headRef = String((pr.head && pr.head.ref) || '');
-
-  const hasAutoreleaseLabel = labels.some((name) =>
-    typeof name === 'string' && name.startsWith('autorelease:')
-  );
-
-  return Boolean(hasAutoreleaseLabel || headRef.startsWith('release-please--'));
-}
-
-/**
  * Validate required release notification fields for a version key.
  * @param {Object} notifications release-notifications.json object.
  * @param {string} version Version string from package.template.json.
@@ -42,18 +25,6 @@ function hasValidNotification(notifications, version) {
 }
 
 function main() {
-  const eventPath = process.env.GITHUB_EVENT_PATH;
-  if (!eventPath) {
-    throw new Error('GITHUB_EVENT_PATH is not set');
-  }
-
-  const event = readJson(eventPath);
-
-  if (!isReleasePleasePr(event)) {
-    console.log('Not a release-please PR; skipping enforcement.');
-    return;
-  }
-
   const pkg = readJson('package.template.json');
   const notifications = readJson('release-notifications.json');
 

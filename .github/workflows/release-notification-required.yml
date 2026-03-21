@@ -1,6 +1,9 @@
 name: Release Notification Required
 
 on:
+  push:
+    branches:
+      - release-please--branches--main
   pull_request:
     types:
       - opened
@@ -14,6 +17,11 @@ permissions:
 
 jobs:
   release-notification-required:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+      (contains(github.event.pull_request.labels.*.name, 'autorelease: pending') ||
+      startsWith(github.event.pull_request.head.ref, 'release-please--')))
     runs-on: ubuntu-24.04
     steps:
       - name: Check out repository

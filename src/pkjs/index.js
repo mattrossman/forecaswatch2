@@ -401,11 +401,31 @@ function getClaySettings() {
 }
 
 /**
+ * Determine whether a watch is currently connected.
+ *
+ * @returns {boolean} True when a watch is connected.
+ */
+function isWatchConnected() {
+    try {
+        return Boolean(Pebble.getActiveWatchInfo());
+    }
+    catch (ex) {
+        console.log('Unable to read active watch info: ' + ex.message);
+        return false;
+    }
+}
+
+/**
  * @typedef {import("./weather/provider")} WeatherProvider
  * @param {WeatherProvider} provider 
  * @param {boolean} force 
  */
 function fetch(provider, force) {
+    if (!isWatchConnected()) {
+        console.log('Skipping weather fetch: no watch connected.');
+        return;
+    }
+
     console.log('Fetching from ' + provider.name);
     var fetchStart = Date.now();
     var fetchStatus = {

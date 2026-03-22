@@ -83,7 +83,7 @@ Pebble.addEventListener('ready',
 /**
  * Build telemetry runtime config from package.json.
  *
- * @returns {{endpoint: string, appVersion: string, buildProfile: string}} Runtime telemetry config.
+ * @returns {{enabled: boolean, endpoint: string, appVersion: string, buildProfile: string}} Runtime telemetry config.
  */
 function getRuntimeTelemetryConfig() {
     var telemetry = pkg.telemetry || {};

@@ -41,6 +41,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
 
     clay.getSettings(e.response, false);  // This triggers the update in localStorage
     app.settings = getClaySettings();  // This reads from localStorage in sensible format
+    app.telemetry = createTelemetryClient(getRuntimeTelemetryConfig());
     refreshProvider();
     sendClaySettings();
 
@@ -82,13 +83,15 @@ Pebble.addEventListener('ready',
 /**
  * Build telemetry runtime config from package.json.
  *
- * @returns {{endpoint: string, appVersion: string, buildProfile: string}} Runtime telemetry config.
+ * @returns {{enabled: boolean, endpoint: string, appVersion: string, buildProfile: string}} Runtime telemetry config.
  */
 function getRuntimeTelemetryConfig() {
     var telemetry = pkg.telemetry || {};
     var endpoint = typeof telemetry.endpoint === 'string' ? telemetry.endpoint : '';
+    var telemetryEnabled = !app.settings || app.settings.telemetryEnabled !== false;
 
     return {
+        enabled: telemetryEnabled,
         endpoint: endpoint,
         appVersion: pkg.version,
         buildProfile: pkg.buildProfile
@@ -335,6 +338,7 @@ function clayTryDefaults() {
             provider: 'wunderground',
             location: '',
             dayNightShading: true,
+            telemetryEnabled: true,
         }
         localStorage.setItem('clay-settings', JSON.stringify(persistClay));
         return;
@@ -349,9 +353,15 @@ function clayTryDefaults() {
             provider: 'wunderground',
             location: '',
             dayNightShading: true,
+            telemetryEnabled: true,
         }
         localStorage.setItem('clay-settings', JSON.stringify(persistClay));
         return;
+    }
+
+    if (!Object.prototype.hasOwnProperty.call(persistClay, 'telemetryEnabled')) {
+        persistClay.telemetryEnabled = true;
+        localStorage.setItem('clay-settings', JSON.stringify(persistClay));
     }
 
 }

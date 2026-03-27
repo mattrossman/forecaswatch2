@@ -5,6 +5,7 @@ const MAX_BODY_BYTES = 4096;
 const MAX_EVENTS_PER_HOUR = 60;
 
 const providerSchema = z.enum(["wunderground", "openweathermap", "mock"]);
+const locationModeSchema = z.enum(["gps", "manual_coordinates", "manual_address"]);
 
 const firmwareSchema = z.object({
   major: z.number().int().nonnegative().optional(),
@@ -55,6 +56,7 @@ const telemetryPayloadSchema = z.object({
   watchInfo: watchInfoSchema.default({}),
   usedGpsCache: z.boolean().default(false),
   gpsErrorCode: z.number().int().nonnegative().nullable().optional(),
+  locationMode: locationModeSchema.nullable().optional(),
   durationMs: z.number().int().nonnegative().nullable().optional(),
   attempt: z.number().int().positive().nullable().optional(),
 }).superRefine((payload, ctx) => {
@@ -187,6 +189,7 @@ Deno.serve(async (req) => {
     watch_info: payload.watchInfo,
     used_gps_cache: payload.usedGpsCache,
     gps_error_code: payload.gpsErrorCode ?? null,
+    location_mode: payload.locationMode ?? null,
     duration_ms: payload.durationMs ?? null,
     attempt: payload.attempt ?? null,
   });

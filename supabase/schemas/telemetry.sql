@@ -15,10 +15,12 @@ create table public.telemetry_weather_fetch (
   watch_info jsonb not null default '{}'::jsonb, -- https://developer.repebble.com/docs/pebblekit-js/Pebble/#WatchInfo
   used_gps_cache boolean not null default false,
   gps_error_code integer,
+  location_mode text,
   duration_ms integer check (duration_ms >= 0),
   attempt integer check (attempt >= 1),
   
   check ((success = true and error is null) or (success = false and error is not null and length(btrim(error)) > 0)),
+  check (location_mode is null or location_mode in ('gps', 'manual_coordinates', 'manual_address')),
   check (jsonb_typeof(settings_json) = 'object'),
   check (jsonb_typeof(watch_info) = 'object')
 );

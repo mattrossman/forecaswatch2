@@ -64,6 +64,7 @@ var WeatherProvider = function() {
     this.countryCode = null;
     this.usedGpsCache = false;
     this.gpsErrorCode = null;
+    this.locationMode = null;
 };
 
 WeatherProvider.prototype.gpsEnable = function() {
@@ -171,11 +172,13 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback, onFailure)
     if (m !== null) {
         latitude = m[1];
         longitude = m[2];
+        this.locationMode = 'manual_coordinates';
         console.log('regex matched, override is lat/long');
         callback(latitude, longitude);
         return;
     }
 
+    this.locationMode = 'manual_address';
     console.log('regex failed, about to look up lat/long for override');
     request(
         url,
@@ -285,8 +288,10 @@ WeatherProvider.prototype.withGpsCoordinates = function(callback, onFailure) {
 WeatherProvider.prototype.withCoordinates = function(callback, onFailure) {
     this.usedGpsCache = false;
     this.gpsErrorCode = null;
+    this.locationMode = null;
 
     if (this.location === null) {
+        this.locationMode = 'gps';
         console.log('Using GPS');
         this.withGpsCoordinates(callback, onFailure);
         return;
@@ -303,6 +308,7 @@ WeatherProvider.prototype.withProviderData = function(lat, lon, force, onSuccess
 
 WeatherProvider.prototype.fetch = function(onSuccess, onFailure, force) {
     this.countryCode = null;
+    this.locationMode = null;
 
     this.withCoordinates((function(lat, lon) {
         this.withCityName(lat, lon, (function(cityName, countryCode) {

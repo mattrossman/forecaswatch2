@@ -40,6 +40,19 @@ function normalizeCountryCode(code) {
 }
 
 /**
+ * Normalize location mode to an allowlisted telemetry value.
+ *
+ * @param {string|null|undefined} mode Raw location mode.
+ * @returns {string|null} Normalized location mode or null.
+ */
+function normalizeLocationMode(mode) {
+    if (mode === 'gps' || mode === 'manual_coordinates' || mode === 'manual_address') {
+        return mode;
+    }
+    return null;
+}
+
+/**
  * Build telemetry-safe WatchInfo snapshot.
  *
  * @param {Object} watchInfo Pebble active watch info.
@@ -291,6 +304,7 @@ function createTelemetryClient(options) {
             success: success,
             usedGpsCache: event.usedGpsCache,
             gpsErrorCode: typeof event.gpsErrorCode === 'number' ? event.gpsErrorCode : null,
+            locationMode: normalizeLocationMode(event.locationMode),
             error: error,
             countryCode: normalizeCountryCode(event.countryCode),
             settings: buildSettingsSnapshot(event.settings),

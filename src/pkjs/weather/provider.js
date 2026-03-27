@@ -22,8 +22,8 @@ function request(url, type, onSuccess, onFailure) {
             return;
         }
         onFailure({
-            code: 'http_status',
-            detail: 'status_' + xhr.status
+            code: 'status_' + xhr.status,
+            detail: 'http_status'
         });
     };
     xhr.onerror = function() {

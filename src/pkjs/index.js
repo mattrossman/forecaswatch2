@@ -452,6 +452,7 @@ function fetch(provider, force) {
             maybeTrackWeatherFetch({
                 provider: provider.id,
                 success: true,
+                usedGpsCache: provider.usedGpsCache,
                 countryCode: provider.countryCode,
                 settings: app.settings,
                 watchInfo: app.watchInfo,
@@ -464,6 +465,7 @@ function fetch(provider, force) {
             maybeTrackWeatherFetch({
                 provider: provider.id,
                 success: false,
+                usedGpsCache: provider.usedGpsCache,
                 countryCode: provider.countryCode,
                 error: failure,
                 settings: app.settings,

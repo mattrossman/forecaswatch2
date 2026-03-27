@@ -1,6 +1,8 @@
 var SunCalc = require('suncalc');
 
 var XHR_TIMEOUT_MS = 5000;
+var GPS_CACHE_KEY = 'gpsCache';
+var GPS_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 /**
  * Perform an HTTP request and return response text.
@@ -60,6 +62,7 @@ var WeatherProvider = function() {
     this.id = 'interface';
     this.location = null; // Address query used for overriding the GPS
     this.countryCode = null;
+    this.usedGpsCache = false;
 };
 
 WeatherProvider.prototype.gpsEnable = function() {
@@ -206,23 +209,74 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback, onFailure)
 
 WeatherProvider.prototype.withGpsCoordinates = function(callback, onFailure) {
     // callback(latitude, longitude)
+    var provider = this;
     var options = {
         enableHighAccuracy: true,
         maximumAge: 10000,
         timeout: 10000
     };
+
+    provider.usedGpsCache = false;
+
     function success(pos) {
-        console.log('FOUND LOCATION: lat= ' + pos.coords.latitude + ' lon= ' + pos.coords.longitude);
-        callback(pos.coords.latitude, pos.coords.longitude);
+        var lat = pos.coords.latitude;
+        var lon = pos.coords.longitude;
+        console.log('FOUND LOCATION: lat= ' + lat + ' lon= ' + lon);
+        localStorage.setItem(GPS_CACHE_KEY, JSON.stringify({
+            lat: lat,
+            lon: lon,
+            time: Date.now()
+        }));
+        provider.usedGpsCache = false;
+        callback(lat, lon);
     }
+
     function error(err) {
+        var cached;
+        var parsed;
+        var cacheIsFresh;
         console.log('location error (' + err.code + '): ' + err.message);
+
+        cached = localStorage.getItem(GPS_CACHE_KEY);
+        if (cached !== null) {
+            try {
+                parsed = JSON.parse(cached);
+            }
+            catch (ex) {
+                parsed = null;
+            }
+
+            cacheIsFresh = true;
+            if (GPS_CACHE_MAX_AGE_MS > 0) {
+                cacheIsFresh = (
+                    parsed &&
+                    typeof parsed.time === 'number' &&
+                    Date.now() - parsed.time <= GPS_CACHE_MAX_AGE_MS
+                );
+            }
+
+            if (
+                parsed &&
+                typeof parsed.lat === 'number' &&
+                typeof parsed.lon === 'number' &&
+                cacheIsFresh
+            ) {
+                console.log('Using cached GPS coordinates: lat= ' + parsed.lat + ' lon= ' + parsed.lon);
+                provider.usedGpsCache = true;
+                callback(parsed.lat, parsed.lon);
+                return;
+            }
+        }
+
         onFailure(failure('coordinates', 'gps_' + err.code));
     }
+
     navigator.geolocation.getCurrentPosition(success, error, options);
 };
 
 WeatherProvider.prototype.withCoordinates = function(callback, onFailure) {
+    this.usedGpsCache = false;
+
     if (this.location === null) {
         console.log('Using GPS');
         this.withGpsCoordinates(callback, onFailure);

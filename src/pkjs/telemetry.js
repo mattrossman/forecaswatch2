@@ -283,6 +283,7 @@ function createTelemetryClient(options) {
             watchToken: watchToken,
             provider: event.provider,
             success: success,
+            usedGpsCache: event.usedGpsCache,
             error: error,
             countryCode: normalizeCountryCode(event.countryCode),
             settings: buildSettingsSnapshot(event.settings),

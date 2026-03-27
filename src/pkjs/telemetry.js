@@ -284,6 +284,7 @@ function createTelemetryClient(options) {
             provider: event.provider,
             success: success,
             usedGpsCache: event.usedGpsCache,
+            gpsErrorCode: typeof event.gpsErrorCode === 'number' ? event.gpsErrorCode : null,
             error: error,
             countryCode: normalizeCountryCode(event.countryCode),
             settings: buildSettingsSnapshot(event.settings),

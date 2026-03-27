@@ -63,6 +63,7 @@ var WeatherProvider = function() {
     this.location = null; // Address query used for overriding the GPS
     this.countryCode = null;
     this.usedGpsCache = false;
+    this.gpsErrorCode = null;
 };
 
 WeatherProvider.prototype.gpsEnable = function() {
@@ -217,6 +218,7 @@ WeatherProvider.prototype.withGpsCoordinates = function(callback, onFailure) {
     };
 
     provider.usedGpsCache = false;
+    provider.gpsErrorCode = null;
 
     function success(pos) {
         var lat = pos.coords.latitude;
@@ -228,6 +230,7 @@ WeatherProvider.prototype.withGpsCoordinates = function(callback, onFailure) {
             time: Date.now()
         }));
         provider.usedGpsCache = false;
+        provider.gpsErrorCode = null;
         callback(lat, lon);
     }
 
@@ -235,12 +238,11 @@ WeatherProvider.prototype.withGpsCoordinates = function(callback, onFailure) {
         var cached;
         var parsed;
         var cacheIsFresh;
+        var errCode;
         console.log('location error (' + err.code + '): ' + err.message);
 
-        if (err.code === err.PERMISSION_DENIED) {
-            onFailure(failure('coordinates', 'gps_' + err.code));
-            return;
-        }
+        errCode = Number(err && err.code);
+        provider.gpsErrorCode = errCode;
 
         cached = localStorage.getItem(GPS_CACHE_KEY);
         if (cached !== null) {
@@ -268,6 +270,7 @@ WeatherProvider.prototype.withGpsCoordinates = function(callback, onFailure) {
             ) {
                 console.log('Using cached GPS coordinates: lat= ' + parsed.lat + ' lon= ' + parsed.lon);
                 provider.usedGpsCache = true;
+                provider.gpsErrorCode = errCode;
                 callback(parsed.lat, parsed.lon);
                 return;
             }

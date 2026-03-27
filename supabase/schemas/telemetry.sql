@@ -14,6 +14,7 @@ create table public.telemetry_weather_fetch (
   build_profile text not null,
   watch_info jsonb not null default '{}'::jsonb, -- https://developer.repebble.com/docs/pebblekit-js/Pebble/#WatchInfo
   used_gps_cache boolean not null default false,
+  gps_error_code integer,
   duration_ms integer check (duration_ms >= 0),
   
   check ((success = true and error is null) or (success = false and error is not null and length(btrim(error)) > 0)),

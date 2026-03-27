@@ -56,6 +56,7 @@ const telemetryPayloadSchema = z.object({
   usedGpsCache: z.boolean().default(false),
   gpsErrorCode: z.number().int().nonnegative().nullable().optional(),
   durationMs: z.number().int().nonnegative().nullable().optional(),
+  attempt: z.number().int().positive().nullable().optional(),
 }).superRefine((payload, ctx) => {
   if (payload.success && payload.error !== null) {
     ctx.addIssue({
@@ -187,6 +188,7 @@ Deno.serve(async (req) => {
     used_gps_cache: payload.usedGpsCache,
     gps_error_code: payload.gpsErrorCode ?? null,
     duration_ms: payload.durationMs ?? null,
+    attempt: payload.attempt ?? null,
   });
 
   if (insertResult.error) {

@@ -16,6 +16,7 @@ create table public.telemetry_weather_fetch (
   used_gps_cache boolean not null default false,
   gps_error_code integer,
   duration_ms integer check (duration_ms >= 0),
+  attempt integer check (attempt >= 1),
   
   check ((success = true and error is null) or (success = false and error is not null and length(btrim(error)) > 0)),
   check (jsonb_typeof(settings_json) = 'object'),

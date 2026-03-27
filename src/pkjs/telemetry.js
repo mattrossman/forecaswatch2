@@ -241,6 +241,7 @@ function createTelemetryClient(options) {
         var watchInfo;
         var success;
         var error;
+        var attempt;
 
         if (!enabled || endpoint === '') {
             console.log('[telemetry] telemetry disabled');
@@ -275,6 +276,11 @@ function createTelemetryClient(options) {
         watchInfo = buildWatchInfoSnapshot(event.watchInfo);
         success = Boolean(event.success);
         error = success ? null : serializeError(event.error, 512);
+        attempt = (
+            typeof event.attempt === 'number' &&
+            isFinite(event.attempt) &&
+            event.attempt >= 1
+        ) ? Math.floor(event.attempt) : null;
 
         send({
             eventType: 'weather_fetch',
@@ -291,7 +297,8 @@ function createTelemetryClient(options) {
             appVersion: appVersion,
             buildProfile: buildProfile,
             watchInfo: watchInfo,
-            durationMs: typeof event.durationMs === 'number' ? event.durationMs : null
+            durationMs: typeof event.durationMs === 'number' ? event.durationMs : null,
+            attempt: attempt
         });
     }
 

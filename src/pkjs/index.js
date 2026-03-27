@@ -26,6 +26,7 @@ var releaseNotificationsManifest = loadReleaseNotificationsManifest();
 var clay = new Clay(clayConfig, customClay, { autoHandleEvents: false });
 var app = {};  // Namespace for global app variables
 var KEY_MAX_NOTIFIED_VERSION = 'max_notified_version';
+var KEY_FETCH_ATTEMPT = 'weather_fetch_attempt';
 
 Pebble.addEventListener('showConfiguration', function(e) {
     // Set the userData here rather than in the Clay() constructor so it's actually up to date
@@ -269,6 +270,42 @@ function maybeHandleDevStorageReset(devConfig) {
     }
 }
 
+/**
+ * Read the persisted weather fetch attempt counter.
+ *
+ * @returns {number} Non-negative integer attempt counter.
+ */
+function getFetchAttemptCounter() {
+    var raw = localStorage.getItem(KEY_FETCH_ATTEMPT);
+    var parsed = Number(raw);
+
+    if (!isFinite(parsed) || parsed < 0) {
+        return 0;
+    }
+
+    return Math.floor(parsed);
+}
+
+/**
+ * Increment and persist the weather fetch attempt counter.
+ *
+ * @returns {number} New attempt number after increment.
+ */
+function incrementFetchAttemptCounter() {
+    var nextAttempt = getFetchAttemptCounter() + 1;
+    localStorage.setItem(KEY_FETCH_ATTEMPT, String(nextAttempt));
+    return nextAttempt;
+}
+
+/**
+ * Reset the weather fetch attempt counter after success.
+ *
+ * @returns {void}
+ */
+function resetFetchAttemptCounter() {
+    localStorage.setItem(KEY_FETCH_ATTEMPT, '0');
+}
+
 function startTick() {
     console.log('Tick from PKJS!');
     tryFetch(app.provider);
@@ -438,6 +475,7 @@ function fetch(provider, force) {
 
     console.log('Fetching from ' + provider.name);
     var fetchStart = Date.now();
+    var attempt = incrementFetchAttemptCounter();
     var fetchStatus = {
         time: new Date(),
         id: provider.id,
@@ -448,10 +486,12 @@ function fetch(provider, force) {
         function() {
             // Sucess, update recent fetch time
             localStorage.setItem('lastFetchSuccess', JSON.stringify(fetchStatus));
+            resetFetchAttemptCounter();
             console.log('Successfully fetched weather!');
             maybeTrackWeatherFetch({
                 provider: provider.id,
                 success: true,
+                attempt: attempt,
                 usedGpsCache: provider.usedGpsCache,
                 gpsErrorCode: provider.gpsErrorCode,
                 countryCode: provider.countryCode,
@@ -466,6 +506,7 @@ function fetch(provider, force) {
             maybeTrackWeatherFetch({
                 provider: provider.id,
                 success: false,
+                attempt: attempt,
                 usedGpsCache: provider.usedGpsCache,
                 gpsErrorCode: provider.gpsErrorCode,
                 countryCode: provider.countryCode,

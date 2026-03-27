@@ -40,6 +40,19 @@ function normalizeCountryCode(code) {
 }
 
 /**
+ * Normalize location mode to an allowlisted telemetry value.
+ *
+ * @param {string|null|undefined} mode Raw location mode.
+ * @returns {string|null} Normalized location mode or null.
+ */
+function normalizeLocationMode(mode) {
+    if (mode === 'gps' || mode === 'manual_coordinates' || mode === 'manual_address') {
+        return mode;
+    }
+    return null;
+}
+
+/**
  * Build telemetry-safe WatchInfo snapshot.
  *
  * @param {Object} watchInfo Pebble active watch info.
@@ -241,6 +254,7 @@ function createTelemetryClient(options) {
         var watchInfo;
         var success;
         var error;
+        var attempt;
 
         if (!enabled || endpoint === '') {
             console.log('[telemetry] telemetry disabled');
@@ -275,6 +289,11 @@ function createTelemetryClient(options) {
         watchInfo = buildWatchInfoSnapshot(event.watchInfo);
         success = Boolean(event.success);
         error = success ? null : serializeError(event.error, 512);
+        attempt = (
+            typeof event.attempt === 'number' &&
+            isFinite(event.attempt) &&
+            event.attempt >= 1
+        ) ? Math.floor(event.attempt) : null;
 
         send({
             eventType: 'weather_fetch',
@@ -283,13 +302,17 @@ function createTelemetryClient(options) {
             watchToken: watchToken,
             provider: event.provider,
             success: success,
+            usedGpsCache: event.usedGpsCache,
+            gpsErrorCode: typeof event.gpsErrorCode === 'number' ? event.gpsErrorCode : null,
+            locationMode: normalizeLocationMode(event.locationMode),
             error: error,
             countryCode: normalizeCountryCode(event.countryCode),
             settings: buildSettingsSnapshot(event.settings),
             appVersion: appVersion,
             buildProfile: buildProfile,
             watchInfo: watchInfo,
-            durationMs: typeof event.durationMs === 'number' ? event.durationMs : null
+            durationMs: typeof event.durationMs === 'number' ? event.durationMs : null,
+            attempt: attempt
         });
     }
 

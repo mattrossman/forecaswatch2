@@ -1,6 +1,8 @@
 var SunCalc = require('suncalc');
 
 var XHR_TIMEOUT_MS = 5000;
+var GPS_CACHE_KEY = 'gpsCache';
+var GPS_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 /**
  * Perform an HTTP request and return response text.
@@ -20,8 +22,8 @@ function request(url, type, onSuccess, onFailure) {
             return;
         }
         onFailure({
-            code: 'http_status',
-            detail: 'status_' + xhr.status
+            code: 'status_' + xhr.status,
+            detail: 'http_status'
         });
     };
     xhr.onerror = function() {
@@ -60,6 +62,9 @@ var WeatherProvider = function() {
     this.id = 'interface';
     this.location = null; // Address query used for overriding the GPS
     this.countryCode = null;
+    this.usedGpsCache = false;
+    this.gpsErrorCode = null;
+    this.locationMode = null;
 };
 
 WeatherProvider.prototype.gpsEnable = function() {
@@ -167,11 +172,13 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback, onFailure)
     if (m !== null) {
         latitude = m[1];
         longitude = m[2];
+        this.locationMode = 'manual_coordinates';
         console.log('regex matched, override is lat/long');
         callback(latitude, longitude);
         return;
     }
 
+    this.locationMode = 'manual_address';
     console.log('regex failed, about to look up lat/long for override');
     request(
         url,
@@ -206,24 +213,85 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback, onFailure)
 
 WeatherProvider.prototype.withGpsCoordinates = function(callback, onFailure) {
     // callback(latitude, longitude)
+    var provider = this;
     var options = {
         enableHighAccuracy: true,
         maximumAge: 10000,
         timeout: 10000
     };
+
+    provider.usedGpsCache = false;
+    provider.gpsErrorCode = null;
+
     function success(pos) {
-        console.log('FOUND LOCATION: lat= ' + pos.coords.latitude + ' lon= ' + pos.coords.longitude);
-        callback(pos.coords.latitude, pos.coords.longitude);
+        var lat = pos.coords.latitude;
+        var lon = pos.coords.longitude;
+        console.log('FOUND LOCATION: lat= ' + lat + ' lon= ' + lon);
+        localStorage.setItem(GPS_CACHE_KEY, JSON.stringify({
+            lat: lat,
+            lon: lon,
+            time: Date.now()
+        }));
+        provider.usedGpsCache = false;
+        provider.gpsErrorCode = null;
+        callback(lat, lon);
     }
+
     function error(err) {
+        var cached;
+        var parsed;
+        var cacheIsFresh;
+        var errCode;
         console.log('location error (' + err.code + '): ' + err.message);
+
+        errCode = Number(err && err.code);
+        provider.gpsErrorCode = errCode;
+
+        cached = localStorage.getItem(GPS_CACHE_KEY);
+        if (cached !== null) {
+            try {
+                parsed = JSON.parse(cached);
+            }
+            catch (ex) {
+                parsed = null;
+            }
+
+            cacheIsFresh = true;
+            if (GPS_CACHE_MAX_AGE_MS > 0) {
+                cacheIsFresh = (
+                    parsed &&
+                    typeof parsed.time === 'number' &&
+                    Date.now() - parsed.time <= GPS_CACHE_MAX_AGE_MS
+                );
+            }
+
+            if (
+                parsed &&
+                typeof parsed.lat === 'number' &&
+                typeof parsed.lon === 'number' &&
+                cacheIsFresh
+            ) {
+                console.log('Using cached GPS coordinates: lat= ' + parsed.lat + ' lon= ' + parsed.lon);
+                provider.usedGpsCache = true;
+                provider.gpsErrorCode = errCode;
+                callback(parsed.lat, parsed.lon);
+                return;
+            }
+        }
+
         onFailure(failure('coordinates', 'gps_' + err.code));
     }
+
     navigator.geolocation.getCurrentPosition(success, error, options);
 };
 
 WeatherProvider.prototype.withCoordinates = function(callback, onFailure) {
+    this.usedGpsCache = false;
+    this.gpsErrorCode = null;
+    this.locationMode = null;
+
     if (this.location === null) {
+        this.locationMode = 'gps';
         console.log('Using GPS');
         this.withGpsCoordinates(callback, onFailure);
         return;
@@ -240,6 +308,7 @@ WeatherProvider.prototype.withProviderData = function(lat, lon, force, onSuccess
 
 WeatherProvider.prototype.fetch = function(onSuccess, onFailure, force) {
     this.countryCode = null;
+    this.locationMode = null;
 
     this.withCoordinates((function(lat, lon) {
         this.withCityName(lat, lon, (function(cityName, countryCode) {

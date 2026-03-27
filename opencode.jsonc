@@ -9,19 +9,20 @@
       "mise build": "allow",
       "pebble logs *": "allow"
     },
-    "supabase_search_docs": "allow",
-    "supabase_list_tables": "allow",
-    "supabase_list_extensions": "allow",
-    "supabase_list_migrations": "allow",
-    "supabase_get_logs": "allow",
-    "supabase_get_advisors": "allow",
-    "supabase_get_project_url": "allow",
-    "supabase_get_publishable_keys": "allow",
-    "supabase_generate_typescript_types": "deny", // Use CLI instead
-    "supabase_apply_migration": "deny", // Use CLI instead
+    "supabase-dev_search_docs": "allow",
+    "supabase-dev_list_tables": "allow",
+    "supabase-dev_list_extensions": "allow",
+    "supabase-dev_list_migrations": "allow",
+    "supabase-dev_get_logs": "allow",
+    "supabase-dev_get_advisors": "allow",
+    "supabase-dev_get_project_url": "allow",
+    "supabase-dev_get_publishable_keys": "allow",
+    "supabase-dev_generate_typescript_types": "deny", // Use CLI instead
+    "supabase-dev_apply_migration": "deny", // Use CLI instead
 
     // Supabase Remote (Read-Only)
     "supabase-remote-readonly_list_tables": "allow",
+    "supabase-remote-readonly_list_extensions": "allow",
     "supabase-remote-readonly_execute_sql": "allow"
   },
   "mcp": {

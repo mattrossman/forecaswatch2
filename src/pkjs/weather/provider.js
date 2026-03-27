@@ -284,6 +284,7 @@ WeatherProvider.prototype.withGpsCoordinates = function(callback, onFailure) {
 
 WeatherProvider.prototype.withCoordinates = function(callback, onFailure) {
     this.usedGpsCache = false;
+    this.gpsErrorCode = null;
 
     if (this.location === null) {
         console.log('Using GPS');

@@ -237,6 +237,11 @@ WeatherProvider.prototype.withGpsCoordinates = function(callback, onFailure) {
         var cacheIsFresh;
         console.log('location error (' + err.code + '): ' + err.message);
 
+        if (err.code === err.PERMISSION_DENIED) {
+            onFailure(failure('coordinates', 'gps_' + err.code));
+            return;
+        }
+
         cached = localStorage.getItem(GPS_CACHE_KEY);
         if (cached !== null) {
             try {

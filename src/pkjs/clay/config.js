@@ -181,6 +181,27 @@ module.exports = [
             },
             {
                 "type": "radiogroup",
+                "label": "Status Bar Display",
+                "messageKey": "statusBarMode",
+                "defaultValue": "both",
+                "description": "Choose what to show on the right side of the status bar. When set to 'Both', flick your wrist to toggle between precipitation amount and sun event time.",
+                "options": [
+                    {
+                        "label": "Both (flick wrist to toggle)",
+                        "value": "both"
+                    },
+                    {
+                        "label": "Sun event only",
+                        "value": "sun"
+                    },
+                    {
+                        "label": "Precipitation only",
+                        "value": "precip"
+                    }
+                ]
+            },
+            {
+                "type": "radiogroup",
                 "label": "Provider",
                 "messageKey": "provider",
                 "defaultValue": "wunderground",

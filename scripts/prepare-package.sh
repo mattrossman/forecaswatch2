@@ -23,7 +23,8 @@ if [[ ! -f "$profile_file" ]]; then
   exit 1
 fi
 
-npx --yes mustache "$profile_file" "$template_file" > "$output_file"
+npx --yes mustache "$profile_file" "$template_file" > "${output_file}.tmp"
+mv "${output_file}.tmp" "${output_file}"
 node -e "
 const fs = require('fs');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));

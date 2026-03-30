@@ -131,26 +131,6 @@ function compareSemver(a, b) {
     return 0;
 }
 
-/**
- * Normalize bundled pkg.releaseNotification into title/body or null.
- *
- * @param {Object|undefined} releaseNotification Field from package.json.
- * @returns {{title: string, body: string}|null} Payload or null when disabled/empty.
- */
-function getBundledReleaseNotificationPayload(releaseNotification) {
-    if (
-        !releaseNotification ||
-        releaseNotification.enabled !== true
-    ) {
-        return null;
-    }
-    var title = releaseNotification.title ? String(releaseNotification.title).trim() : '';
-    var body = releaseNotification.body ? String(releaseNotification.body).trim() : '';
-    if (title === '' || body === '') {
-        return null;
-    }
-    return { title: title, body: body };
-}
 
 /**
  * Look up a release notification in release-notifications.json (dev force-show).
@@ -208,7 +188,7 @@ function maybeShowReleaseNotification(hadExistingInstall, forceVersionSpec) {
         );
     }
 
-    var bundledPayload = getBundledReleaseNotificationPayload(pkg.releaseNotification);
+    var bundledPayload = getReleaseNotificationFromManifest(appVersion);
     var maxNotified = localStorage.getItem(KEY_MAX_NOTIFIED_VERSION) || '0.0.0';
     var isNewer = compareSemver(appVersion, maxNotified) > 0;
     var shouldNotifyUpgrade = hadExistingInstall && isNewer && bundledPayload !== null;

@@ -9,6 +9,10 @@ If you need runtime logs, `mise install-emulator --logs` runs it in an emulator 
 - C: `APP_LOG(APP_LOG_LEVEL_DEBUG, "msg", args)`
 - JS: `console.log("msg")`
 
+## Message Keys
+
+When adding AppMessage keys, update **both** `package.json` and `package.template.json` — they must stay in sync. After changing either file, run `pebble clean && pebble build` (not just `pebble build`) to force regeneration of the message keys header.
+
 ## JavaScript Conventions
 
 - For new JavaScript functions, add brief JSDoc (`@param`/`@returns`) annotations since this project does not use TypeScript.

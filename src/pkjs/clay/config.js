@@ -181,22 +181,22 @@ module.exports = [
             },
             {
                 "type": "radiogroup",
-                "label": "Status Bar Display",
-                "messageKey": "statusBarMode",
+                "label": "Weather detail (right)",
+                "messageKey": "weatherStatusRightMode",
                 "defaultValue": "both",
-                "description": "Choose what to show on the right side of the status bar. When set to 'Both', flick your wrist to toggle between precipitation amount and sun event time.",
+                "description": "When set to 'Both', flick your wrist to toggle between precipitation amount and sunrise/sunset time.",
                 "options": [
                     {
-                        "label": "Both (flick wrist to toggle)",
-                        "value": "both"
-                    },
-                    {
-                        "label": "Sun event only",
+                        "label": "Next sunrise/sunset",
                         "value": "sun"
                     },
                     {
-                        "label": "Precipitation only",
+                        "label": "Precipitation amount (24hr)",
                         "value": "precip"
+                    },
+                    {
+                        "label": "Both",
+                        "value": "both"
                     }
                 ]
             },

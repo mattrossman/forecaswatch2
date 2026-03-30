@@ -26,7 +26,8 @@ static Config config_defaults(void) {
         .color_sunday = GColorWhite,
         .color_us_federal = GColorWhite,
         .color_time = GColorWhite,
-        .day_night_shading = true
+        .day_night_shading = true,
+        .status_bar_mode = STATUS_BAR_MODE_BOTH
     };
 }
 

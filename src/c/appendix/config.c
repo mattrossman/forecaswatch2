@@ -79,7 +79,7 @@ static void config_migrate(int bytes_read) {
         g_config->show_wind_graph   = true;
         g_config->day_night_shading = true;
     } else if (bytes_read < (int)sizeof(Config)) {
-        // Unknown/future layout smaller than current — ensure new fields are sane
+        // Unknown layout smaller than current — apply safe defaults for all new fields
         g_config->wind_unit         = 0;
         g_config->wind_max          = 0;
         g_config->show_wind_graph   = true;

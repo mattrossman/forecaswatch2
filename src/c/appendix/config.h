@@ -51,3 +51,5 @@ bool config_highlight_holidays();
 bool config_highlight_sundays();
 
 bool config_highlight_saturdays();
+
+bool config_is_celsius();

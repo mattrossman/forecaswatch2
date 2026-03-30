@@ -26,6 +26,8 @@ var MOCK_SCENARIOS = {
         currentTemp: -3,
         temps: [-9, -10, -10, -9, -8, -7, -7, -5, -4, -3, -2, -2, 0, 1, 3, 5, 5, 3, 1, -1, -2, -4, -6, -8],
         precipPct: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 4, 3, 1, 0, 0, 0, 0, 0, 0],
+        precipMm: 8,
+        precipType: 2,
         sunEvents: [
             { type: 'sunrise', epoch: 1772883000 },
             { type: 'sunset', epoch: 1772923800 },
@@ -46,6 +48,8 @@ var MOCK_SCENARIOS = {
         currentTemp: 38,
         temps: [38, 38, 37, 37, 36, 36, 35, 35, 35, 34, 34, 34, 33, 33, 33, 33, 32, 32, 32, 32, 31, 31, 31, 31],
         precipPct: [40, 45, 55, 65, 70, 75, 80, 78, 70, 60, 50, 45, 40, 35, 30, 25, 20, 15, 10, 8, 6, 4, 2, 0],
+        precipMm: 18,
+        precipType: 1,
         sunEvents: [
             { type: 'sunset', epoch: 1772923800 },
             { type: 'sunrise', epoch: 1772968800 },
@@ -56,6 +60,8 @@ var MOCK_SCENARIOS = {
         currentTemp: 64,
         temps: [64, 66, 68, 70, 71, 72, 72, 71, 69, 67, 65, 63, 61, 59, 57, 55, 53, 51, 50, 49, 48, 47, 46, 45],
         precipPct: [5, 10, 15, 25, 40, 60, 80, 90, 85, 70, 55, 40, 30, 20, 12, 8, 6, 4, 3, 2, 2, 1, 1, 0],
+        precipMm: 32,
+        precipType: 1,
         sunEvents: [
             { type: 'sunset', epoch: 1772923800 },
             { type: 'sunrise', epoch: 1772968800 },
@@ -219,6 +225,8 @@ MockProvider.prototype.withProviderData = function(lat, lon, force, callback) {
     });
     this.startTime = data.startEpoch;
     this.currentTemp = data.currentTemp;
+    this.precipAmountTenthsMm = Math.round((data.precipMm || 0) * 10);
+    this.precipType = data.precipType || 0;
 
     callback();
 };

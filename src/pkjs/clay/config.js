@@ -163,11 +163,11 @@ module.exports = [
                 "label": "Temperature Units",
                 "options": [
                     {
-                        "label": "°F",
+                        "label": "Imperial (°F, in)",
                         "value": "f"
                     },
                     {
-                        "label": "°C",
+                        "label": "Metric (°C, mm)",
                         "value": "c"
                     }
                 ]

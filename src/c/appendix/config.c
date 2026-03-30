@@ -118,3 +118,7 @@ bool config_highlight_sundays() {
 bool config_highlight_saturdays() {
     return !gcolor_equal(g_config->color_saturday, GColorWhite);
 }
+
+bool config_is_celsius() {
+    return g_config->celsius;
+}

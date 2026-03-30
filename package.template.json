@@ -69,6 +69,8 @@
       "CURRENT_TEMP",
       "CITY",
       "SUN_EVENTS",
+      "PRECIP_TOTAL_UINT16",
+      "PRECIP_TYPE_UINT8",
       "CLAY_CELSIUS",
       "CLAY_TIME_LEAD_ZERO",
       "CLAY_AXIS_12H",

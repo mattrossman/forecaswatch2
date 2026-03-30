@@ -18,6 +18,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *current_temp_tuple = dict_find(iterator, MESSAGE_KEY_CURRENT_TEMP);
     Tuple *city_tuple = dict_find(iterator, MESSAGE_KEY_CITY);
     Tuple *sun_events_tuple = dict_find(iterator, MESSAGE_KEY_SUN_EVENTS);
+    Tuple *precip_total_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_TOTAL_UINT16);
+    Tuple *precip_type_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_TYPE_UINT8);
 
     // Clay config options
     Tuple *clay_celsius_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_CELSIUS);
@@ -38,7 +40,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *clay_color_time_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_TIME);
     Tuple *clay_day_night_shading_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_DAY_NIGHT_SHADING);
 
-    if(temp_trend_tuple && temp_trend_tuple && forecast_start_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
+    if(temp_trend_tuple && precip_trend_tuple && forecast_start_tuple && num_entries_tuple && city_tuple && sun_events_tuple && precip_total_tuple && precip_type_tuple) {
         // Weather data received
         APP_LOG(APP_LOG_LEVEL_INFO, "All tuples received!");
         persist_set_forecast_start((time_t)forecast_start_tuple->value->int32);
@@ -58,6 +60,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         time_t *sun_event_times = (time_t*) (sun_events_tuple->value->data + 1);
         persist_set_sun_event_start_type(sun_event_start_type);
         persist_set_sun_event_times(sun_event_times, 2);
+        persist_set_precip_total((uint16_t) precip_total_tuple->value->int32);
+        persist_set_precip_type((uint8_t) precip_type_tuple->value->int32);
         loading_layer_refresh();
         forecast_layer_refresh();
         weather_status_layer_refresh();
@@ -123,7 +127,6 @@ void app_message_init() {
     app_message_register_inbox_dropped(inbox_dropped_callback);
 
     // Open AppMessage
-    const int inbox_size = 256;
     const int outbox_size = 0;
-    app_message_open(inbox_size, outbox_size);
+    app_message_open(app_message_inbox_size_maximum(), outbox_size);
 }

@@ -7,6 +7,11 @@
     "pebble-app"
   ],
   "private": true,
+  "releaseNotification": {
+    "enabled": true,
+    "title": "New in v1.31.0!",
+    "body": "The status bar now shows today's precipitation forecast. Flick your wrist to toggle between sun event time and precip amount.\n\nCustomize this in Settings → Weather → Status Bar Display."
+  },
   "dependencies": {
     "suncalc": "^1.9.0"
   },

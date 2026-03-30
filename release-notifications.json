@@ -2,5 +2,9 @@
   "1.26.0": {
     "title": "New in v1.26.0!",
     "body": "Forecast graph now shows hatch shading between sunset and sunrise to distinguish day and night.\n\nDay/night shading is on by default and can be turned off in the Weather section of the watchface settings.\n\nPrivacy-respecting weather telemetry is now enabled, see README for details."
+  },
+  "1.31.0": {
+    "title": "New in v1.31.0!",
+    "body": "The status bar now shows today's precipitation forecast. Flick your wrist to toggle between sun event time and precip amount.\n\nCustomize this in Settings → Weather → Status Bar Display."
   }
 }

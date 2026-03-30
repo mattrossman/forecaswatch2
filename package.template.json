@@ -87,7 +87,8 @@
       "CLAY_COLOR_SUNDAY",
       "CLAY_COLOR_US_FEDERAL",
       "CLAY_COLOR_TIME",
-      "CLAY_DAY_NIGHT_SHADING"
+      "CLAY_DAY_NIGHT_SHADING",
+      "CLAY_STATUS_BAR_MODE"
     ]
   }
 }

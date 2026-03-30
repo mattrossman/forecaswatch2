@@ -61,7 +61,7 @@ OpenWeatherMapProvider.prototype.withWeatherData = function(lat, lon, callback, 
 // ============== IMPORTANT OVERRIDE ================
 OpenWeatherMapProvider.prototype.withSunEvents = function(lat, lon, callback, onFailure) {
     console.log('This is the overridden implementation of withSunEvents');
-    this.withOwmResponse(lat, lon, (function(owmResponse) {
+    this.withWeatherData(lat, lon, (function(owmResponse) {
         var days = owmResponse.daily;
         var sunEvents;
         var now;
@@ -93,12 +93,18 @@ OpenWeatherMapProvider.prototype.withSunEvents = function(lat, lon, callback, on
 OpenWeatherMapProvider.prototype.withProviderData = function(lat, lon, force, onSuccess, onFailure) {
     // onSuccess expects that this.hasValidData() will be true
     console.log('This is the overridden implementation of withProviderData');
+    if (force) {
+        this.weatherDataCache = null;
+    }
     this.withWeatherData(lat, lon, (function(weatherData) {
         this.tempTrend = weatherData.hourly.map(function(entry) {
             return entry.temp;
         });
         this.precipTrend = weatherData.hourly.map(function(entry) {
             return entry.pop;
+        });
+        this.windTrend = weatherData.hourly.map(function(entry) {
+            return entry.wind_speed || 0;
         });
         this.startTime = weatherData.hourly[0].dt;
         this.currentTemp = weatherData.current.temp;

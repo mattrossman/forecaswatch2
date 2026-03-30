@@ -17,6 +17,14 @@ static GRect frame_sun_event;
 
 static bool s_show_precip = false;
 
+static bool should_show_precip() {
+    switch (g_config->status_bar_mode) {
+        case STATUS_BAR_MODE_SUN: return false;
+        case STATUS_BAR_MODE_PRECIP: return true;
+        default: return s_show_precip;  // STATUS_BAR_MODE_BOTH: use tap toggle
+    }
+}
+
 static Layer *s_weather_status_layer;
 static TextLayer *s_city_layer;
 static TextLayer *s_current_temp_layer;
@@ -82,7 +90,7 @@ static void sun_event_layer_refresh() {
 
     static char s_buffer[12];
 
-    if (s_show_precip) {
+    if (should_show_precip()) {
         uint16_t tenths_mm = persist_get_precip_total();
         if (config_is_celsius()) {
             int mm_int = tenths_mm / 10;
@@ -108,7 +116,7 @@ static void sun_event_layer_refresh() {
     // Dynamic resizing
     text_layer_move_frame(s_next_sun_event_layer, GRect(0, 0, 100, 100));  // Make it big so content doesn't get clipped
     GSize size = text_layer_get_content_size(s_next_sun_event_layer);
-    if (s_show_precip) {
+    if (should_show_precip()) {
         // Icon on left, text to its right
         int icon_w = (persist_get_precip_type() > 0) ? ICON_W + MARGIN : 0;
         int text_x = bounds.size.w - MARGIN - size.w;
@@ -157,7 +165,7 @@ static void weather_status_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
     int w = bounds.size.w;
 
-    if (s_show_precip) {
+    if (should_show_precip()) {
         uint8_t precip_type = persist_get_precip_type();
         if (precip_type > 0) {
             GColor icon_color = PBL_IF_COLOR_ELSE(
@@ -199,6 +207,13 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
     weather_status_layer_refresh();
 }
 
+static void update_accel_subscription() {
+    accel_tap_service_unsubscribe();
+    if (g_config->status_bar_mode == STATUS_BAR_MODE_BOTH) {
+        accel_tap_service_subscribe(tap_handler);
+    }
+}
+
 void weather_status_layer_create(Layer* parent_layer, GRect frame) {
     s_weather_status_layer = layer_create(frame);
     GRect bounds = layer_get_bounds(s_weather_status_layer);
@@ -210,13 +225,14 @@ void weather_status_layer_create(Layer* parent_layer, GRect frame) {
     layer_add_child(s_weather_status_layer, text_layer_get_layer(s_next_sun_event_layer));
     layer_set_update_proc(s_weather_status_layer, weather_status_update_proc);
 
-    accel_tap_service_subscribe(tap_handler);
+    update_accel_subscription();
 
     // Add the weather status bar to its parent
     layer_add_child(parent_layer, s_weather_status_layer);
 }
 
 void weather_status_layer_refresh() {
+    update_accel_subscription();
     layer_mark_dirty(s_weather_status_layer);
     current_temp_layer_refresh();
     sun_event_layer_refresh();

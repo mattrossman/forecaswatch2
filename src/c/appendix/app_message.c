@@ -1,5 +1,4 @@
 #include "app_message.h"
-#include "config.h"
 #include "persist.h"
 #include "math.h"
 #include "c/layers/forecast_layer.h"

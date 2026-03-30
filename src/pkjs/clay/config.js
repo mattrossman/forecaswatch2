@@ -160,7 +160,7 @@ module.exports = [
                 "type": "select",
                 "defaultValue": "f",
                 "messageKey": "temperatureUnits",
-                "label": "Temperature Units",
+                "label": "Units",
                 "options": [
                     {
                         "label": "Imperial (°F, in)",

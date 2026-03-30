@@ -100,7 +100,7 @@ static void sun_event_layer_refresh() {
             int hundredths_in = (tenths_mm * 100) / 254;
             int in_int = hundredths_in / 100;
             int in_frac = hundredths_in % 100;
-            snprintf(s_buffer, sizeof(s_buffer), "%d.%02d in", in_int, in_frac);
+            snprintf(s_buffer, sizeof(s_buffer), "%d.%02d\"", in_int, in_frac);
         }
     } else {
         // Get the time of the first sun event

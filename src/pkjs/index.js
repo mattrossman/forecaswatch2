@@ -77,6 +77,7 @@ Pebble.addEventListener('ready',
         }
         app.telemetry = createTelemetryClient(getRuntimeTelemetryConfig());
         refreshProvider();
+        sendClaySettings();
         startTick();
     }
 );

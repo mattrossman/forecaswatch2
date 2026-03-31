@@ -62,7 +62,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         || clay_color_sunday_tuple || clay_color_us_federal_tuple || clay_color_time_tuple || clay_day_night_shading_tuple
         || clay_weather_status_right_mode_tuple;
 
-    if(temp_trend_tuple && precip_trend_tuple && forecast_start_tuple && num_entries_tuple && city_tuple && sun_events_tuple && precip_total_tuple && precip_type_tuple) {
+    if(temp_trend_tuple && precip_trend_tuple && forecast_start_tuple && num_entries_tuple && current_temp_tuple && city_tuple && sun_events_tuple && precip_total_tuple && precip_type_tuple) {
         // Weather data received
         APP_LOG(APP_LOG_LEVEL_INFO, "All tuples received!");
         persist_set_forecast_start((time_t)forecast_start_tuple->value->int32);

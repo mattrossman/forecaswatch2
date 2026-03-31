@@ -16,6 +16,7 @@ static GRect frame_curr_temp;
 static GRect frame_sun_event;
 
 static bool s_show_precip = false;
+static bool s_accel_tap_subscribed = false;
 
 static bool should_show_precip() {
     switch (g_config->status_bar_mode) {
@@ -51,7 +52,6 @@ static const GPathInfo RAINDROP_PATH_INFO = {
         {0, -5}, {-3, 1}, {-2, 4}, {0, 5}, {2, 4}, {3, 1}
     }
 };
-
 
 static void text_layer_move_frame(TextLayer *text_layer, GRect frame) {
     layer_set_frame(text_layer_get_layer(text_layer), frame);
@@ -133,7 +133,6 @@ static void sun_event_layer_refresh() {
 static void weather_status_layer_init(GRect bounds) {
     // Set up the city text layer properties
     int w = bounds.size.w;
-    int h = bounds.size.h;
 
     // Current temperature
     s_current_temp_layer = text_layer_create(GRect(MARGIN, -FONT_18_OFFSET, 40, 25));
@@ -162,9 +161,6 @@ static void weather_status_layer_init(GRect bounds) {
 }
 
 static void weather_status_update_proc(Layer *layer, GContext *ctx) {
-    GRect bounds = layer_get_bounds(layer);
-    int w = bounds.size.w;
-
     if (should_show_precip()) {
         uint8_t precip_type = persist_get_precip_type();
         if (precip_type > 0) {
@@ -203,14 +199,21 @@ static void weather_status_update_proc(Layer *layer, GContext *ctx) {
 }
 
 static void tap_handler(AccelAxisType axis, int32_t direction) {
+    (void) axis;
+    (void) direction;
     s_show_precip = !s_show_precip;
     weather_status_layer_refresh();
 }
 
 static void update_accel_subscription() {
-    accel_tap_service_unsubscribe();
-    if (g_config->status_bar_mode == STATUS_BAR_MODE_BOTH) {
+    bool should_subscribe = g_config->status_bar_mode == STATUS_BAR_MODE_BOTH;
+
+    if (should_subscribe && !s_accel_tap_subscribed) {
         accel_tap_service_subscribe(tap_handler);
+        s_accel_tap_subscribed = true;
+    } else if (!should_subscribe && s_accel_tap_subscribed) {
+        accel_tap_service_unsubscribe();
+        s_accel_tap_subscribed = false;
     }
 }
 
@@ -240,7 +243,10 @@ void weather_status_layer_refresh() {
 }
 
 void weather_status_layer_destroy() {
-    accel_tap_service_unsubscribe();
+    if (s_accel_tap_subscribed) {
+        accel_tap_service_unsubscribe();
+        s_accel_tap_subscribed = false;
+    }
     text_layer_destroy(s_city_layer);
     text_layer_destroy(s_current_temp_layer);
     text_layer_destroy(s_next_sun_event_layer);

@@ -288,6 +288,23 @@ function resetFetchAttemptCounter() {
     localStorage.setItem(KEY_FETCH_ATTEMPT, '0');
 }
 
+/**
+ * Convert weather status mode setting to numeric app-message enum value.
+ *
+ * @param {string|undefined} mode Clay setting value.
+ * @returns {number} 0=both, 1=sun, 2=precip.
+ */
+function weatherStatusRightModeToInt(mode) {
+    switch (mode) {
+        case 'sun':
+            return 1;
+        case 'precip':
+            return 2;
+        default:
+            return 0;
+    }
+}
+
 function startTick() {
     console.log('Tick from PKJS!');
     tryFetch(app.provider);
@@ -336,7 +353,7 @@ function sendClaySettings(done) {
         "CLAY_COLOR_US_FEDERAL": app.settings.hasOwnProperty('colorUSFederal') ? app.settings.colorUSFederal : 16777215,
         "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : 16777215,
         "CLAY_DAY_NIGHT_SHADING": app.settings.hasOwnProperty('dayNightShading') ? app.settings.dayNightShading : true,
-        "CLAY_WEATHER_STATUS_RIGHT_MODE": ['both', 'sun', 'precip'].indexOf(app.settings.weatherStatusRightMode || 'both'),
+        "CLAY_WEATHER_STATUS_RIGHT_MODE": weatherStatusRightModeToInt(app.settings.weatherStatusRightMode),
     };
 
     Pebble.sendAppMessage(payload, function() {

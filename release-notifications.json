@@ -5,6 +5,6 @@
   },
   "1.31.0": {
     "title": "New in v1.31.0!",
-    "body": "The status bar now shows today's precipitation forecast. Flick your wrist to toggle between sun event time and precip amount.\n\nCustomize this in Settings → Weather → Status Bar Display."
+    "body": "Flick your wrist to cycle between showing the next sunrise/sunset time and precipitation amount over the next 24 hours.\n\nCustomize this in Settings → Weather → Weather detail (right)."
   }
 }

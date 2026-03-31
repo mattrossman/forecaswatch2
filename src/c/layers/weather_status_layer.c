@@ -169,7 +169,7 @@ static void weather_status_update_proc(Layer *layer, GContext *ctx) {
         uint8_t precip_type = persist_get_precip_type();
         if (precip_type > 0) {
             GColor icon_color = PBL_IF_COLOR_ELSE(
-                precip_type == 2 ? GColorVividCerulean : GColorCobaltBlue,
+                precip_type == 2 ? GColorCeleste : GColorCobaltBlue,
                 GColorWhite
             );
             int cx = frame_sun_event.origin.x + ICON_W / 2;

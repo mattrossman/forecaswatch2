@@ -44,13 +44,13 @@ Pebble.addEventListener('webviewclosed', function(e) {
     app.settings = getClaySettings();  // This reads from localStorage in sensible format
     app.telemetry = createTelemetryClient(getRuntimeTelemetryConfig());
     refreshProvider();
-    sendClaySettings();
-
-    // Fetching goes last, after other settings have been handled
-    if (app.settings.fetch === true) {
-        console.log('Force fetch!');
-        fetch(app.provider, true);
-    }
+    sendClaySettings(function() {
+        // Fetching goes last, after other settings have been handled
+        if (app.settings.fetch === true) {
+            console.log('Force fetch!');
+            fetch(app.provider, true);
+        }
+    });
     console.log('Closing clay: ' + JSON.stringify(getClaySettings()));
 });
 
@@ -77,8 +77,9 @@ Pebble.addEventListener('ready',
         }
         app.telemetry = createTelemetryClient(getRuntimeTelemetryConfig());
         refreshProvider();
-        sendClaySettings();
-        startTick();
+        sendClaySettings(function() {
+            startTick();
+        });
     }
 );
 
@@ -293,7 +294,30 @@ function startTick() {
     setTimeout(startTick, 60 * 1000); // 60 * 1000 milsec = 1 minute
 }
 
-function sendClaySettings() {
+/**
+ * Send Clay settings to the watch and invoke callback when done.
+ *
+ * @param {Function=} done Optional callback once send attempt completes.
+ * @returns {void}
+ */
+function sendClaySettings(done) {
+    var completed = false;
+
+    /**
+     * @returns {void}
+     */
+    function finish() {
+        if (completed) {
+            return;
+        }
+        completed = true;
+        if (typeof done === 'function') {
+            done();
+        }
+    }
+
+    var finishTimeout = setTimeout(finish, 1500);
+
     var payload = {
         "CLAY_CELSIUS": app.settings.temperatureUnits === 'c',
         "CLAY_TIME_LEAD_ZERO": app.settings.timeLeadingZero,
@@ -313,11 +337,16 @@ function sendClaySettings() {
         "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : 16777215,
         "CLAY_DAY_NIGHT_SHADING": app.settings.hasOwnProperty('dayNightShading') ? app.settings.dayNightShading : true,
         "CLAY_WEATHER_STATUS_RIGHT_MODE": ['both', 'sun', 'precip'].indexOf(app.settings.weatherStatusRightMode || 'both'),
-    }
+    };
+
     Pebble.sendAppMessage(payload, function() {
+        clearTimeout(finishTimeout);
         console.log('Message sent successfully: ' + JSON.stringify(payload));
+        finish();
     }, function(e) {
+        clearTimeout(finishTimeout);
         console.log('Message failed: ' + JSON.stringify(e));
+        finish();
     });
 }
 

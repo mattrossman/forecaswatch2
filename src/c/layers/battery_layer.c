@@ -1,5 +1,6 @@
 #include "battery_layer.h"
 #include "c/appendix/persist.h"
+#include "c/appendix/memlog.h"
 
 #define BATTERY_NUB_W 2
 #define BATTERY_NUB_H 6
@@ -42,7 +43,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
     int w = bounds.size.w;
     int h = bounds.size.h;
-    int icon_w = gbitmap_get_bounds(s_battery_power_bitmap).size.w;
+    int icon_w = s_battery_power_bitmap ? gbitmap_get_bounds(s_battery_power_bitmap).size.w : 0;
     int battery_x = icon_w + ICON_SPACING;
     int battery_total_w = w - battery_x;
     int battery_w = battery_total_w - BATTERY_NUB_W;
@@ -60,7 +61,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     graphics_context_set_fill_color(ctx, PBL_IF_COLOR_ELSE(get_battery_color(battery_level), GColorWhite));
     graphics_fill_rect(ctx, color_area, 0, GCornerNone);
 
-    if (show_power_icon) {
+    if (show_power_icon && s_battery_power_bitmap) {
         draw_power_icon(ctx, h, s_battery_power_bitmap);
     }
 
@@ -76,20 +77,36 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
 }
 
 void battery_layer_create(Layer* parent_layer, GRect frame) {
+    memlog_heap("battery_layer:create:start");
     s_battery_layer = layer_create(frame);
+    if (!s_battery_layer) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to create battery layer");
+        return;
+    }
     s_battery_power_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BATTERY_CHARGING);
+    if (!s_battery_power_bitmap) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to create battery bitmap");
+    }
 
     s_battery_palette = malloc(2 * sizeof(GColor));
-    s_battery_palette[0] = GColorWhite;
-    s_battery_palette[1] = GColorClear;
-    gbitmap_set_palette(s_battery_power_bitmap, s_battery_palette, false);
+    if (!s_battery_palette) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to allocate battery palette");
+    } else {
+        s_battery_palette[0] = GColorWhite;
+        s_battery_palette[1] = GColorClear;
+        if (s_battery_power_bitmap) {
+            gbitmap_set_palette(s_battery_power_bitmap, s_battery_palette, false);
+        }
+    }
 
     layer_set_update_proc(s_battery_layer, battery_update_proc);
     battery_state_service_subscribe(battery_state_handler);
     layer_add_child(parent_layer, s_battery_layer);
+    memlog_heap("battery_layer:create:end");
 }
 
 void battery_layer_refresh() {
+    memlog_heap("battery_layer:refresh");
     layer_mark_dirty(s_battery_layer);
 }
 
@@ -98,4 +115,5 @@ void battery_layer_destroy() {
     free(s_battery_palette);
     gbitmap_destroy(s_battery_power_bitmap);
     layer_destroy(s_battery_layer);
+    memlog_heap("battery_layer:destroy");
 }

@@ -1,5 +1,6 @@
 #include "time_layer.h"
 #include "c/appendix/config.h"
+#include "c/appendix/memlog.h"
 
 // MT = Margin Top
 #define MT_TIME 14
@@ -11,9 +12,13 @@ static TextLayer *s_time_layer;
 static TextLayer *s_am_pm_layer;
 
 void time_layer_create(Layer* parent_layer, GRect frame) {
+    memlog_heap("time_layer:create:start");
     s_container_layer = text_layer_create(frame);
+    memlog_heap("time_layer:after_container_create");
     s_time_layer = text_layer_create(GRect(0, 0, frame.size.w, frame.size.h));
+    memlog_heap("time_layer:after_time_create");
     s_am_pm_layer = text_layer_create(GRect(0, 0, 30, frame.size.h));
+    memlog_heap("time_layer:after_ampm_create");
 
     text_layer_set_background_color(s_container_layer, GColorClear);
 
@@ -33,6 +38,8 @@ void time_layer_create(Layer* parent_layer, GRect frame) {
     layer_add_child(text_layer_get_layer(s_time_layer), text_layer_get_layer(s_am_pm_layer));
     layer_add_child(parent_layer, text_layer_get_layer(s_container_layer));
 
+    memlog_heap("time_layer:create:end");
+
 }
 
 // 12:30 -> 12:30
@@ -44,6 +51,7 @@ static void text_layer_move_frame(TextLayer *text_layer, GRect frame) {
 }
 
 void time_layer_tick() {
+    memlog_heap("time_layer:tick:start");
     // Get a tm structure
     time_t temp = time(NULL);
     struct tm *tick_time = localtime(&temp);
@@ -74,15 +82,19 @@ void time_layer_tick() {
     if (g_config->show_am_pm)
         text_layer_move_frame(s_am_pm_layer, GRect(time_size.w, MT_TIME - MT_AM_PM, 30, time_size.h));
     layer_set_hidden(text_layer_get_layer(s_am_pm_layer), !g_config->show_am_pm);
+    memlog_heap("time_layer:tick:end");
 }
 
 void time_layer_refresh() {
+    memlog_heap("time_layer:refresh:start");
     text_layer_set_font(s_time_layer, config_time_font());
     text_layer_set_text_color(s_time_layer, PBL_IF_COLOR_ELSE(g_config->color_time, GColorWhite));
     time_layer_tick();  // Update main time text and layer positions
+    memlog_heap("time_layer:refresh:end");
 }
 
 void time_layer_destroy() {
     text_layer_destroy(s_time_layer);
     text_layer_destroy(s_container_layer);
+    memlog_heap("time_layer:destroy");
 }

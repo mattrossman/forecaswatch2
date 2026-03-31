@@ -19,7 +19,7 @@ void persist_init() {
     }
     if (!persist_exists(PRECIP_TREND)) {
         uint8_t data[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        persist_write_data(TEMP_TREND, (void*) data, 12*sizeof(uint8_t));
+        persist_write_data(PRECIP_TREND, (void*) data, sizeof(data));
     }
     if (!persist_exists(FORECAST_START)) {
         persist_write_int(FORECAST_START, 0);

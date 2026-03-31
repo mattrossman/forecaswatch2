@@ -1,5 +1,6 @@
 #include "calendar_layer.h"
 #include "c/appendix/config.h"
+#include "c/appendix/memlog.h"
 #include <time.h>
 
 #define NUM_WEEKS 3
@@ -7,7 +8,6 @@
 #define FONT_OFFSET 5
 
 static Layer *s_calendar_layer;
-static TextLayer *s_calendar_text_layers[NUM_WEEKS * DAYS_PER_WEEK];
 
 /* Copy struct tm out of localtime's static buffer — see localtime(3). */
 static struct tm relative_tm(int days_from_today)
@@ -91,6 +91,40 @@ static GColor today_color() {
 #endif
 }
 
+static void draw_day_cell(GContext *ctx, int i, int i_today, GRect bounds, float box_w, float box_h)
+{
+    struct tm t = relative_tm(i - i_today);
+    bool highlight_holiday = (config_highlight_holidays() && is_us_federal_holiday(&t));
+    bool highlight_sunday = (config_highlight_sundays() && t.tm_wday == 0);
+    bool highlight_saturday = (config_highlight_saturdays() && t.tm_wday == 6);
+    bool bold = (i == i_today) || highlight_holiday || highlight_sunday || highlight_saturday;
+
+    GRect cell = GRect(
+        (i % DAYS_PER_WEEK) * box_w,
+        (i / DAYS_PER_WEEK) * box_h,
+        box_w,
+        box_h);
+
+    if (i == i_today) {
+        graphics_context_set_fill_color(ctx, today_color());
+        graphics_fill_rect(ctx, cell, 1, GCornersAll);
+    }
+
+    static char s_buffer[4];
+    snprintf(s_buffer, sizeof(s_buffer), "%d", t.tm_mday);
+
+    graphics_context_set_text_color(ctx,
+        i == i_today ? gcolor_legible_over(today_color()) : PBL_IF_COLOR_ELSE(date_color(&t), GColorWhite));
+    graphics_draw_text(
+        ctx,
+        s_buffer,
+        fonts_get_system_font(bold ? FONT_KEY_GOTHIC_18_BOLD : FONT_KEY_GOTHIC_18),
+        GRect(cell.origin.x, cell.origin.y - FONT_OFFSET, cell.size.w, cell.size.h + FONT_OFFSET),
+        GTextOverflowModeWordWrap,
+        GTextAlignmentCenter,
+        NULL);
+}
+
 static void calendar_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
     int w = bounds.size.w;
@@ -101,75 +135,36 @@ static void calendar_update_proc(Layer *layer, GContext *ctx) {
     // Calculate which box holds today's date
     const int i_today = config_n_today();
 
-    graphics_context_set_fill_color(ctx, today_color());
-    graphics_fill_rect(ctx,
-        GRect((i_today % DAYS_PER_WEEK) * box_w, (i_today / DAYS_PER_WEEK) * box_h,
-        box_w, box_h), 1, GCornersAll);
+    for (int i = 0; i < NUM_WEEKS * DAYS_PER_WEEK; ++i) {
+        draw_day_cell(ctx, i, i_today, bounds, box_w, box_h);
+    }
 }
 
 void calendar_layer_create(Layer* parent_layer, GRect frame) {
+    memlog_heap("calendar_layer:create:start");
     s_calendar_layer = layer_create(frame);
     GRect bounds = layer_get_bounds(s_calendar_layer);
     int w = bounds.size.w;
     int h = bounds.size.h;
     float box_w = (float) w / DAYS_PER_WEEK;
     float box_h = (float) h / NUM_WEEKS;
-
-    for (int i = 0; i < NUM_WEEKS * DAYS_PER_WEEK; ++i) {
-        // Place a text box in that space
-        TextLayer *s_box_text_layer = text_layer_create(
-            GRect((i % DAYS_PER_WEEK) * box_w, (i / DAYS_PER_WEEK) * box_h - FONT_OFFSET,
-                  box_w, box_h + FONT_OFFSET));
-        text_layer_set_background_color(s_box_text_layer, GColorClear);
-        text_layer_set_text_alignment(s_box_text_layer, GTextAlignmentCenter);
-        s_calendar_text_layers[i] = s_box_text_layer;
-        layer_add_child(s_calendar_layer, text_layer_get_layer(s_box_text_layer));
-    }
     layer_set_update_proc(s_calendar_layer, calendar_update_proc);
     calendar_layer_refresh();
     layer_add_child(parent_layer, s_calendar_layer);
+    memlog_heap("calendar_layer:create:end");
 }
 
 
 void calendar_layer_refresh() {
-    static char s_calendar_box_buffers[NUM_WEEKS * DAYS_PER_WEEK][4];
+    memlog_heap("calendar_layer:refresh");
     // Request redraw (of today's highlight)
     layer_mark_dirty(s_calendar_layer);
-
-    // Calculate which box holds today's date
-    const int i_today = config_n_today();
-
-    // Fill each box with an appropriate relative day number
-    for (int i = 0; i < NUM_WEEKS * DAYS_PER_WEEK; ++i) {
-        char *buffer = s_calendar_box_buffers[i];
-        struct tm t = relative_tm(i - i_today);
-
-        // Set the text color
-        if (i == i_today) {
-            GColor text_color = gcolor_legible_over(today_color());
-            text_layer_set_text_color(s_calendar_text_layers[i], text_color);
-        }
-        else {
-            GColor text_color = PBL_IF_COLOR_ELSE(date_color(&t), GColorWhite);
-            text_layer_set_text_color(s_calendar_text_layers[i], text_color);
-        }
-
-        // Use bold font for today, and holidays/weekends if colored
-        bool highlight_holiday = (config_highlight_holidays() && is_us_federal_holiday(&t));
-        bool highlight_sunday = (config_highlight_sundays() && t.tm_wday == 0);
-        bool highlight_saturday = (config_highlight_saturdays() && t.tm_wday == 6);
-        bool bold = (i == i_today) || highlight_holiday || highlight_sunday || highlight_saturday;
-        text_layer_set_font(s_calendar_text_layers[i],
-            fonts_get_system_font(bold ? FONT_KEY_GOTHIC_18_BOLD : FONT_KEY_GOTHIC_18));
-
-        snprintf(buffer, 4, "%d", t.tm_mday);
-        text_layer_set_text(s_calendar_text_layers[i], buffer);
-    }
 }
 
 void calendar_layer_destroy() {
-    for (int i = 0; i < NUM_WEEKS * DAYS_PER_WEEK; ++i) {
-        text_layer_destroy(s_calendar_text_layers[i]);
+    if (s_calendar_layer) {
+        layer_destroy(s_calendar_layer);
+        s_calendar_layer = NULL;
     }
-    layer_destroy(s_calendar_layer);
+    memlog_heap("calendar_layer:destroy");
 }

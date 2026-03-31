@@ -1,6 +1,7 @@
 #include "weather_status_layer.h"
 #include "c/appendix/persist.h"
 #include "c/appendix/config.h"
+#include "c/appendix/memlog.h"
 
 #define FONT_18_OFFSET 7
 #define FONT_14_OFFSET 3
@@ -9,8 +10,16 @@
 #define ARROW_HEAD_H 3
 #define ARROW_HEAD_W 2
 #define ARROW_W 6
-#define ICON_W 8
+#define ICON_W 7
+#define ICON_Y_CENTER 6
 #define MARGIN 2
+
+static const GPathInfo RAINDROP_PATH_INFO = {
+    .num_points = 6,
+    .points = (GPoint[]){
+        {0, -5}, {-3, 1}, {-2, 4}, {0, 5}, {2, 4}, {3, 1}
+    }
+};
 
 static GRect frame_curr_temp;
 static GRect frame_sun_event;
@@ -30,34 +39,41 @@ static Layer *s_weather_status_layer;
 static TextLayer *s_city_layer;
 static TextLayer *s_current_temp_layer;
 static TextLayer *s_next_sun_event_layer;
+static GPath *s_rain_path;
 
-static GPath *s_arrow_path = NULL;
-static const GPathInfo ARROW_PATH_INFO = {
-    // Downward facing arrow, centered at the origin
-    .num_points = 6,
-    .points = (GPoint[]){
-        {0, -ARROW_H/2},
-        {0, ARROW_H/2 - ARROW_HEAD_H},
-        {-ARROW_HEAD_W, ARROW_H/2 - ARROW_HEAD_H},
-        {0, ARROW_H/2},
-        {ARROW_HEAD_W, ARROW_H/2 - ARROW_HEAD_H},
-        {0, ARROW_H/2 - ARROW_HEAD_H}
+static int get_precip_icon_width() {
+    if (!s_rain_path) {
+        return ICON_W;
     }
-};
 
-static const GPathInfo RAINDROP_PATH_INFO = {
-    // Teardrop: single-point apex, flares quickly, rounded belly
-    .num_points = 6,
-    .points = (GPoint[]){
-        {0, -5}, {-3, 1}, {-2, 4}, {0, 5}, {2, 4}, {3, 1}
-    }
-};
+    return ICON_W;
+}
+
+static void draw_sun_event_arrow(GContext *ctx, int cx, int cy, bool point_up) {
+    int half_h = ARROW_H / 2;
+    int dir = point_up ? -1 : 1;
+    int shaft_start_y = cy - dir * half_h;
+    int head_base_y = cy + dir * (half_h - ARROW_HEAD_H);
+    int tip_y = cy + dir * half_h;
+
+    graphics_draw_line(ctx, GPoint(cx, shaft_start_y), GPoint(cx, head_base_y));
+    graphics_draw_line(ctx, GPoint(cx - ARROW_HEAD_W, head_base_y), GPoint(cx, tip_y));
+    graphics_draw_line(ctx, GPoint(cx + ARROW_HEAD_W, head_base_y), GPoint(cx, tip_y));
+    graphics_draw_line(ctx, GPoint(cx - ARROW_HEAD_W, head_base_y), GPoint(cx + ARROW_HEAD_W, head_base_y));
+}
 
 static void text_layer_move_frame(TextLayer *text_layer, GRect frame) {
+    if (!text_layer) {
+        return;
+    }
     layer_set_frame(text_layer_get_layer(text_layer), frame);
 }
 
 static void city_layer_refresh() {
+    if (!s_city_layer || !s_weather_status_layer) {
+        return;
+    }
+
     // Set the city text layer contents from storage
     static char s_city_buffer[20];
     persist_get_city(s_city_buffer, sizeof(s_city_buffer));
@@ -74,6 +90,10 @@ static void city_layer_refresh() {
 }
 
 static void current_temp_layer_refresh() {
+    if (!s_current_temp_layer) {
+        return;
+    }
+
     static char s_temp_buffer[8];
     snprintf(s_temp_buffer, sizeof(s_temp_buffer), "• %d", config_localize_temp(persist_get_current_temp()));
     text_layer_set_text(s_current_temp_layer, s_temp_buffer);
@@ -86,6 +106,10 @@ static void current_temp_layer_refresh() {
 }
 
 static void sun_event_layer_refresh() {
+    if (!s_next_sun_event_layer || !s_weather_status_layer) {
+        return;
+    }
+
     GRect bounds = layer_get_bounds(s_weather_status_layer);
 
     static char s_buffer[12];
@@ -118,7 +142,7 @@ static void sun_event_layer_refresh() {
     GSize size = text_layer_get_content_size(s_next_sun_event_layer);
     if (should_show_precip()) {
         // Icon on left, text to its right
-        int icon_w = (persist_get_precip_type() > 0) ? ICON_W + MARGIN : 0;
+        int icon_w = (persist_get_precip_type() > 0) ? get_precip_icon_width() + MARGIN : 0;
         int text_x = bounds.size.w - MARGIN - size.w;
         text_layer_move_frame(s_next_sun_event_layer, GRect(text_x, -FONT_14_OFFSET, size.w, size.h));
         frame_sun_event = GRect(text_x - icon_w, -FONT_14_OFFSET, size.w + icon_w + MARGIN, size.h);
@@ -134,26 +158,43 @@ static void weather_status_layer_init(GRect bounds) {
     // Set up the city text layer properties
     int w = bounds.size.w;
 
+    s_rain_path = gpath_create(&RAINDROP_PATH_INFO);
+    if (!s_rain_path) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to create rain path");
+    }
+
     // Current temperature
     s_current_temp_layer = text_layer_create(GRect(MARGIN, -FONT_18_OFFSET, 40, 25));
+    if (!s_current_temp_layer) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to create current temp layer");
+    } else {
     text_layer_set_background_color(s_current_temp_layer, GColorClear);
     text_layer_set_text_alignment(s_current_temp_layer, GTextAlignmentLeft);
     text_layer_set_text_color(s_current_temp_layer, GColorWhite);
     text_layer_set_font(s_current_temp_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+    }
 
     // City where weather was fetched
     s_city_layer = text_layer_create(GRect(w/2 - CITY_INIT_WIDTH/2, -FONT_14_OFFSET, CITY_INIT_WIDTH, 25));
+    if (!s_city_layer) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to create city layer");
+    } else {
     text_layer_set_background_color(s_city_layer, GColorClear);
     text_layer_set_text_alignment(s_city_layer, GTextAlignmentCenter);
     text_layer_set_text_color(s_city_layer, GColorWhite);
     text_layer_set_font(s_city_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+    }
 
     // Time of next sun event (sunrise/sunset) or precip amount
     s_next_sun_event_layer = text_layer_create(GRect(w - MARGIN - 6 - 40, 4 - FONT_18_OFFSET, 40, 25));
+    if (!s_next_sun_event_layer) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to create sun event layer");
+    } else {
     text_layer_set_background_color(s_next_sun_event_layer, GColorClear);
     text_layer_set_text_alignment(s_next_sun_event_layer, GTextAlignmentLeft);
     text_layer_set_text_color(s_next_sun_event_layer, GColorWhite);
     text_layer_set_font(s_next_sun_event_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+    }
 
     current_temp_layer_refresh();
     sun_event_layer_refresh();
@@ -161,40 +202,33 @@ static void weather_status_layer_init(GRect bounds) {
 }
 
 static void weather_status_update_proc(Layer *layer, GContext *ctx) {
+    (void) layer;
+
     if (should_show_precip()) {
         uint8_t precip_type = persist_get_precip_type();
         if (precip_type > 0) {
-            GColor icon_color = PBL_IF_COLOR_ELSE(
-                precip_type == 2 ? GColorCeleste : GColorCobaltBlue,
-                GColorWhite
-            );
             int cx = frame_sun_event.origin.x + ICON_W / 2;
-            int cy = 6;
+            int cy = ICON_Y_CENTER;
+            graphics_context_set_stroke_color(ctx, GColorWhite);
+            graphics_context_set_stroke_width(ctx, 1);
             if (precip_type == 2) {
-                // Snow: 6-armed asterisk (3 lines at 60° apart)
-                graphics_context_set_stroke_color(ctx, icon_color);
                 graphics_draw_line(ctx, GPoint(cx, cy - 4), GPoint(cx, cy + 4));
                 graphics_draw_line(ctx, GPoint(cx - 3, cy - 2), GPoint(cx + 3, cy + 2));
                 graphics_draw_line(ctx, GPoint(cx + 3, cy - 2), GPoint(cx - 3, cy + 2));
+            } else if (s_rain_path) {
+                gpath_move_to(s_rain_path, GPoint(cx, cy));
+                gpath_rotate_to(s_rain_path, 0);
+                graphics_context_set_fill_color(ctx, GColorWhite);
+                gpath_draw_filled(ctx, s_rain_path);
             } else {
-                // Rain: teardrop GPath
-                GPath *icon_path = gpath_create(&RAINDROP_PATH_INFO);
-                gpath_move_to(icon_path, GPoint(cx, cy));
-                graphics_context_set_fill_color(ctx, icon_color);
-                gpath_draw_filled(ctx, icon_path);
-                gpath_destroy(icon_path);
+                graphics_draw_line(ctx, GPoint(cx, cy - 4), GPoint(cx, cy + 1));
+                graphics_draw_line(ctx, GPoint(cx - 1, cy + 1), GPoint(cx + 1, cy + 1));
             }
         }
     } else {
-        s_arrow_path = gpath_create(&ARROW_PATH_INFO);
-        if (persist_get_sun_event_start_type() == 0)
-            gpath_rotate_to(s_arrow_path, TRIG_MAX_ANGLE / 2);
-        gpath_move_to(s_arrow_path, GPoint(frame_sun_event.origin.x + ARROW_W / 2, 6));
         graphics_context_set_stroke_color(ctx, GColorWhite);
-        gpath_draw_outline_open(ctx, s_arrow_path);
-        graphics_context_set_fill_color(ctx, GColorWhite);
-        gpath_draw_filled(ctx, s_arrow_path);
-        gpath_destroy(s_arrow_path);
+        graphics_context_set_stroke_width(ctx, 1);
+        draw_sun_event_arrow(ctx, frame_sun_event.origin.x + ARROW_W / 2, 6, persist_get_sun_event_start_type() == 0);
     }
 }
 
@@ -218,28 +252,45 @@ static void update_accel_subscription() {
 }
 
 void weather_status_layer_create(Layer* parent_layer, GRect frame) {
+    memlog_heap("weather_status_layer:create:start");
     s_weather_status_layer = layer_create(frame);
+    if (!s_weather_status_layer) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to create weather status layer");
+        return;
+    }
     GRect bounds = layer_get_bounds(s_weather_status_layer);
 
     // Set up all the text layers
     weather_status_layer_init(bounds);
-    layer_add_child(s_weather_status_layer, text_layer_get_layer(s_city_layer));
-    layer_add_child(s_weather_status_layer, text_layer_get_layer(s_current_temp_layer));
-    layer_add_child(s_weather_status_layer, text_layer_get_layer(s_next_sun_event_layer));
+    if (s_city_layer) {
+        layer_add_child(s_weather_status_layer, text_layer_get_layer(s_city_layer));
+    }
+    if (s_current_temp_layer) {
+        layer_add_child(s_weather_status_layer, text_layer_get_layer(s_current_temp_layer));
+    }
+    if (s_next_sun_event_layer) {
+        layer_add_child(s_weather_status_layer, text_layer_get_layer(s_next_sun_event_layer));
+    }
     layer_set_update_proc(s_weather_status_layer, weather_status_update_proc);
 
     update_accel_subscription();
 
     // Add the weather status bar to its parent
     layer_add_child(parent_layer, s_weather_status_layer);
+    memlog_heap("weather_status_layer:create:end");
 }
 
 void weather_status_layer_refresh() {
+    if (!s_weather_status_layer) {
+        return;
+    }
+    memlog_heap("weather_status_layer:refresh:start");
     update_accel_subscription();
     layer_mark_dirty(s_weather_status_layer);
     current_temp_layer_refresh();
     sun_event_layer_refresh();
     city_layer_refresh();
+    memlog_heap("weather_status_layer:refresh:end");
 }
 
 void weather_status_layer_destroy() {
@@ -247,8 +298,25 @@ void weather_status_layer_destroy() {
         accel_tap_service_unsubscribe();
         s_accel_tap_subscribed = false;
     }
-    text_layer_destroy(s_city_layer);
-    text_layer_destroy(s_current_temp_layer);
-    text_layer_destroy(s_next_sun_event_layer);
-    layer_destroy(s_weather_status_layer);
+    if (s_rain_path) {
+        gpath_destroy(s_rain_path);
+        s_rain_path = NULL;
+    }
+    if (s_city_layer) {
+        text_layer_destroy(s_city_layer);
+        s_city_layer = NULL;
+    }
+    if (s_current_temp_layer) {
+        text_layer_destroy(s_current_temp_layer);
+        s_current_temp_layer = NULL;
+    }
+    if (s_next_sun_event_layer) {
+        text_layer_destroy(s_next_sun_event_layer);
+        s_next_sun_event_layer = NULL;
+    }
+    if (s_weather_status_layer) {
+        layer_destroy(s_weather_status_layer);
+        s_weather_status_layer = NULL;
+    }
+    memlog_heap("weather_status_layer:destroy");
 }

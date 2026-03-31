@@ -7,6 +7,7 @@
 #include "c/layers/calendar_layer.h"
 #include "c/layers/calendar_status_layer.h"
 #include "c/windows/main_window.h"
+#include "memlog.h"
 
 static uint32_t app_message_pick_inbox_size(uint32_t inbox_size_max) {
     // 512 is a tested compromise: it fits current Clay + weather payloads
@@ -127,19 +128,27 @@ static void inbox_dropped_callback(AppMessageResult reason, void *context) {
 }
 
 void app_message_init() {
+    memlog_heap("app_message:init:start");
     // Register callbacks
     app_message_register_inbox_received(inbox_received_callback);
     app_message_register_inbox_dropped(inbox_dropped_callback);
+    memlog_heap("app_message:after_register_callbacks");
 
     // Open AppMessage
     const int outbox_size = 0;
     const uint32_t inbox_size_max = app_message_inbox_size_maximum();
     uint32_t inbox_size_chosen = app_message_pick_inbox_size(inbox_size_max);
+    APP_LOG(APP_LOG_LEVEL_INFO, "[app_message] inbox_max=%lu chosen=%lu outbox=%d", (unsigned long) inbox_size_max, (unsigned long) inbox_size_chosen, outbox_size);
+    memlog_heap("app_message:before_open");
     AppMessageResult open_result = app_message_open(inbox_size_chosen, outbox_size);
+    memlog_heap("app_message:after_open");
 
     if (open_result == APP_MSG_OUT_OF_MEMORY && inbox_size_chosen > APP_MESSAGE_INBOX_SIZE_MINIMUM) {
         inbox_size_chosen = APP_MESSAGE_INBOX_SIZE_MINIMUM;
+        APP_LOG(APP_LOG_LEVEL_WARNING, "[app_message] retry with minimum inbox=%lu", (unsigned long) inbox_size_chosen);
+        memlog_heap("app_message:before_retry_open");
         open_result = app_message_open(inbox_size_chosen, outbox_size);
+        memlog_heap("app_message:after_retry_open");
     }
 
     if (open_result != APP_MSG_OK) {

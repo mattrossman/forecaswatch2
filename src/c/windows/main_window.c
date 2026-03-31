@@ -6,6 +6,7 @@
 #include "c/layers/calendar_status_layer.h"
 #include "c/layers/loading_layer.h"
 #include "c/appendix/persist.h"
+#include "c/appendix/memlog.h"
 
 #define FORECAST_HEIGHT 51
 #define WEATHER_STATUS_HEIGHT 14
@@ -16,6 +17,7 @@
 static Window *s_main_window;
 
 static void main_window_load(Window *window) {
+    memlog_heap("main_window_load:start");
     // Get information about the Window
     Layer *window_layer = window_get_root_layer(window);
     GRect bounds = layer_get_bounds(window_layer);
@@ -25,27 +27,41 @@ static void main_window_load(Window *window) {
 
     forecast_layer_create(window_layer,
             GRect(0, h - FORECAST_HEIGHT, w, FORECAST_HEIGHT));
+    memlog_heap("after forecast_layer_create");
     weather_status_layer_create(window_layer,
             GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, w, WEATHER_STATUS_HEIGHT));
+    memlog_heap("after weather_status_layer_create");
     time_layer_create(window_layer,
             GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT - TIME_HEIGHT,
             bounds.size.w, TIME_HEIGHT));
+    memlog_heap("after time_layer_create");
     calendar_layer_create(window_layer,
             GRect(0, CALENDAR_STATUS_HEIGHT, bounds.size.w, CALENDAR_HEIGHT));
+    memlog_heap("after calendar_layer_create");
     calendar_status_layer_create(window_layer,
             GRect(0, 0, bounds.size.w, CALENDAR_STATUS_HEIGHT + 1));  // +1 to stop text clipping
+    memlog_heap("after calendar_status_layer_create");
     loading_layer_create(window_layer,
             GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, w, FORECAST_HEIGHT + WEATHER_STATUS_HEIGHT));
+    memlog_heap("after loading_layer_create");
     loading_layer_refresh();
+    memlog_heap("after loading_layer_refresh");
 }
 
 static void main_window_unload(Window *window) {
+    memlog_heap("main_window_unload:start");
     time_layer_destroy();
+    memlog_heap("after time_layer_destroy");
     weather_status_layer_destroy();
+    memlog_heap("after weather_status_layer_destroy");
     forecast_layer_destroy();
+    memlog_heap("after forecast_layer_destroy");
     calendar_layer_destroy();
+    memlog_heap("after calendar_layer_destroy");
     calendar_status_layer_destroy();
+    memlog_heap("after calendar_status_layer_destroy");
     loading_layer_destroy();
+    memlog_heap("after loading_layer_destroy");
 }
 
 static void minute_handler(struct tm *tick_time, TimeUnits units_changed) {
@@ -57,6 +73,7 @@ static void minute_handler(struct tm *tick_time, TimeUnits units_changed) {
     }
     status_icons_refresh();
     loading_layer_refresh();
+    memlog_heap("after minute_handler refreshes");
 }
 
 /*----------------------------
@@ -64,6 +81,7 @@ static void minute_handler(struct tm *tick_time, TimeUnits units_changed) {
 ----------------------------*/
 
 void main_window_create() {
+    memlog_heap("main_window_create:start");
     // Create main Window element and assign to pointer
     s_main_window = window_create();
 
@@ -79,6 +97,7 @@ void main_window_create() {
     // Show the window on the watch with animated=true
     window_stack_push(s_main_window, true);
     time_layer_refresh();
+    memlog_heap("main_window_create:end");
 }
 
 void main_window_refresh() {

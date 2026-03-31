@@ -2,6 +2,7 @@
 #include "c/appendix/persist.h"
 #include "c/appendix/math.h"
 #include "c/appendix/config.h"
+#include "c/appendix/memlog.h"
 
 #define LEFT_AXIS_LABEL_STRIP_MIN_W 15
 #define LEFT_AXIS_LABEL_TO_GRAPH_GAP 2
@@ -23,6 +24,7 @@
 #define NIGHT_BOUNDARY_COLOR_PRECIP PBL_IF_COLOR_ELSE(GColorVividCerulean, GColorWhite)
 #define FORECAST_STEP_SECONDS (60 * 60)
 #define DAY_SECONDS (24 * 60 * 60)
+#define FORECAST_MAX_ENTRIES 24
 
 typedef struct
 {
@@ -312,6 +314,41 @@ static int16_t clamped_precip_top_y_for_x(GRect graph_plot_rect,
     return precip_y;
 }
 
+static void draw_polyline(GContext *ctx, const GPoint *points, int num_points)
+{
+    if (!points || num_points < 2)
+    {
+        return;
+    }
+
+    for (int i = 0; i < num_points - 1; ++i)
+    {
+        graphics_draw_line(ctx, points[i], points[i + 1]);
+    }
+}
+
+static void draw_precip_area_fill(GContext *ctx, GRect graph_plot_rect,
+                                  const GPoint *points_precip, int num_entries)
+{
+    if (!points_precip || num_entries <= 0)
+    {
+        return;
+    }
+
+    const int16_t x_start = graph_plot_rect.origin.x;
+    const int16_t x_end = graph_plot_rect.origin.x + graph_plot_rect.size.w;
+    const int16_t y_bottom = graph_plot_rect.origin.y + graph_plot_rect.size.h - 1;
+
+    for (int16_t x = x_start; x < x_end; ++x)
+    {
+        const int16_t precip_y = clamped_precip_top_y_for_x(graph_plot_rect, points_precip, num_entries, x);
+        if (precip_y <= y_bottom)
+        {
+            graphics_draw_line(ctx, GPoint(x, precip_y), GPoint(x, y_bottom));
+        }
+    }
+}
+
 static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end,
                                          const NightSegments *night_segments,
                                          const GPoint *points_precip, int num_entries)
@@ -449,26 +486,46 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     int h = layout.h;
 
     // Load data from storage
-    const int num_entries = persist_get_num_entries();
+    int num_entries = persist_get_num_entries();
     if (num_entries < 2)
     {
         graphics_context_set_fill_color(ctx, GColorBlack);
         graphics_fill_rect(ctx, bounds, 0, GCornerNone);
         return;
     }
+    if (num_entries > FORECAST_MAX_ENTRIES)
+    {
+        APP_LOG(APP_LOG_LEVEL_WARNING, "Clamping num_entries=%d to %d", num_entries, FORECAST_MAX_ENTRIES);
+        num_entries = FORECAST_MAX_ENTRIES;
+    }
 
     const time_t forecast_start = persist_get_forecast_start();
     const time_t forecast_end = forecast_start + (num_entries - 1) * FORECAST_STEP_SECONDS;
     NightSegments night_segments = {0};
     struct tm *forecast_start_local = localtime(&forecast_start);
-    int16_t temps[num_entries];
-    uint8_t precips[num_entries];
-    persist_get_temp_trend(temps, num_entries);
-    persist_get_precip_trend(precips, num_entries);
+    int16_t temps[FORECAST_MAX_ENTRIES] = {0};
+    uint8_t precips[FORECAST_MAX_ENTRIES] = {0};
+    const int temp_bytes = persist_get_temp_trend(temps, num_entries);
+    const int precip_bytes = persist_get_precip_trend(precips, num_entries);
+
+    const int temp_entries = temp_bytes / (int)sizeof(int16_t);
+    const int precip_entries = precip_bytes / (int)sizeof(uint8_t);
+    if (temp_entries < num_entries || precip_entries < num_entries)
+    {
+        int entries_available = temp_entries < precip_entries ? temp_entries : precip_entries;
+        if (entries_available < 2)
+        {
+            graphics_context_set_fill_color(ctx, GColorBlack);
+            graphics_fill_rect(ctx, bounds, 0, GCornerNone);
+            return;
+        }
+        APP_LOG(APP_LOG_LEVEL_WARNING, "Truncating entries temp=%d precip=%d req=%d", temp_entries, precip_entries, num_entries);
+        num_entries = entries_available;
+    }
 
     // Allocate point arrays for plots
-    GPoint points_temp[num_entries];
-    GPoint points_precip[num_entries + 2]; // We need 2 more to complete the area
+    GPoint points_temp[FORECAST_MAX_ENTRIES];
+    GPoint points_precip[FORECAST_MAX_ENTRIES];
 
     // Calculate the temperature range
     int lo, hi;
@@ -530,18 +587,10 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
         }
     }
 
-    // Complete the area under the precipitation
-    points_precip[num_entries] = GPoint(graph_bounds.origin.x + w, h - BOTTOM_AXIS_H);
-    points_precip[num_entries + 1] = GPoint(graph_bounds.origin.x, h - BOTTOM_AXIS_H);
-
     // Fill the precipitation area
-    GPathInfo path_info_precip = {
-        .num_points = num_entries + 2,
-        .points = points_precip};
-    GPath *path_precip_area_under = gpath_create(&path_info_precip);
-    graphics_context_set_fill_color(ctx, PRECIP_FILL_COLOR);
-    gpath_draw_filled(ctx, path_precip_area_under);
-    gpath_destroy(path_precip_area_under);
+    graphics_context_set_stroke_color(ctx, PRECIP_FILL_COLOR);
+    graphics_context_set_stroke_width(ctx, 1);
+    draw_precip_area_fill(ctx, graph_plot_rect, points_precip, num_entries);
 
     if (render_spec.draw_night_overlay)
     {
@@ -552,22 +601,14 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     }
 
     // Draw the precipitation line
-    path_info_precip.num_points = num_entries;
-    GPath *path_precip_top = gpath_create(&path_info_precip);
     graphics_context_set_stroke_color(ctx, GColorPictonBlue);
     graphics_context_set_stroke_width(ctx, 1);
-    gpath_draw_outline_open(ctx, path_precip_top);
-    gpath_destroy(path_precip_top);
+    draw_polyline(ctx, points_precip, num_entries);
 
     // Draw the temperature line
-    GPathInfo path_info_temp = {
-        .num_points = num_entries,
-        .points = points_temp};
-    GPath *path_temp = gpath_create(&path_info_temp);
     graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorRed, GColorWhite));
     graphics_context_set_stroke_width(ctx, 3); // Only odd stroke width values supported
-    gpath_draw_outline_open(ctx, path_temp);
-    gpath_destroy(path_temp);
+    draw_polyline(ctx, points_temp, num_entries);
 
     // Draw a line for the bottom axis
     graphics_context_set_stroke_color(ctx, render_spec.axis_color);
@@ -625,6 +666,7 @@ static void text_layers_refresh()
 
 void forecast_layer_create(Layer *parent_layer, GRect frame)
 {
+    memlog_heap("forecast_layer:create:start");
     s_forecast_layer = layer_create(frame);
 
     // Temperature HIGH
@@ -650,17 +692,29 @@ void forecast_layer_create(Layer *parent_layer, GRect frame)
 
     // Add it as a child layer to the Window's root layer
     layer_add_child(parent_layer, s_forecast_layer);
+    memlog_heap("forecast_layer:create:end");
 }
 
 void forecast_layer_refresh()
 {
+    memlog_heap("forecast_layer:refresh");
     text_layers_refresh();
     layer_mark_dirty(s_forecast_layer);
 }
 
 void forecast_layer_destroy()
 {
-    text_layer_destroy(s_hi_layer);
-    text_layer_destroy(s_lo_layer);
-    layer_destroy(s_forecast_layer);
+    if (s_hi_layer) {
+        text_layer_destroy(s_hi_layer);
+        s_hi_layer = NULL;
+    }
+    if (s_lo_layer) {
+        text_layer_destroy(s_lo_layer);
+        s_lo_layer = NULL;
+    }
+    if (s_forecast_layer) {
+        layer_destroy(s_forecast_layer);
+        s_forecast_layer = NULL;
+    }
+    memlog_heap("forecast_layer:destroy");
 }

@@ -34,7 +34,7 @@ jobs:
 
       - name: Install Pebble SDK
         if: ${{ steps.release.outputs.release_created }}
-        run: pebble sdk install latest
+        run: scripts/ensure-pebble-sdk.sh
 
       - name: Build .pbw
         if: ${{ steps.release.outputs.release_created }}

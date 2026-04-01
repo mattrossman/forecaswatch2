@@ -13,6 +13,7 @@ if [[ "${1:-}" == "--" ]]; then
   shift
 fi
 
+scripts/ensure-pebble-sdk.sh
 mise run prepare-package -- "$profile"
 pebble build "$@"
 

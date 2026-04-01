@@ -1,8 +1,11 @@
 var SunCalc = require('suncalc');
+var storageKeys = require('../storage-keys.js');
 
 var XHR_TIMEOUT_MS = 5000;
 var GPS_CACHE_KEY = 'gpsCache';
 var GPS_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+var GEOCODE_CACHE_KEY = storageKeys.GEOCODE_CACHE_KEY;
+var RATE_LIMIT_BACKOFF_KEY = storageKeys.GEOCODE_BACKOFF_KEY;
 
 /**
  * Perform an HTTP request and return response text.
@@ -54,6 +57,101 @@ function failure(stage, code) {
         stage: stage,
         code: code
     };
+}
+
+/**
+ * Parse stored JSON and clear invalid values.
+ *
+ * @param {string} key localStorage key.
+ * @returns {*} Parsed value or null when missing/invalid.
+ */
+function readStoredJson(key) {
+    var raw = localStorage.getItem(key);
+
+    if (raw === null) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(raw);
+    }
+    catch (ex) {
+        localStorage.removeItem(key);
+        return null;
+    }
+}
+
+/**
+ * Read the cached geocode result for the active location.
+ *
+ * @param {string} location Query string.
+ * @returns {{query: string, lat: string, lon: string, time: number}|null}
+ */
+function readGeocodeCache(location) {
+    var cachedGeocode = readStoredJson(GEOCODE_CACHE_KEY);
+
+    if (cachedGeocode && cachedGeocode.query === location) {
+        return cachedGeocode;
+    }
+
+    return null;
+}
+
+/**
+ * Persist a successful geocode lookup.
+ *
+ * @param {string} location Query string.
+ * @param {string} lat Latitude.
+ * @param {string} lon Longitude.
+ * @returns {void}
+ */
+function writeGeocodeCache(location, lat, lon) {
+    localStorage.setItem(GEOCODE_CACHE_KEY, JSON.stringify({
+        query: location,
+        lat: lat,
+        lon: lon,
+        time: Date.now()
+    }));
+}
+
+/**
+ * Determine whether geocoding is still in backoff.
+ *
+ * @returns {boolean} True when geocoding should be skipped.
+ */
+function isGeocodeBackoffActive() {
+    var backoffData = readStoredJson(RATE_LIMIT_BACKOFF_KEY);
+
+    if (!backoffData) {
+        return false;
+    }
+
+    if (Date.now() < (backoffData.until || 0)) {
+        return true;
+    }
+
+    localStorage.removeItem(RATE_LIMIT_BACKOFF_KEY);
+    return false;
+}
+
+/**
+ * Record a LocationIQ 429 backoff window.
+ *
+ * @returns {number} Backoff duration in milliseconds.
+ */
+function writeGeocodeBackoff() {
+    var currentBackoff = readStoredJson(RATE_LIMIT_BACKOFF_KEY);
+    var attempts = currentBackoff && currentBackoff.attempts ? currentBackoff.attempts : 0;
+    var backoffMs = attempts > 0
+        ? Math.min(30000 * Math.pow(2, attempts), 1800000)
+        : 60000;
+
+    localStorage.setItem(RATE_LIMIT_BACKOFF_KEY, JSON.stringify({
+        until: Date.now() + backoffMs,
+        attempts: attempts + 1
+    }));
+
+    return backoffMs;
 }
 
 var WeatherProvider = function() {
@@ -167,6 +265,8 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback, onFailure)
     var m = this.location.match(r_lat_long);
     var latitude;
     var longitude;
+    var cachedGeocode;
+    var backoffMs;
 
     console.log('WeatherProvider.prototype.withGeocodeCoordinates regex, this.location: ' + JSON.stringify(this.location));
     if (m !== null) {
@@ -175,6 +275,22 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback, onFailure)
         this.locationMode = 'manual_coordinates';
         console.log('regex matched, override is lat/long');
         callback(latitude, longitude);
+        return;
+    }
+
+    // Check rate limit backoff: skip geocoding if we're still in cooldown from a 429
+    if (isGeocodeBackoffActive()) {
+        console.log('[!] Geocoding in backoff cooldown, skipping');
+        onFailure(failure('forward_geocode', 'backoff'));
+        return;
+    }
+
+    // Check geocode cache: if the same address string was resolved before, reuse it
+    cachedGeocode = readGeocodeCache(this.location);
+    if (cachedGeocode !== null) {
+        console.log('Using cached geocode for: ' + this.location);
+        this.locationMode = 'manual_address';
+        callback(cachedGeocode.lat, cachedGeocode.lon);
         return;
     }
 
@@ -202,12 +318,24 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback, onFailure)
 
             closest = locations[0];
             console.log('Query ' + this.location + ' geocoded to ' + closest.lat + ', ' + closest.lon);
+            // Cache the successful geocode result
+            writeGeocodeCache(this.location, closest.lat, closest.lon);
             callback(closest.lat, closest.lon);
         }).bind(this),
-        function(error) {
+        (function(error) {
             console.log('[!] Forward geocode failed: ' + JSON.stringify(error));
+
+            // Apply exponential backoff on 429 responses
+            if (error.code === 'status_429') {
+                backoffMs = writeGeocodeBackoff();
+                console.log('[!] LocationIQ 429, backing off for ' + (backoffMs / 1000) + 's');
+            }
+            else {
+                // Clear backoff on non-429 errors (e.g. network issues)
+                localStorage.removeItem(RATE_LIMIT_BACKOFF_KEY);
+            }
             onFailure(failure('forward_geocode', error.code));
-        }
+        }).bind(this)
     );
 };
 

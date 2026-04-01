@@ -32,6 +32,38 @@ url = "https://github.com/supabase/cli/releases/download/v2.78.1/supabase_darwin
 checksum = "sha256:37019238428370db923341b0ae108a227e4c1b5f6dbea30e2687059a64cd7630"
 url = "https://github.com/supabase/cli/releases/download/v2.78.1/supabase_windows_amd64.tar.gz"
 
+[[tools."aqua:supabase/cli"]]
+version = "2.84.2"
+backend = "aqua:supabase/cli"
+
+[tools."aqua:supabase/cli"."platforms.linux-arm64"]
+checksum = "sha256:c660f5c9f62489f7c777cbd10a71b7af0a30bced1230783ab56713bceeaa4313"
+url = "https://github.com/supabase/cli/releases/download/v2.84.2/supabase_linux_arm64.tar.gz"
+
+[tools."aqua:supabase/cli"."platforms.linux-arm64-musl"]
+checksum = "sha256:c660f5c9f62489f7c777cbd10a71b7af0a30bced1230783ab56713bceeaa4313"
+url = "https://github.com/supabase/cli/releases/download/v2.84.2/supabase_linux_arm64.tar.gz"
+
+[tools."aqua:supabase/cli"."platforms.linux-x64"]
+checksum = "sha256:620a5f6ea7b60f9b4fe112a5d72464ea0e53d04022035641674a2e6d121e0eb5"
+url = "https://github.com/supabase/cli/releases/download/v2.84.2/supabase_linux_amd64.tar.gz"
+
+[tools."aqua:supabase/cli"."platforms.linux-x64-musl"]
+checksum = "sha256:620a5f6ea7b60f9b4fe112a5d72464ea0e53d04022035641674a2e6d121e0eb5"
+url = "https://github.com/supabase/cli/releases/download/v2.84.2/supabase_linux_amd64.tar.gz"
+
+[tools."aqua:supabase/cli"."platforms.macos-arm64"]
+checksum = "sha256:25e5cbbf4d1b79c265d40c9875b3457570d4600920f93161186f07e5ec1f75b8"
+url = "https://github.com/supabase/cli/releases/download/v2.84.2/supabase_darwin_arm64.tar.gz"
+
+[tools."aqua:supabase/cli"."platforms.macos-x64"]
+checksum = "sha256:6c4d42cc6d0e15d83f8564ec455a03586ce76fdd72fa3c4d1b7ac4d40472f563"
+url = "https://github.com/supabase/cli/releases/download/v2.84.2/supabase_darwin_amd64.tar.gz"
+
+[tools."aqua:supabase/cli"."platforms.windows-x64"]
+checksum = "sha256:617b37d756d3a6457ac63f60372ce85a816112350f97ebda711fddb4002b346c"
+url = "https://github.com/supabase/cli/releases/download/v2.84.2/supabase_windows_amd64.tar.gz"
+
 [[tools.deno]]
 version = "2.1.4"
 backend = "core:deno"
@@ -66,4 +98,8 @@ url = "https://dl.deno.land/release/v2.1.4/deno-x86_64-pc-windows-msvc.zip"
 
 [[tools."pipx:pebble-tool"]]
 version = "5.0.28"
+backend = "pipx:pebble-tool"
+
+[[tools."pipx:pebble-tool"]]
+version = "5.0.31"
 backend = "pipx:pebble-tool"

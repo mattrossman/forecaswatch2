@@ -6,6 +6,7 @@ var createTelemetryClient = require('./telemetry.js');
 var Clay = require('./clay/_source.js');
 var clayConfig = require('./clay/config.js');
 var customClay = require('./clay/inject.js');
+var storageKeys = require('./storage-keys.js');
 var pkg = require('../../package.json');
 
 /**
@@ -26,11 +27,16 @@ var releaseNotificationsManifest = loadReleaseNotificationsManifest();
 var clay = new Clay(clayConfig, customClay, { autoHandleEvents: false });
 var app = {};  // Namespace for global app variables
 var KEY_MAX_NOTIFIED_VERSION = 'max_notified_version';
-var KEY_FETCH_ATTEMPT = 'weather_fetch_attempt';
+var KEY_FETCH_ATTEMPT = storageKeys.FETCH_ATTEMPT_KEY;
+var KEY_LAST_FETCH_SUCCESS = storageKeys.LAST_FETCH_SUCCESS_KEY;
+var KEY_LAST_FETCH_ATTEMPT = storageKeys.LAST_FETCH_ATTEMPT_KEY;
+var KEY_GEOCODE_CACHE = storageKeys.GEOCODE_CACHE_KEY;
+var KEY_GEOCODE_BACKOFF = storageKeys.GEOCODE_BACKOFF_KEY;
 
 Pebble.addEventListener('showConfiguration', function(e) {
     // Set the userData here rather than in the Clay() constructor so it's actually up to date
-    clay.meta.userData.lastFetchSuccess = localStorage.getItem('lastFetchSuccess');
+    clay.meta.userData.lastFetchSuccess = localStorage.getItem(KEY_LAST_FETCH_SUCCESS);
+    clay.meta.userData.lastFetchAttempt = localStorage.getItem(KEY_LAST_FETCH_ATTEMPT);
     Pebble.openURL(clay.generateUrl());
     console.log('Showing clay: ' + JSON.stringify(getClaySettings()));
 });
@@ -340,8 +346,15 @@ function sendClaySettings() {
 }
 
 function refreshProvider() {
+    var oldLocation = app.provider ? app.provider.location : null;
     setProvider(app.settings.provider);
-    app.provider.location = app.settings.location === '' ? null : app.settings.location
+    app.provider.location = app.settings.location === '' ? null : app.settings.location;
+
+    // Clear geocode cache when location changes so a fresh lookup always happens
+    if (oldLocation !== app.provider.location) {
+        localStorage.removeItem(KEY_GEOCODE_CACHE);
+        localStorage.removeItem(KEY_GEOCODE_BACKOFF);
+    }
 }
 
 function setProvider(providerId) {
@@ -481,11 +494,11 @@ function fetch(provider, force) {
         id: provider.id,
         name: provider.name
     }
-    localStorage.setItem('lastFetchAttempt', JSON.stringify(fetchStatus));
+    localStorage.setItem(KEY_LAST_FETCH_ATTEMPT, JSON.stringify(fetchStatus));
     provider.fetch(
         function() {
             // Sucess, update recent fetch time
-            localStorage.setItem('lastFetchSuccess', JSON.stringify(fetchStatus));
+            localStorage.setItem(KEY_LAST_FETCH_SUCCESS, JSON.stringify(fetchStatus));
             resetFetchAttemptCounter();
             console.log('Successfully fetched weather!');
             maybeTrackWeatherFetch({
@@ -504,6 +517,13 @@ function fetch(provider, force) {
         function(failure) {
             // Failure
             console.log('[!] Provider failed to update weather: ' + JSON.stringify(failure));
+            var attemptStatus = {
+                time: fetchStatus.time,
+                id: fetchStatus.id,
+                name: fetchStatus.name,
+                error: failure
+            };
+            localStorage.setItem(KEY_LAST_FETCH_ATTEMPT, JSON.stringify(attemptStatus));
             maybeTrackWeatherFetch({
                 provider: provider.id,
                 success: false,
@@ -552,7 +572,7 @@ function roundDownMinutes(date, minuteMod) {
 
 function needRefresh() {
     // If the weather has never been fetched
-    var lastFetchSuccessString = localStorage.getItem('lastFetchSuccess');
+    var lastFetchSuccessString = localStorage.getItem(KEY_LAST_FETCH_SUCCESS);
     if (lastFetchSuccessString === null) {
         return true;
     }

@@ -18,7 +18,7 @@ mise build
 mise build release
 ```
 
-This builds the project with the Pebble SDK provisioned by mise. The `.pbw` output can be found in the `build` directory.
+This builds the project with the Pebble SDK version pinned in `pebble-sdk-version` and provisioned by the repo scripts. The `.pbw` output can be found in the `build` directory.
 
 ## Supabase (telemetry)
 

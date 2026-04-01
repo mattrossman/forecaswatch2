@@ -3,6 +3,8 @@ var SunCalc = require('suncalc');
 var XHR_TIMEOUT_MS = 5000;
 var GPS_CACHE_KEY = 'gpsCache';
 var GPS_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+var GEOCODE_CACHE_KEY = 'geocodeCache';
+var RATE_LIMIT_BACKOFF_KEY = 'geocodeBackoff';
 
 /**
  * Perform an HTTP request and return response text.
@@ -167,6 +169,11 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback, onFailure)
     var m = this.location.match(r_lat_long);
     var latitude;
     var longitude;
+    var cachedGeocode;
+    var parsedCache;
+    var cacheIsFresh;
+    var backoffData;
+    var backoffUntil;
 
     console.log('WeatherProvider.prototype.withGeocodeCoordinates regex, this.location: ' + JSON.stringify(this.location));
     if (m !== null) {
@@ -176,6 +183,42 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback, onFailure)
         console.log('regex matched, override is lat/long');
         callback(latitude, longitude);
         return;
+    }
+
+    // Check rate limit backoff: skip geocoding if we're still in cooldown from a 429
+    backoffData = localStorage.getItem(RATE_LIMIT_BACKOFF_KEY);
+    if (backoffData !== null) {
+        try {
+            backoffData = JSON.parse(backoffData);
+            backoffUntil = backoffData.until || 0;
+            if (Date.now() < backoffUntil) {
+                console.log('[!] Geocoding in backoff cooldown, skipping');
+                onFailure(failure('forward_geocode', 'backoff'));
+                return;
+            }
+            // Cooldown expired, clear it
+            localStorage.removeItem(RATE_LIMIT_BACKOFF_KEY);
+        }
+        catch (ex) {
+            localStorage.removeItem(RATE_LIMIT_BACKOFF_KEY);
+        }
+    }
+
+    // Check geocode cache: if the same address string was resolved before, reuse it
+    cachedGeocode = localStorage.getItem(GEOCODE_CACHE_KEY);
+    if (cachedGeocode !== null) {
+        try {
+            parsedCache = JSON.parse(cachedGeocode);
+            if (parsedCache && parsedCache.query === this.location) {
+                console.log('Using cached geocode for: ' + this.location);
+                this.locationMode = 'manual_address';
+                callback(parsedCache.lat, parsedCache.lon);
+                return;
+            }
+        }
+        catch (ex) {
+            localStorage.removeItem(GEOCODE_CACHE_KEY);
+        }
     }
 
     this.locationMode = 'manual_address';
@@ -202,12 +245,44 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback, onFailure)
 
             closest = locations[0];
             console.log('Query ' + this.location + ' geocoded to ' + closest.lat + ', ' + closest.lon);
+            // Cache the successful geocode result
+            localStorage.setItem(GEOCODE_CACHE_KEY, JSON.stringify({
+                query: this.location,
+                lat: closest.lat,
+                lon: closest.lon,
+                time: Date.now()
+            }));
             callback(closest.lat, closest.lon);
         }).bind(this),
-        function(error) {
+        (function(error) {
+            var backoffMs;
+            var currentBackoff;
             console.log('[!] Forward geocode failed: ' + JSON.stringify(error));
+
+            // Apply exponential backoff on 429 responses
+            if (error.code === 'status_429') {
+                currentBackoff = localStorage.getItem(RATE_LIMIT_BACKOFF_KEY);
+                try {
+                    currentBackoff = currentBackoff ? JSON.parse(currentBackoff) : null;
+                }
+                catch (ex) {
+                    currentBackoff = null;
+                }
+                backoffMs = currentBackoff && currentBackoff.attempts
+                    ? Math.min(30000 * Math.pow(2, currentBackoff.attempts), 1800000)
+                    : 60000;
+                localStorage.setItem(RATE_LIMIT_BACKOFF_KEY, JSON.stringify({
+                    until: Date.now() + backoffMs,
+                    attempts: (currentBackoff ? currentBackoff.attempts : 0) + 1
+                }));
+                console.log('[!] LocationIQ 429, backing off for ' + (backoffMs / 1000) + 's');
+            }
+            else {
+                // Clear backoff on non-429 errors (e.g. network issues)
+                localStorage.removeItem(RATE_LIMIT_BACKOFF_KEY);
+            }
             onFailure(failure('forward_geocode', error.code));
-        }
+        }).bind(this)
     );
 };
 

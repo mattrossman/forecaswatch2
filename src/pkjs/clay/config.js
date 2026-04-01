@@ -205,7 +205,7 @@ module.exports = [
                 "type": "toggle",
                 "label": "Force weather fetch",
                 "messageKey": "fetch",
-                "description": "Last successful fetch:<br><span id='lastFetchSpan'>Never :(</span>"
+                "description": "Last successful fetch:<br><span id='lastFetchSpan'>Never :(</span><span id='lastAttemptBlock'></span>"
             },
             {
                 "type": "input",

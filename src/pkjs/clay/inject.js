@@ -2,6 +2,25 @@ module.exports = function (minified) {
     clayConfig = this;
     var $ = minified.$;
 
+    /**
+     * Parse stored JSON safely.
+     *
+     * @param {string|null} value Raw JSON string.
+     * @returns {Object|null} Parsed object or null.
+     */
+    function parseStoredJson(value) {
+        if (value === null) {
+            return null;
+        }
+
+        try {
+            return JSON.parse(value);
+        }
+        catch (ex) {
+            return null;
+        }
+    }
+
     clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function() {
         var clayFetch;
         var clayOwmApiKey;
@@ -51,16 +70,16 @@ module.exports = function (minified) {
         // Show last weather fetch status
         lastFetchSuccessString = clayConfig.meta.userData.lastFetchSuccess;
         lastFetchSuccessTime = null;
-        if (lastFetchSuccessString !== null) {
-            lastFetchSuccess = JSON.parse(lastFetchSuccessString);
+        lastFetchSuccess = parseStoredJson(lastFetchSuccessString);
+        if (lastFetchSuccess !== null) {
             date = new Date(lastFetchSuccess.time);
             lastFetchSuccessTime = date.getTime();
             $('#lastFetchSpan').ht(date.toLocaleDateString() + ' ' + date.toLocaleTimeString() + ' with ' + lastFetchSuccess.name);
         }
 
         lastFetchAttemptString = clayConfig.meta.userData.lastFetchAttempt;
-        if (lastFetchAttemptString !== null) {
-            lastFetchAttempt = JSON.parse(lastFetchAttemptString);
+        lastFetchAttempt = parseStoredJson(lastFetchAttemptString);
+        if (lastFetchAttempt !== null) {
             if (lastFetchAttempt.error) {
                 attemptDate = new Date(lastFetchAttempt.time);
                 attemptTime = attemptDate.getTime();

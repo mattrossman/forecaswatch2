@@ -6,6 +6,7 @@ var createTelemetryClient = require('./telemetry.js');
 var Clay = require('./clay/_source.js');
 var clayConfig = require('./clay/config.js');
 var customClay = require('./clay/inject.js');
+var storageKeys = require('./storage-keys.js');
 var pkg = require('../../package.json');
 
 /**
@@ -26,11 +27,11 @@ var releaseNotificationsManifest = loadReleaseNotificationsManifest();
 var clay = new Clay(clayConfig, customClay, { autoHandleEvents: false });
 var app = {};  // Namespace for global app variables
 var KEY_MAX_NOTIFIED_VERSION = 'max_notified_version';
-var KEY_FETCH_ATTEMPT = 'weather_fetch_attempt';
-var KEY_LAST_FETCH_SUCCESS = 'lastFetchSuccess';
-var KEY_LAST_FETCH_ATTEMPT = 'lastFetchAttempt';
-var KEY_GEOCODE_CACHE = 'geocodeCache';
-var KEY_GEOCODE_BACKOFF = 'geocodeBackoff';
+var KEY_FETCH_ATTEMPT = storageKeys.FETCH_ATTEMPT_KEY;
+var KEY_LAST_FETCH_SUCCESS = storageKeys.LAST_FETCH_SUCCESS_KEY;
+var KEY_LAST_FETCH_ATTEMPT = storageKeys.LAST_FETCH_ATTEMPT_KEY;
+var KEY_GEOCODE_CACHE = storageKeys.GEOCODE_CACHE_KEY;
+var KEY_GEOCODE_BACKOFF = storageKeys.GEOCODE_BACKOFF_KEY;
 
 Pebble.addEventListener('showConfiguration', function(e) {
     // Set the userData here rather than in the Clay() constructor so it's actually up to date

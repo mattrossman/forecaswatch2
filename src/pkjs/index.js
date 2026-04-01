@@ -517,7 +517,12 @@ function fetch(provider, force) {
         function(failure) {
             // Failure
             console.log('[!] Provider failed to update weather: ' + JSON.stringify(failure));
-            var attemptStatus = Object.assign({}, fetchStatus, { error: failure });
+            var attemptStatus = {
+                time: fetchStatus.time,
+                id: fetchStatus.id,
+                name: fetchStatus.name,
+                error: failure
+            };
             localStorage.setItem(KEY_LAST_FETCH_ATTEMPT, JSON.stringify(attemptStatus));
             maybeTrackWeatherFetch({
                 provider: provider.id,

@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+# Activate the Pebble SDK version pinned in the repo before any build or install.
+
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 sdk_version_file="$repo_root/pebble-sdk-version"
 
@@ -18,9 +20,7 @@ if [[ -z "$sdk_version" ]]; then
   exit 1
 fi
 
-if pebble sdk list | grep -qE "^${sdk_version}( \(active\))?$"; then
-  pebble sdk activate "$sdk_version"
-else
+if ! pebble sdk activate "$sdk_version"; then
   pebble sdk install "$sdk_version"
   pebble sdk activate "$sdk_version"
 fi

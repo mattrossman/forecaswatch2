@@ -30,7 +30,7 @@ void loading_layer_create(Layer* parent_layer, GRect frame) {
     layer_set_update_proc(s_loading_layer, loading_update_proc);
     layer_add_child(s_loading_layer, text_layer_get_layer(s_loading_text_layer));
     layer_add_child(parent_layer, s_loading_layer);
-    memory_log_heap("after_loading_layer_create");
+    MEMORY_LOG_HEAP("after_loading_layer_create");
 }
 
 void loading_layer_refresh() {
@@ -43,8 +43,8 @@ void loading_layer_refresh() {
 }
 
 void loading_layer_destroy() {
-    memory_log_heap("loading_layer_destroy:before");
+    MEMORY_LOG_HEAP("loading_layer_destroy:before");
     layer_destroy(s_loading_layer);
     text_layer_destroy(s_loading_text_layer);
-    memory_log_heap("loading_layer_destroy:after");
+    MEMORY_LOG_HEAP("loading_layer_destroy:after");
 }

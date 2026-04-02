@@ -133,5 +133,5 @@ void app_message_init() {
     const int inbox_size = 256;
     const int outbox_size = 0;
     app_message_open(inbox_size, outbox_size);
-    memory_log_heap("after_app_message_open");
+    MEMORY_LOG_HEAP("after_app_message_open");
 }

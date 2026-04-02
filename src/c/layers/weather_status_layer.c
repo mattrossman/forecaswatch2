@@ -120,7 +120,7 @@ static void weather_status_layer_init(GRect bounds) {
 }
 
 static void weather_status_update_proc(Layer *layer, GContext *ctx) {
-    memory_log_heap("weather_status_update:enter");
+    MEMORY_LOG_HEAP("weather_status_update:enter");
     GRect bounds = layer_get_bounds(layer);
     int w = bounds.size.w;
     int h = bounds.size.h;
@@ -134,7 +134,7 @@ static void weather_status_update_proc(Layer *layer, GContext *ctx) {
     graphics_context_set_fill_color(ctx, GColorWhite);
     gpath_draw_filled(ctx, s_arrow_path);
     gpath_destroy(s_arrow_path);
-    memory_log_heap("weather_status_update:exit");
+    MEMORY_LOG_HEAP("weather_status_update:exit");
 }
 
 void weather_status_layer_create(Layer* parent_layer, GRect frame) {
@@ -150,7 +150,7 @@ void weather_status_layer_create(Layer* parent_layer, GRect frame) {
 
     // Add the weather status bar to its parent
     layer_add_child(parent_layer, s_weather_status_layer);
-    memory_log_heap("after_weather_status_layer_create");
+    MEMORY_LOG_HEAP("after_weather_status_layer_create");
 }
 
 void weather_status_layer_refresh() {
@@ -158,14 +158,14 @@ void weather_status_layer_refresh() {
     current_temp_layer_refresh();
     sun_event_layer_refresh();
     city_layer_refresh();
-    memory_log_heap("after_weather_refresh");
+    MEMORY_LOG_HEAP("after_weather_refresh");
 }
 
 void weather_status_layer_destroy() {
-    memory_log_heap("weather_status_layer_destroy:before");
+    MEMORY_LOG_HEAP("weather_status_layer_destroy:before");
     text_layer_destroy(s_city_layer);
     text_layer_destroy(s_current_temp_layer);
     text_layer_destroy(s_next_sun_event_layer);
     layer_destroy(s_weather_status_layer);
-    memory_log_heap("weather_status_layer_destroy:after");
+    MEMORY_LOG_HEAP("weather_status_layer_destroy:after");
 }

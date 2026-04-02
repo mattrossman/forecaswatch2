@@ -88,7 +88,7 @@ void battery_layer_create(Layer* parent_layer, GRect frame) {
     layer_set_update_proc(s_battery_layer, battery_update_proc);
     battery_state_service_subscribe(battery_state_handler);
     layer_add_child(parent_layer, s_battery_layer);
-    memory_log_heap("after_battery_layer_create");
+    MEMORY_LOG_HEAP("after_battery_layer_create");
 }
 
 void battery_layer_refresh() {
@@ -96,10 +96,10 @@ void battery_layer_refresh() {
 }
 
 void battery_layer_destroy() {
-    memory_log_heap("battery_layer_destroy:before");
+    MEMORY_LOG_HEAP("battery_layer_destroy:before");
     battery_state_service_unsubscribe();
     free(s_battery_palette);
     gbitmap_destroy(s_battery_power_bitmap);
     layer_destroy(s_battery_layer);
-    memory_log_heap("battery_layer_destroy:after");
+    MEMORY_LOG_HEAP("battery_layer_destroy:after");
 }

@@ -39,14 +39,14 @@ static void config_read_or_default(Config *config) {
 void config_load() {
     g_config = (Config*) malloc(sizeof(Config));
     config_read_or_default(g_config);
-    memory_log_heap("after_config_load");
+    MEMORY_LOG_HEAP("after_config_load");
 }
 
 void config_refresh() {
     free(g_config);  // Clear out the old config
     g_config = (Config*) malloc(sizeof(Config));
     config_read_or_default(g_config);  // Then reload
-    memory_log_heap("after_config_refresh");
+    MEMORY_LOG_HEAP("after_config_refresh");
 }
 
 void config_unload() {

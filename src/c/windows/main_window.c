@@ -38,18 +38,18 @@ static void main_window_load(Window *window) {
     loading_layer_create(window_layer,
             GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, w, FORECAST_HEIGHT + WEATHER_STATUS_HEIGHT));
     loading_layer_refresh();
-    memory_log_heap("after_window_load");
+    MEMORY_LOG_HEAP("after_window_load");
 }
 
 static void main_window_unload(Window *window) {
-    memory_log_heap("before_window_unload");
+    MEMORY_LOG_HEAP("before_window_unload");
     time_layer_destroy();
     weather_status_layer_destroy();
     forecast_layer_destroy();
     calendar_layer_destroy();
     calendar_status_layer_destroy();
     loading_layer_destroy();
-    memory_log_heap("after_window_unload");
+    MEMORY_LOG_HEAP("after_window_unload");
 }
 
 static void minute_handler(struct tm *tick_time, TimeUnits units_changed) {

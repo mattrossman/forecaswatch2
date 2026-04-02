@@ -129,7 +129,7 @@ void calendar_layer_create(Layer* parent_layer, GRect frame) {
     layer_set_update_proc(s_calendar_layer, calendar_update_proc);
     calendar_layer_refresh();
     layer_add_child(parent_layer, s_calendar_layer);
-    memory_log_heap("after_calendar_layer_create");
+    MEMORY_LOG_HEAP("after_calendar_layer_create");
 }
 
 
@@ -170,10 +170,10 @@ void calendar_layer_refresh() {
 }
 
 void calendar_layer_destroy() {
-    memory_log_heap("calendar_layer_destroy:before");
+    MEMORY_LOG_HEAP("calendar_layer_destroy:before");
     for (int i = 0; i < NUM_WEEKS * DAYS_PER_WEEK; ++i) {
         text_layer_destroy(s_calendar_text_layers[i]);
     }
     layer_destroy(s_calendar_layer);
-    memory_log_heap("calendar_layer_destroy:after");
+    MEMORY_LOG_HEAP("calendar_layer_destroy:after");
 }

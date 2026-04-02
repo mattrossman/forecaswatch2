@@ -439,6 +439,10 @@ static void draw_night_boundaries_over_precip(GContext *ctx, GRect graph_plot_re
     }
 }
 
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+static void forecast_heap_sample(const char *tag, unsigned long *min_free, unsigned long *used_at_min);
+#endif
+
 static void forecast_update_proc(Layer *layer, GContext *ctx)
 {
     memory_log_heap("forecast_update:enter");
@@ -452,10 +456,24 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
 
     // Load data from storage
     const int num_entries = persist_get_num_entries();
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+    unsigned long redraw_min_free = (unsigned long)heap_bytes_free();
+    unsigned long redraw_used_at_min = (unsigned long)heap_bytes_used();
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "MEM|forecast_update:start|entries=%d|free=%lu|used=%lu",
+            num_entries,
+            redraw_min_free,
+            redraw_used_at_min);
+#endif
     if (num_entries < 2)
     {
         graphics_context_set_fill_color(ctx, GColorBlack);
         graphics_fill_rect(ctx, bounds, 0, GCornerNone);
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "MEM|forecast_update:min_free|entries=%d|free=%lu|used=%lu",
+                num_entries,
+                redraw_min_free,
+                redraw_used_at_min);
+#endif
         memory_log_heap("forecast_update:exit");
         return;
     }
@@ -541,10 +559,22 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     GPathInfo path_info_precip = {
         .num_points = num_entries + 2,
         .points = points_precip};
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+    forecast_heap_sample("forecast_update:before_precip_path_create", &redraw_min_free, &redraw_used_at_min);
+#endif
     GPath *path_precip_area_under = gpath_create(&path_info_precip);
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+    forecast_heap_sample("forecast_update:after_precip_path_create", &redraw_min_free, &redraw_used_at_min);
+#endif
     graphics_context_set_fill_color(ctx, PRECIP_FILL_COLOR);
     gpath_draw_filled(ctx, path_precip_area_under);
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+    forecast_heap_sample("forecast_update:before_precip_path_destroy", &redraw_min_free, &redraw_used_at_min);
+#endif
     gpath_destroy(path_precip_area_under);
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+    forecast_heap_sample("forecast_update:after_precip_path_destroy", &redraw_min_free, &redraw_used_at_min);
+#endif
 
     if (render_spec.draw_night_overlay)
     {
@@ -556,21 +586,45 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
 
     // Draw the precipitation line
     path_info_precip.num_points = num_entries;
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+    forecast_heap_sample("forecast_update:before_precip_top_create", &redraw_min_free, &redraw_used_at_min);
+#endif
     GPath *path_precip_top = gpath_create(&path_info_precip);
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+    forecast_heap_sample("forecast_update:after_precip_top_create", &redraw_min_free, &redraw_used_at_min);
+#endif
     graphics_context_set_stroke_color(ctx, GColorPictonBlue);
     graphics_context_set_stroke_width(ctx, 1);
     gpath_draw_outline_open(ctx, path_precip_top);
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+    forecast_heap_sample("forecast_update:before_precip_top_destroy", &redraw_min_free, &redraw_used_at_min);
+#endif
     gpath_destroy(path_precip_top);
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+    forecast_heap_sample("forecast_update:after_precip_top_destroy", &redraw_min_free, &redraw_used_at_min);
+#endif
 
     // Draw the temperature line
     GPathInfo path_info_temp = {
         .num_points = num_entries,
         .points = points_temp};
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+    forecast_heap_sample("forecast_update:before_temp_path_create", &redraw_min_free, &redraw_used_at_min);
+#endif
     GPath *path_temp = gpath_create(&path_info_temp);
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+    forecast_heap_sample("forecast_update:after_temp_path_create", &redraw_min_free, &redraw_used_at_min);
+#endif
     graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorRed, GColorWhite));
     graphics_context_set_stroke_width(ctx, 3); // Only odd stroke width values supported
     gpath_draw_outline_open(ctx, path_temp);
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+    forecast_heap_sample("forecast_update:before_temp_path_destroy", &redraw_min_free, &redraw_used_at_min);
+#endif
     gpath_destroy(path_temp);
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+    forecast_heap_sample("forecast_update:after_temp_path_destroy", &redraw_min_free, &redraw_used_at_min);
+#endif
 
     // Draw a line for the bottom axis
     graphics_context_set_stroke_color(ctx, render_spec.axis_color);
@@ -581,6 +635,12 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     graphics_context_set_fill_color(ctx, GColorBlack);
     graphics_fill_rect(ctx, GRect(0, 0, s_axis_left_w, h - BOTTOM_AXIS_H), 0, GCornerNone); // Paint over plot bleeding
     graphics_draw_line(ctx, GPoint(graph_bounds.origin.x, 0), GPoint(graph_bounds.origin.x, axis_y));
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "MEM|forecast_update:min_free|entries=%d|free=%lu|used=%lu",
+            num_entries,
+            redraw_min_free,
+            redraw_used_at_min);
+#endif
     memory_log_heap("forecast_update:exit");
 }
 
@@ -627,6 +687,23 @@ static void text_layers_refresh()
     text_layer_set_text(s_lo_layer, s_buffer_lo);
 }
 
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+static void forecast_heap_sample(const char *tag, unsigned long *min_free, unsigned long *used_at_min)
+{
+    const unsigned long free_now = (unsigned long)heap_bytes_free();
+    if (free_now < *min_free)
+    {
+        *min_free = free_now;
+        *used_at_min = (unsigned long)heap_bytes_used();
+    }
+
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "MEM|%s|free=%lu|used=%lu",
+            tag,
+            free_now,
+            (unsigned long)heap_bytes_used());
+}
+#endif
+
 void forecast_layer_create(Layer *parent_layer, GRect frame)
 {
     s_forecast_layer = layer_create(frame);
@@ -661,7 +738,12 @@ void forecast_layer_refresh()
 {
     text_layers_refresh();
     layer_mark_dirty(s_forecast_layer);
-    memory_log_heap("after_forecast_refresh");
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "MEM|forecast_refresh|entries=%d|free=%lu|used=%lu",
+            persist_get_num_entries(),
+            (unsigned long)heap_bytes_free(),
+            (unsigned long)heap_bytes_used());
+#endif
 }
 
 void forecast_layer_destroy()

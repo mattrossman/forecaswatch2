@@ -45,6 +45,12 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         persist_set_forecast_start((time_t)forecast_start_tuple->value->int32);
         const int num_entries = ((int)num_entries_tuple->value->int32);
         persist_set_num_entries(num_entries);
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "MEM|forecast_payload|entries=%d|free=%lu|used=%lu",
+                num_entries,
+                (unsigned long)heap_bytes_free(),
+                (unsigned long)heap_bytes_used());
+#endif
         int16_t *temp_data = (int16_t*) temp_trend_tuple->value->data;
         persist_set_temp_trend(temp_data, num_entries);
         uint8_t *precip_data = (uint8_t*) precip_trend_tuple->value->data;

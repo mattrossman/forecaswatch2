@@ -7,6 +7,7 @@ If you need runtime logs, `mise install-emulator --logs` runs it in an emulator 
 ## Debugging
 
 - C: `APP_LOG(APP_LOG_LEVEL_DEBUG, "msg", args)`
+- Heap probes: use `memory_log_heap("tag")` for dev-only `MEM|...` logs around lifecycle and redraw checkpoints.
 - JS: `console.log("msg")`
 
 ## JavaScript Conventions

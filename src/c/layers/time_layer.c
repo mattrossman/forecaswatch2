@@ -1,5 +1,6 @@
 #include "time_layer.h"
 #include "c/appendix/config.h"
+#include "c/appendix/memory_log.h"
 
 // MT = Margin Top
 #define MT_TIME 14
@@ -32,6 +33,7 @@ void time_layer_create(Layer* parent_layer, GRect frame) {
     layer_add_child(text_layer_get_layer(s_container_layer), text_layer_get_layer(s_time_layer));
     layer_add_child(text_layer_get_layer(s_time_layer), text_layer_get_layer(s_am_pm_layer));
     layer_add_child(parent_layer, text_layer_get_layer(s_container_layer));
+    memory_log_heap("after_time_layer_create");
 
 }
 
@@ -83,6 +85,8 @@ void time_layer_refresh() {
 }
 
 void time_layer_destroy() {
+    memory_log_heap("time_layer_destroy:before");
     text_layer_destroy(s_time_layer);
     text_layer_destroy(s_container_layer);
+    memory_log_heap("time_layer_destroy:after");
 }

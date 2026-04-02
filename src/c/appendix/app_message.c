@@ -7,6 +7,7 @@
 #include "c/layers/calendar_layer.h"
 #include "c/layers/calendar_status_layer.h"
 #include "c/windows/main_window.h"
+#include "memory_log.h"
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Message received!");
@@ -126,4 +127,5 @@ void app_message_init() {
     const int inbox_size = 256;
     const int outbox_size = 0;
     app_message_open(inbox_size, outbox_size);
+    memory_log_heap("after_app_message_open");
 }

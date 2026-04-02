@@ -2,6 +2,7 @@
 #include "c/appendix/persist.h"
 #include "c/appendix/math.h"
 #include "c/appendix/config.h"
+#include "c/appendix/memory_log.h"
 
 #define LEFT_AXIS_LABEL_STRIP_MIN_W 15
 #define LEFT_AXIS_LABEL_TO_GRAPH_GAP 2
@@ -440,6 +441,7 @@ static void draw_night_boundaries_over_precip(GContext *ctx, GRect graph_plot_re
 
 static void forecast_update_proc(Layer *layer, GContext *ctx)
 {
+    memory_log_heap("forecast_update:enter");
     GRect bounds = layer_get_bounds(layer);
     RenderSpec render_spec = make_render_spec();
     ForecastLayout layout = compute_layout(bounds);
@@ -454,6 +456,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     {
         graphics_context_set_fill_color(ctx, GColorBlack);
         graphics_fill_rect(ctx, bounds, 0, GCornerNone);
+        memory_log_heap("forecast_update:exit");
         return;
     }
 
@@ -578,6 +581,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     graphics_context_set_fill_color(ctx, GColorBlack);
     graphics_fill_rect(ctx, GRect(0, 0, s_axis_left_w, h - BOTTOM_AXIS_H), 0, GCornerNone); // Paint over plot bleeding
     graphics_draw_line(ctx, GPoint(graph_bounds.origin.x, 0), GPoint(graph_bounds.origin.x, axis_y));
+    memory_log_heap("forecast_update:exit");
 }
 
 static int temp_label_string_width(const char *text)
@@ -650,17 +654,21 @@ void forecast_layer_create(Layer *parent_layer, GRect frame)
 
     // Add it as a child layer to the Window's root layer
     layer_add_child(parent_layer, s_forecast_layer);
+    memory_log_heap("after_forecast_layer_create");
 }
 
 void forecast_layer_refresh()
 {
     text_layers_refresh();
     layer_mark_dirty(s_forecast_layer);
+    memory_log_heap("after_forecast_refresh");
 }
 
 void forecast_layer_destroy()
 {
+    memory_log_heap("forecast_layer_destroy:before");
     text_layer_destroy(s_hi_layer);
     text_layer_destroy(s_lo_layer);
     layer_destroy(s_forecast_layer);
+    memory_log_heap("forecast_layer_destroy:after");
 }

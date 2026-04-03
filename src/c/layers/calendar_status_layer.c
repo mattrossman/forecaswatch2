@@ -16,23 +16,36 @@ static TextLayer *s_calendar_month_layer;
 static GBitmap *s_mute_bitmap;
 static GBitmap *s_bt_bitmap;
 static GBitmap *s_bt_disconnect_bitmap;
-static BitmapLayer *s_mute_bitmap_layer;
-static BitmapLayer *s_bt_bitmap_layer;
-static BitmapLayer *s_bt_disconnect_bitmap_layer;
 static GColor *s_bt_palette;
 static GColor *s_bt_disconnect_palette;
 static GColor *s_mute_palette;
 
+static void draw_bitmap(GContext *ctx, GBitmap *bitmap, GRect frame) {
+    graphics_context_set_compositing_mode(ctx, GCompOpSet);
+    graphics_draw_bitmap_in_rect(ctx, bitmap, frame);
+    graphics_context_set_compositing_mode(ctx, GCompOpAssign);
+}
 
-static void bitmap_layer_move_frame(BitmapLayer *bitmap_layer, GRect frame) {
-    layer_set_frame(bitmap_layer_get_layer(bitmap_layer), frame);
+static void calendar_status_update_proc(Layer *layer, GContext *ctx) {
+    bool show_qt = show_qt_icon();
+    bool connected = connection_service_peek_pebble_app_connection();
+    int icon_x = show_qt ? ICON_SLOT_2.origin.x : ICON_SLOT_1.origin.x;
+
+    if (show_qt) {
+        draw_bitmap(ctx, s_mute_bitmap, ICON_SLOT_1);
+    }
+
+    if (connected && g_config->show_bt) {
+        draw_bitmap(ctx, s_bt_bitmap, GRect(icon_x, 0, 10, 10));
+    } else if (!connected && g_config->show_bt_disconnect) {
+        draw_bitmap(ctx, s_bt_disconnect_bitmap, GRect(icon_x, 0, 10, 10));
+    }
 }
 
 void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     s_calendar_status_layer = layer_create(frame);
     GRect bounds = layer_get_bounds(s_calendar_status_layer);
     int w = bounds.size.w;
-    int h = bounds.size.h;
 
     // Set up icons
     s_mute_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_MUTE);
@@ -55,19 +68,6 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     s_mute_palette[1] = GColorClear;
     gbitmap_set_palette(s_mute_bitmap, s_mute_palette, false);
 
-    s_mute_bitmap_layer = bitmap_layer_create(ICON_SLOT_1);
-    bitmap_layer_set_compositing_mode(s_mute_bitmap_layer, GCompOpSet);
-    bitmap_layer_set_bitmap(s_mute_bitmap_layer, s_mute_bitmap);
-
-    s_bt_bitmap_layer = bitmap_layer_create(ICON_SLOT_2);
-    bitmap_layer_set_compositing_mode(s_bt_bitmap_layer, GCompOpSet);
-    bitmap_layer_set_bitmap(s_bt_bitmap_layer, s_bt_bitmap);
-
-    s_bt_disconnect_bitmap_layer = bitmap_layer_create(ICON_SLOT_2);
-    bitmap_layer_set_compositing_mode(s_bt_disconnect_bitmap_layer, GCompOpSet);
-    bitmap_layer_set_bitmap(s_bt_disconnect_bitmap_layer, s_bt_disconnect_bitmap);
-
-
     // Set up month text layer
     s_calendar_month_layer = text_layer_create(GRect(0, -MONTH_FONT_OFFSET, w, 25));
     text_layer_set_background_color(s_calendar_month_layer, GColorClear);
@@ -81,20 +81,16 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     });
 
     calendar_status_layer_refresh();
-    layer_add_child(s_calendar_status_layer, bitmap_layer_get_layer(s_mute_bitmap_layer));
-    layer_add_child(s_calendar_status_layer, bitmap_layer_get_layer(s_bt_bitmap_layer));
-    layer_add_child(s_calendar_status_layer, bitmap_layer_get_layer(s_bt_disconnect_bitmap_layer));
     layer_add_child(s_calendar_status_layer, text_layer_get_layer(s_calendar_month_layer));
+    layer_set_update_proc(s_calendar_status_layer, calendar_status_update_proc);
     battery_layer_create(s_calendar_status_layer, GRect(w - BATTERY_W - PADDING, 1, BATTERY_W, BATTERY_H));
     layer_add_child(parent_layer, s_calendar_status_layer);
     MEMORY_LOG_HEAP("after_calendar_status_layer_create");
 }
 
 void bluetooth_icons_refresh(bool connected) {
-    bool show_bt = connected && g_config->show_bt;
-    bool show_bt_disconnect = !connected && g_config->show_bt_disconnect;
-    layer_set_hidden(bitmap_layer_get_layer(s_bt_bitmap_layer), !show_bt);
-    layer_set_hidden(bitmap_layer_get_layer(s_bt_disconnect_bitmap_layer), !show_bt_disconnect);
+    (void)connected;
+    layer_mark_dirty(s_calendar_status_layer);
 }
 
 void bluetooth_callback(bool connected) {
@@ -108,10 +104,7 @@ bool show_qt_icon() {
 }
 
 void status_icons_refresh() {
-    bool show_qt = show_qt_icon();
-    layer_set_hidden(bitmap_layer_get_layer(s_mute_bitmap_layer), !show_qt);
-    bitmap_layer_move_frame(s_bt_bitmap_layer, show_qt ? ICON_SLOT_2 : ICON_SLOT_1);
-    bitmap_layer_move_frame(s_bt_disconnect_bitmap_layer, show_qt ? ICON_SLOT_2 : ICON_SLOT_1);
+    layer_mark_dirty(s_calendar_status_layer);
 
     // Ensure bt icons are correct at start
     bluetooth_icons_refresh(connection_service_peek_pebble_app_connection());
@@ -136,9 +129,6 @@ void calendar_status_layer_destroy() {
     gbitmap_destroy(s_mute_bitmap);
     gbitmap_destroy(s_bt_bitmap);
     gbitmap_destroy(s_bt_disconnect_bitmap);
-    bitmap_layer_destroy(s_mute_bitmap_layer);
-    bitmap_layer_destroy(s_bt_bitmap_layer);
-    bitmap_layer_destroy(s_bt_disconnect_bitmap_layer);
     layer_destroy(s_calendar_status_layer);
     MEMORY_LOG_HEAP("calendar_status_layer_destroy:after");
 }

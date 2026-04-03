@@ -486,6 +486,11 @@ function fetch(provider, force) {
         return;
     }
 
+    if (typeof provider.isGeocodeBackoffActive === 'function' && provider.isGeocodeBackoffActive()) {
+        console.log('Skipping weather fetch: geocoding is in backoff cooldown.');
+        return;
+    }
+
     console.log('Fetching from ' + provider.name);
     var fetchStart = Date.now();
     var attempt = incrementFetchAttemptCounter();

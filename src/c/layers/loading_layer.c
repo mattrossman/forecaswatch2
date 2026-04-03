@@ -44,7 +44,7 @@ void loading_layer_refresh() {
 
 void loading_layer_destroy() {
     MEMORY_LOG_HEAP("loading_layer_destroy:before");
-    layer_destroy(s_loading_layer);
     text_layer_destroy(s_loading_text_layer);
+    layer_destroy(s_loading_layer);
     MEMORY_LOG_HEAP("loading_layer_destroy:after");
 }

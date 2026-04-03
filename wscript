@@ -30,7 +30,7 @@ def build(ctx):
     with open('package.json') as package_file:
         package = json.load(package_file)
 
-    enable_memory_logging = package.get('buildProfile') == 'dev'
+    enable_memory_logging = os.environ.get('ENABLE_MEMORY_LOGGING', '').strip().lower() in ('1', 'true', 'yes', 'on')
 
     build_worker = os.path.exists('worker_src')
     binaries = []

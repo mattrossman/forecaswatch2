@@ -173,6 +173,15 @@ WeatherProvider.prototype.gpsOverride = function(location) {
     this.location = location;
 };
 
+/**
+ * Determine whether the provider is currently rate-limited for geocoding.
+ *
+ * @returns {boolean} True when forward geocoding should be skipped.
+ */
+WeatherProvider.prototype.isGeocodeBackoffActive = function() {
+    return isGeocodeBackoffActive();
+};
+
 WeatherProvider.prototype.withSunEvents = function(lat, lon, callback, onFailure) {
     /* The callback runs with an array of the next two sun events (i.e. 24 hours worth),
      * where each sun event contains a 'type' ('sunrise' or 'sunset') and a 'date' (of type Date)

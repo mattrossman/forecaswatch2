@@ -485,11 +485,14 @@ WeatherProvider.prototype.withGpsCoordinates = function(callback, onFailure) {
 };
 
 WeatherProvider.prototype.withCoordinates = function(callback, onFailure) {
+    var locationOverride;
+
     this.usedGpsCache = false;
     this.gpsErrorCode = null;
     this.locationMode = null;
 
-    if (this.location === null) {
+    locationOverride = parseLocationOverride(this.location);
+    if (locationOverride.type === 'gps') {
         this.locationMode = 'gps';
         console.log('Using GPS');
         this.withGpsCoordinates(callback, onFailure);

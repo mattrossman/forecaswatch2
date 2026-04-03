@@ -2,6 +2,7 @@
 #include "c/appendix/persist.h"
 #include "c/appendix/math.h"
 #include "c/appendix/config.h"
+#include "c/appendix/memory_log.h"
 
 #define LEFT_AXIS_LABEL_STRIP_MIN_W 15
 #define LEFT_AXIS_LABEL_TO_GRAPH_GAP 2
@@ -440,6 +441,7 @@ static void draw_night_boundaries_over_precip(GContext *ctx, GRect graph_plot_re
 
 static void forecast_update_proc(Layer *layer, GContext *ctx)
 {
+    MEMORY_LOG_HEAP("forecast_update:enter");
     GRect bounds = layer_get_bounds(layer);
     RenderSpec render_spec = make_render_spec();
     ForecastLayout layout = compute_layout(bounds);
@@ -450,10 +452,12 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
 
     // Load data from storage
     const int num_entries = persist_get_num_entries();
+    MemoryHeapProbe redraw_probe = MEMORY_HEAP_PROBE_START("forecast_update");
     if (num_entries < 2)
     {
         graphics_context_set_fill_color(ctx, GColorBlack);
         graphics_fill_rect(ctx, bounds, 0, GCornerNone);
+        MEMORY_LOG_HEAP("forecast_update:exit");
         return;
     }
 
@@ -538,10 +542,14 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     GPathInfo path_info_precip = {
         .num_points = num_entries + 2,
         .points = points_precip};
+    MEMORY_HEAP_PROBE_SAMPLE("before_precip_path_create", &redraw_probe);
     GPath *path_precip_area_under = gpath_create(&path_info_precip);
+    MEMORY_HEAP_PROBE_SAMPLE("after_precip_path_create", &redraw_probe);
     graphics_context_set_fill_color(ctx, PRECIP_FILL_COLOR);
     gpath_draw_filled(ctx, path_precip_area_under);
+    MEMORY_HEAP_PROBE_SAMPLE("before_precip_path_destroy", &redraw_probe);
     gpath_destroy(path_precip_area_under);
+    MEMORY_HEAP_PROBE_SAMPLE("after_precip_path_destroy", &redraw_probe);
 
     if (render_spec.draw_night_overlay)
     {
@@ -553,21 +561,29 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
 
     // Draw the precipitation line
     path_info_precip.num_points = num_entries;
+    MEMORY_HEAP_PROBE_SAMPLE("before_precip_top_create", &redraw_probe);
     GPath *path_precip_top = gpath_create(&path_info_precip);
+    MEMORY_HEAP_PROBE_SAMPLE("after_precip_top_create", &redraw_probe);
     graphics_context_set_stroke_color(ctx, GColorPictonBlue);
     graphics_context_set_stroke_width(ctx, 1);
     gpath_draw_outline_open(ctx, path_precip_top);
+    MEMORY_HEAP_PROBE_SAMPLE("before_precip_top_destroy", &redraw_probe);
     gpath_destroy(path_precip_top);
+    MEMORY_HEAP_PROBE_SAMPLE("after_precip_top_destroy", &redraw_probe);
 
     // Draw the temperature line
     GPathInfo path_info_temp = {
         .num_points = num_entries,
         .points = points_temp};
+    MEMORY_HEAP_PROBE_SAMPLE("before_temp_path_create", &redraw_probe);
     GPath *path_temp = gpath_create(&path_info_temp);
+    MEMORY_HEAP_PROBE_SAMPLE("after_temp_path_create", &redraw_probe);
     graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorRed, GColorWhite));
     graphics_context_set_stroke_width(ctx, 3); // Only odd stroke width values supported
     gpath_draw_outline_open(ctx, path_temp);
+    MEMORY_HEAP_PROBE_SAMPLE("before_temp_path_destroy", &redraw_probe);
     gpath_destroy(path_temp);
+    MEMORY_HEAP_PROBE_SAMPLE("after_temp_path_destroy", &redraw_probe);
 
     // Draw a line for the bottom axis
     graphics_context_set_stroke_color(ctx, render_spec.axis_color);
@@ -578,6 +594,8 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     graphics_context_set_fill_color(ctx, GColorBlack);
     graphics_fill_rect(ctx, GRect(0, 0, s_axis_left_w, h - BOTTOM_AXIS_H), 0, GCornerNone); // Paint over plot bleeding
     graphics_draw_line(ctx, GPoint(graph_bounds.origin.x, 0), GPoint(graph_bounds.origin.x, axis_y));
+    MEMORY_HEAP_PROBE_LOG_MIN(&redraw_probe);
+    MEMORY_LOG_HEAP("forecast_update:exit");
 }
 
 static int temp_label_string_width(const char *text)
@@ -650,17 +668,26 @@ void forecast_layer_create(Layer *parent_layer, GRect frame)
 
     // Add it as a child layer to the Window's root layer
     layer_add_child(parent_layer, s_forecast_layer);
+    MEMORY_LOG_HEAP("after_forecast_layer_create");
 }
 
 void forecast_layer_refresh()
 {
     text_layers_refresh();
     layer_mark_dirty(s_forecast_layer);
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "MEM|forecast_refresh|entries=%d|free=%lu|used=%lu",
+            persist_get_num_entries(),
+            (unsigned long)heap_bytes_free(),
+            (unsigned long)heap_bytes_used());
+#endif
 }
 
 void forecast_layer_destroy()
 {
+    MEMORY_LOG_HEAP("forecast_layer_destroy:before");
     text_layer_destroy(s_hi_layer);
     text_layer_destroy(s_lo_layer);
     layer_destroy(s_forecast_layer);
+    MEMORY_LOG_HEAP("forecast_layer_destroy:after");
 }

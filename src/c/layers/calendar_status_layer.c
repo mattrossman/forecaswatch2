@@ -1,6 +1,7 @@
 #include "calendar_status_layer.h"
 #include "battery_layer.h"
 #include "c/appendix/config.h"
+#include "c/appendix/memory_log.h"
 
 #define MONTH_FONT_OFFSET 7
 #define BATTERY_W 29
@@ -86,6 +87,7 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     layer_add_child(s_calendar_status_layer, text_layer_get_layer(s_calendar_month_layer));
     battery_layer_create(s_calendar_status_layer, GRect(w - BATTERY_W - PADDING, 1, BATTERY_W, BATTERY_H));
     layer_add_child(parent_layer, s_calendar_status_layer);
+    MEMORY_LOG_HEAP("after_calendar_status_layer_create");
 }
 
 void bluetooth_icons_refresh(bool connected) {
@@ -126,6 +128,7 @@ void calendar_status_layer_refresh() {
 }
 
 void calendar_status_layer_destroy() {
+    MEMORY_LOG_HEAP("calendar_status_layer_destroy:before");
     battery_layer_destroy();
     free(s_bt_palette);
     free(s_bt_disconnect_palette);
@@ -137,4 +140,5 @@ void calendar_status_layer_destroy() {
     bitmap_layer_destroy(s_bt_bitmap_layer);
     bitmap_layer_destroy(s_bt_disconnect_bitmap_layer);
     layer_destroy(s_calendar_status_layer);
+    MEMORY_LOG_HEAP("calendar_status_layer_destroy:after");
 }

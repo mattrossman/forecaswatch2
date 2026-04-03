@@ -4,6 +4,7 @@
 # Feel free to customize this to your needs.
 #
 import os.path
+import json
 
 top = '.'
 out = 'build'
@@ -26,12 +27,19 @@ def configure(ctx):
 def build(ctx):
     ctx.load('pebble_sdk')
 
+    with open('package.json') as package_file:
+        package = json.load(package_file)
+
+    enable_memory_logging = package.get('buildProfile') == 'dev'
+
     build_worker = os.path.exists('worker_src')
     binaries = []
 
     cached_env = ctx.env
     for platform in ctx.env.TARGET_PLATFORMS:
         ctx.env = ctx.all_envs[platform]
+        if enable_memory_logging:
+            ctx.env.CFLAGS += ['-DFCW2_ENABLE_MEMORY_LOGGING=1']
         ctx.set_group(ctx.env.PLATFORM_NAME)
         app_elf = '{}/pebble-app.elf'.format(ctx.env.BUILD_DIR)
         ctx.pbl_build(source=ctx.path.ant_glob('src/c/**/*.c'), target=app_elf, bin_type='app')

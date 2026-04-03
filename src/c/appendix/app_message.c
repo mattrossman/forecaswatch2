@@ -7,6 +7,7 @@
 #include "c/layers/calendar_layer.h"
 #include "c/layers/calendar_status_layer.h"
 #include "c/windows/main_window.h"
+#include "memory_log.h"
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Message received!");
@@ -44,6 +45,12 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         persist_set_forecast_start((time_t)forecast_start_tuple->value->int32);
         const int num_entries = ((int)num_entries_tuple->value->int32);
         persist_set_num_entries(num_entries);
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "MEM|forecast_payload|entries=%d|free=%lu|used=%lu",
+                num_entries,
+                (unsigned long)heap_bytes_free(),
+                (unsigned long)heap_bytes_used());
+#endif
         int16_t *temp_data = (int16_t*) temp_trend_tuple->value->data;
         persist_set_temp_trend(temp_data, num_entries);
         uint8_t *precip_data = (uint8_t*) precip_trend_tuple->value->data;
@@ -126,4 +133,5 @@ void app_message_init() {
     const int inbox_size = 256;
     const int outbox_size = 0;
     app_message_open(inbox_size, outbox_size);
+    MEMORY_LOG_HEAP("after_app_message_open");
 }

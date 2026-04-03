@@ -6,6 +6,7 @@
 #include "c/layers/calendar_status_layer.h"
 #include "c/layers/loading_layer.h"
 #include "c/appendix/persist.h"
+#include "c/appendix/memory_log.h"
 
 #define FORECAST_HEIGHT 51
 #define WEATHER_STATUS_HEIGHT 14
@@ -37,15 +38,18 @@ static void main_window_load(Window *window) {
     loading_layer_create(window_layer,
             GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, w, FORECAST_HEIGHT + WEATHER_STATUS_HEIGHT));
     loading_layer_refresh();
+    MEMORY_LOG_HEAP("after_window_load");
 }
 
 static void main_window_unload(Window *window) {
+    MEMORY_LOG_HEAP("before_window_unload");
     time_layer_destroy();
     weather_status_layer_destroy();
     forecast_layer_destroy();
     calendar_layer_destroy();
     calendar_status_layer_destroy();
     loading_layer_destroy();
+    MEMORY_LOG_HEAP("after_window_unload");
 }
 
 static void minute_handler(struct tm *tick_time, TimeUnits units_changed) {

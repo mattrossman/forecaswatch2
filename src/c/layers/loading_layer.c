@@ -1,5 +1,6 @@
 #include "loading_layer.h"
 #include "c/appendix/persist.h"
+#include "c/appendix/memory_log.h"
 
 static Layer *s_loading_layer;
 static TextLayer *s_loading_text_layer;
@@ -29,6 +30,7 @@ void loading_layer_create(Layer* parent_layer, GRect frame) {
     layer_set_update_proc(s_loading_layer, loading_update_proc);
     layer_add_child(s_loading_layer, text_layer_get_layer(s_loading_text_layer));
     layer_add_child(parent_layer, s_loading_layer);
+    MEMORY_LOG_HEAP("after_loading_layer_create");
 }
 
 void loading_layer_refresh() {
@@ -41,6 +43,8 @@ void loading_layer_refresh() {
 }
 
 void loading_layer_destroy() {
-    layer_destroy(s_loading_layer);
+    MEMORY_LOG_HEAP("loading_layer_destroy:before");
     text_layer_destroy(s_loading_text_layer);
+    layer_destroy(s_loading_layer);
+    MEMORY_LOG_HEAP("loading_layer_destroy:after");
 }

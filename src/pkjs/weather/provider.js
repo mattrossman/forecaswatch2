@@ -287,7 +287,7 @@ function createGpsLocationOverrideState() {
  * Parse a location override into GPS, manual coordinates, or an address.
  *
  * @param {*} location Location override value.
- * @returns {{ type: 'gps'|'manual_coordinates'|'manual_address', query: ?string, latitude: ?string, longitude: ?string }} Parsed override state.
+ * @returns {{ type: 'gps'|'manual_coordinates'|'manual_address', query: string|null, latitude: string|null, longitude: string|null }} Parsed override state.
  */
 function parseLocationOverride(location) {
     var trimmedLocation;
@@ -349,19 +349,19 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback, onFailure)
         + '&q=' + encodeURIComponent(locationOverride.query)
         + '&format=json';
 
-    // Check rate limit backoff: skip geocoding if we're still in cooldown from a 429
-    if (isGeocodeBackoffActive()) {
-        console.log('[!] Geocoding in backoff cooldown, skipping');
-        onFailure(failure('forward_geocode', 'backoff'));
-        return;
-    }
-
-    // Check geocode cache: if the same address string was resolved before, reuse it
+    // Keep cached coordinates usable even while LocationIQ is in backoff.
     cachedGeocode = readGeocodeCache(locationOverride.query);
     if (cachedGeocode !== null) {
         console.log('Using cached geocode for: ' + locationOverride.query);
         this.locationMode = 'manual_address';
         callback(cachedGeocode.lat, cachedGeocode.lon);
+        return;
+    }
+
+    // Check rate limit backoff: skip geocoding if we're still in cooldown from a 429
+    if (isGeocodeBackoffActive()) {
+        console.log('[!] Geocoding in backoff cooldown, skipping');
+        onFailure(failure('forward_geocode', 'backoff'));
         return;
     }
 

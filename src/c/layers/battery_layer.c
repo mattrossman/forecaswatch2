@@ -7,6 +7,7 @@
 #define BATTERY_STROKE 1
 #define FILL_PADDING 1
 #define ICON_SPACING 3
+#define BATTERY_POWER_ICON_W 7
 
 
 static Layer *s_battery_layer;
@@ -26,6 +27,22 @@ static GColor get_battery_color(int level) {
         return GColorRed;
 }
 
+static void ensure_battery_power_bitmap_loaded(void) {
+    if (!s_battery_power_bitmap) {
+        s_battery_power_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BATTERY_CHARGING);
+        s_battery_palette[0] = GColorWhite;
+        s_battery_palette[1] = GColorClear;
+        gbitmap_set_palette(s_battery_power_bitmap, s_battery_palette, false);
+    }
+}
+
+static void maybe_unload_battery_power_bitmap(bool show_power_icon) {
+    if (!show_power_icon && s_battery_power_bitmap) {
+        gbitmap_destroy(s_battery_power_bitmap);
+        s_battery_power_bitmap = NULL;
+    }
+}
+
 static void draw_power_icon(GContext *ctx, int h, GBitmap *icon_bitmap) {
     GRect icon_bounds = gbitmap_get_bounds(icon_bitmap);
     int icon_x = 0;
@@ -43,13 +60,15 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
     int w = bounds.size.w;
     int h = bounds.size.h;
-    int icon_w = gbitmap_get_bounds(s_battery_power_bitmap).size.w;
-    int battery_x = icon_w + ICON_SPACING;
-    int battery_total_w = w - battery_x;
-    int battery_w = battery_total_w - BATTERY_NUB_W;
     BatteryChargeState battery_state = battery_state_service_peek();
     int battery_level = battery_state.charge_percent;
     bool show_power_icon = battery_state.is_charging || battery_state.is_plugged;
+
+    maybe_unload_battery_power_bitmap(show_power_icon);
+
+    int battery_x = BATTERY_POWER_ICON_W + ICON_SPACING;
+    int battery_total_w = w - battery_x;
+    int battery_w = battery_total_w - BATTERY_NUB_W;
 
     // Fill the battery level
     GRect color_bounds = GRect(
@@ -62,6 +81,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     graphics_fill_rect(ctx, color_area, 0, GCornerNone);
 
     if (show_power_icon) {
+        ensure_battery_power_bitmap_loaded();
         draw_power_icon(ctx, h, s_battery_power_bitmap);
     }
 
@@ -82,14 +102,6 @@ void battery_layer_create(Layer* parent_layer, GRect frame) {
     s_battery_layer = layer_create(frame);
     MEMORY_HEAP_PROBE_SAMPLE("after_layer_create", &probe);
 
-    s_battery_power_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BATTERY_CHARGING);
-    MEMORY_HEAP_PROBE_SAMPLE("after_bitmap_create", &probe);
-
-    s_battery_palette[0] = GColorWhite;
-    s_battery_palette[1] = GColorClear;
-    gbitmap_set_palette(s_battery_power_bitmap, s_battery_palette, false);
-    MEMORY_HEAP_PROBE_SAMPLE("after_palette_set", &probe);
-
     layer_set_update_proc(s_battery_layer, battery_update_proc);
     battery_state_service_subscribe(battery_state_handler);
     MEMORY_HEAP_PROBE_SAMPLE("after_battery_subscribe", &probe);
@@ -106,7 +118,7 @@ void battery_layer_refresh() {
 void battery_layer_destroy() {
     MEMORY_LOG_HEAP("battery_layer_destroy:before");
     battery_state_service_unsubscribe();
-    gbitmap_destroy(s_battery_power_bitmap);
+    if (s_battery_power_bitmap) gbitmap_destroy(s_battery_power_bitmap);
     layer_destroy(s_battery_layer);
     MEMORY_LOG_HEAP("battery_layer_destroy:after");
 }

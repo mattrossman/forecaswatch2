@@ -100,9 +100,17 @@ function normalizeLocationQuery(location) {
 function readGeocodeCache(location) {
     var cachedGeocode = readStoredJson(GEOCODE_CACHE_KEY);
     var normalizedLocation = normalizeLocationQuery(location);
+    var cachedQuery;
 
-    if (cachedGeocode && normalizeLocationQuery(cachedGeocode.query) === normalizedLocation) {
-        return cachedGeocode;
+    if (cachedGeocode && typeof cachedGeocode.query === 'string') {
+        cachedQuery = normalizeLocationQuery(cachedGeocode.query);
+        if (cachedQuery === normalizedLocation) {
+            return cachedGeocode;
+        }
+    }
+
+    if (cachedGeocode && typeof cachedGeocode.query !== 'string') {
+        localStorage.removeItem(GEOCODE_CACHE_KEY);
     }
 
     return null;
@@ -123,26 +131,6 @@ function writeGeocodeCache(location, lat, lon) {
         lon: lon,
         time: Date.now()
     }));
-}
-
-/**
- * Determine whether geocoding is still in backoff.
- *
- * @returns {boolean} True when geocoding should be skipped.
- */
-function isGeocodeBackoffActive() {
-    var backoffData = readStoredJson(RATE_LIMIT_BACKOFF_KEY);
-
-    if (!backoffData) {
-        return false;
-    }
-
-    if (Date.now() < (backoffData.until || 0)) {
-        return true;
-    }
-
-    localStorage.removeItem(RATE_LIMIT_BACKOFF_KEY);
-    return false;
 }
 
 /**
@@ -191,6 +179,7 @@ WeatherProvider.prototype.gpsOverride = function(location) {
  */
 WeatherProvider.prototype.isGeocodeBackoffActive = function() {
     var locationOverride = parseLocationOverride(this.location);
+    var backoffData;
 
     if (locationOverride.type !== 'manual_address') {
         return false;
@@ -200,7 +189,17 @@ WeatherProvider.prototype.isGeocodeBackoffActive = function() {
         return false;
     }
 
-    return isGeocodeBackoffActive();
+    backoffData = readStoredJson(RATE_LIMIT_BACKOFF_KEY);
+    if (!backoffData) {
+        return false;
+    }
+
+    if (Date.now() < (backoffData.until || 0)) {
+        return true;
+    }
+
+    localStorage.removeItem(RATE_LIMIT_BACKOFF_KEY);
+    return false;
 };
 
 WeatherProvider.prototype.withSunEvents = function(lat, lon, callback, onFailure) {
@@ -363,7 +362,7 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback, onFailure)
     }
 
     // Check rate limit backoff: skip geocoding if we're still in cooldown from a 429
-    if (isGeocodeBackoffActive()) {
+    if (this.isGeocodeBackoffActive()) {
         console.log('[!] Geocoding in backoff cooldown, skipping');
         onFailure(failure('forward_geocode', 'backoff'));
         return;

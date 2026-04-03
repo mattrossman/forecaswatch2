@@ -82,6 +82,16 @@ function readStoredJson(key) {
 }
 
 /**
+ * Normalize a location query for cache lookups.
+ *
+ * @param {string} location Query string.
+ * @returns {string} Normalized query string.
+ */
+function normalizeLocationQuery(location) {
+    return location.trim();
+}
+
+/**
  * Read the cached geocode result for the active location.
  *
  * @param {string} location Query string.
@@ -89,8 +99,9 @@ function readStoredJson(key) {
  */
 function readGeocodeCache(location) {
     var cachedGeocode = readStoredJson(GEOCODE_CACHE_KEY);
+    var normalizedLocation = normalizeLocationQuery(location);
 
-    if (cachedGeocode && cachedGeocode.query === location) {
+    if (cachedGeocode && normalizeLocationQuery(cachedGeocode.query) === normalizedLocation) {
         return cachedGeocode;
     }
 
@@ -107,7 +118,7 @@ function readGeocodeCache(location) {
  */
 function writeGeocodeCache(location, lat, lon) {
     localStorage.setItem(GEOCODE_CACHE_KEY, JSON.stringify({
-        query: location,
+        query: normalizeLocationQuery(location),
         lat: lat,
         lon: lon,
         time: Date.now()
@@ -276,20 +287,6 @@ WeatherProvider.prototype.withCityName = function(lat, lon, callback, onFailure)
 var r_lat_long = /^([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)$/;
 
 /**
- * Build the GPS override state.
- *
- * @returns {{ type: 'gps', query: null, latitude: null, longitude: null }} GPS override state.
- */
-function createGpsLocationOverrideState() {
-    return {
-        type: 'gps',
-        query: null,
-        latitude: null,
-        longitude: null
-    };
-}
-
-/**
  * Parse a location override into GPS, manual coordinates, or an address.
  *
  * @param {*} location Location override value.
@@ -299,13 +296,14 @@ function parseLocationOverride(location) {
     var trimmedLocation;
     var match;
 
-    if (typeof location !== 'string') {
-        return createGpsLocationOverrideState();
-    }
-
-    trimmedLocation = location.trim();
-    if (trimmedLocation.length === 0) {
-        return createGpsLocationOverrideState();
+    trimmedLocation = typeof location === 'string' ? normalizeLocationQuery(location) : null;
+    if (trimmedLocation === null || trimmedLocation.length === 0) {
+        return {
+            type: 'gps',
+            query: null,
+            latitude: null,
+            longitude: null
+        };
     }
 
     match = trimmedLocation.match(r_lat_long);

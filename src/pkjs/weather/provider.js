@@ -179,6 +179,18 @@ WeatherProvider.prototype.gpsOverride = function(location) {
  * @returns {boolean} True when forward geocoding should be skipped.
  */
 WeatherProvider.prototype.isGeocodeBackoffActive = function() {
+    if (typeof this.location !== 'string') {
+        return false;
+    }
+
+    if (this.location.trim().length === 0) {
+        return false;
+    }
+
+    if (r_lat_long.test(this.location.trim())) {
+        return false;
+    }
+
     return isGeocodeBackoffActive();
 };
 

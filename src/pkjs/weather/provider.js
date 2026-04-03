@@ -179,13 +179,7 @@ WeatherProvider.prototype.gpsOverride = function(location) {
  * @returns {boolean} True when forward geocoding should be skipped.
  */
 WeatherProvider.prototype.isGeocodeBackoffActive = function() {
-    // GPS mode and empty overrides never forward a location string to LocationIQ.
-    if (typeof this.location !== 'string' || this.location.trim().length === 0) {
-        return false;
-    }
-
-    // Raw lat/long overrides bypass forward geocoding entirely.
-    if (r_lat_long.test(this.location.trim())) {
+    if (parseLocationOverride(this.location).type !== 'manual_address') {
         return false;
     }
 
@@ -275,27 +269,85 @@ WeatherProvider.prototype.withCityName = function(lat, lon, callback, onFailure)
 // https://github.com/mattrossman/forecaswatch2/issues/59#issue-1317582743
 var r_lat_long = /^([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)$/;
 
+/**
+ * Build the GPS override state.
+ *
+ * @returns {{ type: 'gps', query: null, latitude: null, longitude: null }} GPS override state.
+ */
+function createGpsLocationOverrideState() {
+    return {
+        type: 'gps',
+        query: null,
+        latitude: null,
+        longitude: null
+    };
+}
+
+/**
+ * Parse a location override into GPS, manual coordinates, or an address.
+ *
+ * @param {*} location Location override value.
+ * @returns {{ type: 'gps'|'manual_coordinates'|'manual_address', query: ?string, latitude: ?string, longitude: ?string }} Parsed override state.
+ */
+function parseLocationOverride(location) {
+    var trimmedLocation;
+    var match;
+
+    if (typeof location !== 'string') {
+        return createGpsLocationOverrideState();
+    }
+
+    trimmedLocation = location.trim();
+    if (trimmedLocation.length === 0) {
+        return createGpsLocationOverrideState();
+    }
+
+    match = trimmedLocation.match(r_lat_long);
+    if (match !== null) {
+        return {
+            type: 'manual_coordinates',
+            query: trimmedLocation,
+            latitude: match[1],
+            longitude: match[2]
+        };
+    }
+
+    return {
+        type: 'manual_address',
+        query: trimmedLocation,
+        latitude: null,
+        longitude: null
+    };
+}
+
 WeatherProvider.prototype.withGeocodeCoordinates = function(callback, onFailure) {
     // callback(latitude, longitude)
     var locationiqKey = 'pk.5a61972cde94491774bcfaa0705d5a0d';
-    var url = 'https://us1.locationiq.com/v1/search.php?key=' + locationiqKey
-        + '&q=' + encodeURIComponent(this.location)
-        + '&format=json';
-    var m = this.location.match(r_lat_long);
+    var locationOverride = parseLocationOverride(this.location);
+    var url;
     var latitude;
     var longitude;
     var cachedGeocode;
     var backoffMs;
 
-    console.log('WeatherProvider.prototype.withGeocodeCoordinates regex, this.location: ' + JSON.stringify(this.location));
-    if (m !== null) {
-        latitude = m[1];
-        longitude = m[2];
+    console.log('WeatherProvider.prototype.withGeocodeCoordinates override: ' + JSON.stringify(this.location));
+    if (locationOverride.type === 'manual_coordinates') {
+        latitude = locationOverride.latitude;
+        longitude = locationOverride.longitude;
         this.locationMode = 'manual_coordinates';
         console.log('regex matched, override is lat/long');
         callback(latitude, longitude);
         return;
     }
+
+    if (locationOverride.type !== 'manual_address') {
+        onFailure(failure('forward_geocode', 'invalid_location'));
+        return;
+    }
+
+    url = 'https://us1.locationiq.com/v1/search.php?key=' + locationiqKey
+        + '&q=' + encodeURIComponent(locationOverride.query)
+        + '&format=json';
 
     // Check rate limit backoff: skip geocoding if we're still in cooldown from a 429
     if (isGeocodeBackoffActive()) {
@@ -305,16 +357,16 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback, onFailure)
     }
 
     // Check geocode cache: if the same address string was resolved before, reuse it
-    cachedGeocode = readGeocodeCache(this.location);
+    cachedGeocode = readGeocodeCache(locationOverride.query);
     if (cachedGeocode !== null) {
-        console.log('Using cached geocode for: ' + this.location);
+        console.log('Using cached geocode for: ' + locationOverride.query);
         this.locationMode = 'manual_address';
         callback(cachedGeocode.lat, cachedGeocode.lon);
         return;
     }
 
     this.locationMode = 'manual_address';
-    console.log('regex failed, about to look up lat/long for override');
+    console.log('Looking up coordinates for address override');
     request(
         url,
         'GET',
@@ -336,9 +388,9 @@ WeatherProvider.prototype.withGeocodeCoordinates = function(callback, onFailure)
             }
 
             closest = locations[0];
-            console.log('Query ' + this.location + ' geocoded to ' + closest.lat + ', ' + closest.lon);
+            console.log('Query ' + locationOverride.query + ' geocoded to ' + closest.lat + ', ' + closest.lon);
             // Cache the successful geocode result
-            writeGeocodeCache(this.location, closest.lat, closest.lon);
+            writeGeocodeCache(locationOverride.query, closest.lat, closest.lon);
             callback(closest.lat, closest.lon);
         }).bind(this),
         (function(error) {

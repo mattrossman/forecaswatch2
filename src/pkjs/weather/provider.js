@@ -179,14 +179,12 @@ WeatherProvider.prototype.gpsOverride = function(location) {
  * @returns {boolean} True when forward geocoding should be skipped.
  */
 WeatherProvider.prototype.isGeocodeBackoffActive = function() {
-    if (typeof this.location !== 'string') {
+    // GPS mode and empty overrides never forward a location string to LocationIQ.
+    if (typeof this.location !== 'string' || this.location.trim().length === 0) {
         return false;
     }
 
-    if (this.location.trim().length === 0) {
-        return false;
-    }
-
+    // Raw lat/long overrides bypass forward geocoding entirely.
     if (r_lat_long.test(this.location.trim())) {
         return false;
     }

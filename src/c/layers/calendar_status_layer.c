@@ -16,9 +16,9 @@ static TextLayer *s_calendar_month_layer;
 static GBitmap *s_mute_bitmap;
 static GBitmap *s_bt_bitmap;
 static GBitmap *s_bt_disconnect_bitmap;
-static GColor *s_bt_palette;
-static GColor *s_bt_disconnect_palette;
-static GColor *s_mute_palette;
+static GColor s_bt_palette[2];
+static GColor s_bt_disconnect_palette[2];
+static GColor s_mute_palette[2];
 
 static void draw_bitmap(GContext *ctx, GBitmap *bitmap, GRect frame) {
     graphics_context_set_compositing_mode(ctx, GCompOpSet);
@@ -43,30 +43,39 @@ static void calendar_status_update_proc(Layer *layer, GContext *ctx) {
 }
 
 void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
+    MemoryHeapProbe probe = MEMORY_HEAP_PROBE_START("calendar_status_layer_create");
+
     s_calendar_status_layer = layer_create(frame);
+    MEMORY_HEAP_PROBE_SAMPLE("after_layer_create", &probe);
+
     GRect bounds = layer_get_bounds(s_calendar_status_layer);
     int w = bounds.size.w;
 
     // Set up icons
     s_mute_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_MUTE);
+    MEMORY_HEAP_PROBE_SAMPLE("after_mute_bitmap", &probe);
+
     s_bt_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BT_CONNECT);
+    MEMORY_HEAP_PROBE_SAMPLE("after_bt_bitmap", &probe);
+
     s_bt_disconnect_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BT_DISCONNECT);
+    MEMORY_HEAP_PROBE_SAMPLE("after_bt_disconnect_bitmap", &probe);
     
     // Set up color palette
-    s_bt_palette = malloc(2*sizeof(GColor));
     s_bt_palette[0] = PBL_IF_COLOR_ELSE(GColorPictonBlue, GColorWhite);
     s_bt_palette[1] = GColorClear;
     gbitmap_set_palette(s_bt_bitmap, s_bt_palette, false);
+    MEMORY_HEAP_PROBE_SAMPLE("after_bt_palette", &probe);
 
-    s_bt_disconnect_palette = malloc(2*sizeof(GColor));
     s_bt_disconnect_palette[0] = PBL_IF_COLOR_ELSE(GColorRed, GColorWhite);
     s_bt_disconnect_palette[1] = GColorClear;
     gbitmap_set_palette(s_bt_disconnect_bitmap, s_bt_disconnect_palette, false);
+    MEMORY_HEAP_PROBE_SAMPLE("after_bt_disconnect_palette", &probe);
 
-    s_mute_palette = malloc(2*sizeof(GColor));
     s_mute_palette[0] = GColorWhite;
     s_mute_palette[1] = GColorClear;
     gbitmap_set_palette(s_mute_bitmap, s_mute_palette, false);
+    MEMORY_HEAP_PROBE_SAMPLE("after_mute_palette", &probe);
 
     // Set up month text layer
     s_calendar_month_layer = text_layer_create(GRect(0, -MONTH_FONT_OFFSET, w, 25));
@@ -74,18 +83,29 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     text_layer_set_text_alignment(s_calendar_month_layer, GTextAlignmentCenter);
     text_layer_set_text_color(s_calendar_month_layer, GColorWhite);
     text_layer_set_font(s_calendar_month_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+    MEMORY_HEAP_PROBE_SAMPLE("after_month_text_layer", &probe);
 
     // Set up bluetooth handler
     connection_service_subscribe((ConnectionHandlers) {
         .pebble_app_connection_handler = bluetooth_callback
     });
+    MEMORY_HEAP_PROBE_SAMPLE("after_connection_subscribe", &probe);
 
     calendar_status_layer_refresh();
     layer_add_child(s_calendar_status_layer, text_layer_get_layer(s_calendar_month_layer));
+    MEMORY_HEAP_PROBE_SAMPLE("after_month_child_added", &probe);
+
     layer_set_update_proc(s_calendar_status_layer, calendar_status_update_proc);
+    MEMORY_HEAP_PROBE_SAMPLE("after_update_proc_set", &probe);
+
     battery_layer_create(s_calendar_status_layer, GRect(w - BATTERY_W - PADDING, 1, BATTERY_W, BATTERY_H));
+    MEMORY_HEAP_PROBE_SAMPLE("after_battery_layer_create", &probe);
+
     layer_add_child(parent_layer, s_calendar_status_layer);
+    MEMORY_HEAP_PROBE_SAMPLE("after_parent_child_added", &probe);
+
     MEMORY_LOG_HEAP("after_calendar_status_layer_create");
+    MEMORY_HEAP_PROBE_LOG_MIN(&probe);
 }
 
 void bluetooth_icons_refresh(bool connected) {
@@ -123,9 +143,6 @@ void calendar_status_layer_refresh() {
 void calendar_status_layer_destroy() {
     MEMORY_LOG_HEAP("calendar_status_layer_destroy:before");
     battery_layer_destroy();
-    free(s_bt_palette);
-    free(s_bt_disconnect_palette);
-    free(s_mute_palette);
     gbitmap_destroy(s_mute_bitmap);
     gbitmap_destroy(s_bt_bitmap);
     gbitmap_destroy(s_bt_disconnect_bitmap);

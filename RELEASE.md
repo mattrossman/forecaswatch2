@@ -9,7 +9,8 @@ Flow:
 3. Merge the release PR.
 4. The workflow creates a GitHub release and uploads `build/forecaswatch2.pbw`.
 
-## Rebble store publishing
+## Developer portals
 
-Download the generated release asset (`forecaswatch2.pbw`) and upload it to Rebble:
-https://dev-portal.rebble.io/
+- [Rebble Developer Portal](https://dev-portal.rebble.io/
+)
+- [Pebble Developer Dashboard (RePebble)](https://developer.repebble.com/dashboard)

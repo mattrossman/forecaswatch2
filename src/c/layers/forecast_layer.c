@@ -2,6 +2,7 @@
 #include "c/appendix/persist.h"
 #include "c/appendix/math.h"
 #include "c/appendix/config.h"
+#include "c/appendix/memory_log.h"
 
 #define LEFT_AXIS_LABEL_STRIP_MIN_W 15
 #define LEFT_AXIS_LABEL_TO_GRAPH_GAP 2
@@ -57,9 +58,10 @@ typedef struct
 } ForecastLayout;
 
 static Layer *s_forecast_layer;
-static TextLayer *s_hi_layer;
-static TextLayer *s_lo_layer;
 static int s_axis_left_w = LEFT_AXIS_GRAPH_INSET_DEFAULT;
+static int s_label_strip_w = LEFT_AXIS_LABEL_STRIP_MIN_W;
+static char s_buffer_lo[12];
+static char s_buffer_hi[12];
 
 static RenderSpec make_render_spec()
 {
@@ -440,6 +442,7 @@ static void draw_night_boundaries_over_precip(GContext *ctx, GRect graph_plot_re
 
 static void forecast_update_proc(Layer *layer, GContext *ctx)
 {
+    MEMORY_LOG_HEAP("forecast_update:enter");
     GRect bounds = layer_get_bounds(layer);
     RenderSpec render_spec = make_render_spec();
     ForecastLayout layout = compute_layout(bounds);
@@ -450,10 +453,12 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
 
     // Load data from storage
     const int num_entries = persist_get_num_entries();
+    MemoryHeapProbe redraw_probe = MEMORY_HEAP_PROBE_START("forecast_update");
     if (num_entries < 2)
     {
         graphics_context_set_fill_color(ctx, GColorBlack);
         graphics_fill_rect(ctx, bounds, 0, GCornerNone);
+        MEMORY_LOG_HEAP("forecast_update:exit");
         return;
     }
 
@@ -541,10 +546,14 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     GPathInfo path_info_precip = {
         .num_points = num_entries + 2,
         .points = points_precip};
+    MEMORY_HEAP_PROBE_SAMPLE("before_precip_path_create", &redraw_probe);
     GPath *path_precip_area_under = gpath_create(&path_info_precip);
+    MEMORY_HEAP_PROBE_SAMPLE("after_precip_path_create", &redraw_probe);
     graphics_context_set_fill_color(ctx, PRECIP_FILL_COLOR);
     gpath_draw_filled(ctx, path_precip_area_under);
+    MEMORY_HEAP_PROBE_SAMPLE("before_precip_path_destroy", &redraw_probe);
     gpath_destroy(path_precip_area_under);
+    MEMORY_HEAP_PROBE_SAMPLE("after_precip_path_destroy", &redraw_probe);
 
     if (render_spec.draw_night_overlay)
     {
@@ -556,21 +565,29 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
 
     // Draw the precipitation line
     path_info_precip.num_points = num_entries;
+    MEMORY_HEAP_PROBE_SAMPLE("before_precip_top_create", &redraw_probe);
     GPath *path_precip_top = gpath_create(&path_info_precip);
+    MEMORY_HEAP_PROBE_SAMPLE("after_precip_top_create", &redraw_probe);
     graphics_context_set_stroke_color(ctx, GColorPictonBlue);
     graphics_context_set_stroke_width(ctx, 1);
     gpath_draw_outline_open(ctx, path_precip_top);
+    MEMORY_HEAP_PROBE_SAMPLE("before_precip_top_destroy", &redraw_probe);
     gpath_destroy(path_precip_top);
+    MEMORY_HEAP_PROBE_SAMPLE("after_precip_top_destroy", &redraw_probe);
 
     // Draw the temperature line
     GPathInfo path_info_temp = {
         .num_points = num_entries,
         .points = points_temp};
+    MEMORY_HEAP_PROBE_SAMPLE("before_temp_path_create", &redraw_probe);
     GPath *path_temp = gpath_create(&path_info_temp);
+    MEMORY_HEAP_PROBE_SAMPLE("after_temp_path_create", &redraw_probe);
     graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorRed, GColorWhite));
     graphics_context_set_stroke_width(ctx, 3); // Only odd stroke width values supported
     gpath_draw_outline_open(ctx, path_temp);
+    MEMORY_HEAP_PROBE_SAMPLE("before_temp_path_destroy", &redraw_probe);
     gpath_destroy(path_temp);
+    MEMORY_HEAP_PROBE_SAMPLE("after_temp_path_destroy", &redraw_probe);
 
     // Prepare and draw the wind speed line (scaled independently)
     if (g_config && g_config->show_wind_graph) {
@@ -613,6 +630,17 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     graphics_context_set_fill_color(ctx, GColorBlack);
     graphics_fill_rect(ctx, GRect(0, 0, s_axis_left_w, h - BOTTOM_AXIS_H), 0, GCornerNone); // Paint over plot bleeding
     graphics_draw_line(ctx, GPoint(graph_bounds.origin.x, 0), GPoint(graph_bounds.origin.x, axis_y));
+    graphics_context_set_text_color(ctx, GColorWhite);
+    graphics_draw_text(ctx, s_buffer_hi,
+                       fonts_get_system_font(FONT_KEY_GOTHIC_18),
+                       GRect(0, -3, s_label_strip_w, TEMP_LABEL_H),
+                       GTextOverflowModeFill, GTextAlignmentRight, NULL);
+    graphics_draw_text(ctx, s_buffer_lo,
+                       fonts_get_system_font(FONT_KEY_GOTHIC_18),
+                       GRect(0, 22, s_label_strip_w, TEMP_LABEL_H),
+                       GTextOverflowModeFill, GTextAlignmentRight, NULL);
+    MEMORY_HEAP_PROBE_LOG_MIN(&redraw_probe);
+    MEMORY_LOG_HEAP("forecast_update:exit");
 }
 
 static int temp_label_string_width(const char *text)
@@ -624,10 +652,8 @@ static int temp_label_string_width(const char *text)
     return sz.w;
 }
 
-static void text_layers_refresh()
+static void text_labels_refresh()
 {
-    static char s_buffer_lo[12], s_buffer_hi[12];
-
     snprintf(s_buffer_hi, sizeof(s_buffer_hi), "%d", config_localize_temp(persist_get_temp_hi()));
     snprintf(s_buffer_lo, sizeof(s_buffer_lo), "%d", config_localize_temp(persist_get_temp_lo()));
 
@@ -644,6 +670,7 @@ static void text_layers_refresh()
     {
         label_strip_w = LEFT_AXIS_LABEL_STRIP_MIN_W;
     }
+    s_label_strip_w = label_strip_w;
     const int graph_inset_w = label_strip_w + LEFT_AXIS_LABEL_TO_GRAPH_GAP;
 
     if (graph_inset_w != s_axis_left_w)
@@ -651,51 +678,37 @@ static void text_layers_refresh()
         s_axis_left_w = graph_inset_w;
     }
 
-    text_layer_set_size(s_hi_layer, GSize(label_strip_w, TEMP_LABEL_H));
-    text_layer_set_size(s_lo_layer, GSize(label_strip_w, TEMP_LABEL_H));
-
-    text_layer_set_text(s_hi_layer, s_buffer_hi);
-    text_layer_set_text(s_lo_layer, s_buffer_lo);
 }
 
 void forecast_layer_create(Layer *parent_layer, GRect frame)
 {
     s_forecast_layer = layer_create(frame);
 
-    // Temperature HIGH
-    s_hi_layer = text_layer_create(GRect(0, -3, LEFT_AXIS_LABEL_STRIP_MIN_W, TEMP_LABEL_H));
-    text_layer_set_background_color(s_hi_layer, GColorClear);
-    text_layer_set_text_alignment(s_hi_layer, GTextAlignmentRight);
-    text_layer_set_text_color(s_hi_layer, GColorWhite);
-    text_layer_set_font(s_hi_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
-    layer_add_child(s_forecast_layer, text_layer_get_layer(s_hi_layer));
-
-    // Temperature LOW
-    s_lo_layer = text_layer_create(GRect(0, 22, LEFT_AXIS_LABEL_STRIP_MIN_W, TEMP_LABEL_H));
-    text_layer_set_background_color(s_lo_layer, GColorClear);
-    text_layer_set_text_alignment(s_lo_layer, GTextAlignmentRight);
-    text_layer_set_text_color(s_lo_layer, GColorWhite);
-    text_layer_set_font(s_lo_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
-    layer_add_child(s_forecast_layer, text_layer_get_layer(s_lo_layer));
-
     // Fill the contents with values
 
     layer_set_update_proc(s_forecast_layer, forecast_update_proc);
-    text_layers_refresh();
+    text_labels_refresh();
 
     // Add it as a child layer to the Window's root layer
     layer_add_child(parent_layer, s_forecast_layer);
+    MEMORY_LOG_HEAP("after_forecast_layer_create");
 }
 
 void forecast_layer_refresh()
 {
-    text_layers_refresh();
+    text_labels_refresh();
     layer_mark_dirty(s_forecast_layer);
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "MEM|forecast_refresh|entries=%d|free=%lu|used=%lu",
+            persist_get_num_entries(),
+            (unsigned long)heap_bytes_free(),
+            (unsigned long)heap_bytes_used());
+#endif
 }
 
 void forecast_layer_destroy()
 {
-    text_layer_destroy(s_hi_layer);
-    text_layer_destroy(s_lo_layer);
+    MEMORY_LOG_HEAP("forecast_layer_destroy:before");
     layer_destroy(s_forecast_layer);
+    MEMORY_LOG_HEAP("forecast_layer_destroy:after");
 }

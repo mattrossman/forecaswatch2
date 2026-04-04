@@ -124,6 +124,23 @@ static void inbox_dropped_callback(AppMessageResult reason, void *context) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
 }
 
+void app_message_send_startup_state(bool has_forecast_data) {
+    DictionaryIterator *outbox;
+    AppMessageResult result = app_message_outbox_begin(&outbox);
+
+    if (result != APP_MSG_OK) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Unable to begin startup outbox: %d", result);
+        return;
+    }
+
+    dict_write_uint8(outbox, MESSAGE_KEY_WATCH_HAS_FORECAST_DATA, has_forecast_data ? 1 : 0);
+    result = app_message_outbox_send();
+
+    if (result != APP_MSG_OK) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Unable to send startup state: %d", result);
+    }
+}
+
 void app_message_init() {
     // Register callbacks
     app_message_register_inbox_received(inbox_received_callback);
@@ -131,7 +148,8 @@ void app_message_init() {
 
     // Open AppMessage
     const int inbox_size = 256;
-    const int outbox_size = 0;
+    const int outbox_size = dict_calc_buffer_size(1, sizeof(uint8_t));
+    APP_LOG(APP_LOG_LEVEL_INFO, "AppMessage buffer sizes: inbox=%d outbox=%d", inbox_size, outbox_size);
     app_message_open(inbox_size, outbox_size);
     MEMORY_LOG_HEAP("after_app_message_open");
 }

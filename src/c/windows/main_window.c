@@ -5,6 +5,7 @@
 #include "c/layers/calendar_layer.h"
 #include "c/layers/calendar_status_layer.h"
 #include "c/layers/loading_layer.h"
+#include "c/appendix/app_message.h"
 #include "c/appendix/persist.h"
 #include "c/appendix/memory_log.h"
 
@@ -38,6 +39,7 @@ static void main_window_load(Window *window) {
     loading_layer_create(window_layer,
             GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, w, FORECAST_HEIGHT + WEATHER_STATUS_HEIGHT));
     loading_layer_refresh();
+    app_message_send_startup_state(loading_layer_has_valid_data());
     MEMORY_LOG_HEAP("after_window_load");
 }
 

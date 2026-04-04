@@ -49,11 +49,12 @@ All rectangular watches are supported (Classic, Steel, Time, Time Steel, Pebble 
 
 ## Installation
 
-### Rebble Store
+### Pebble Appstore
 
-The [Rebble store](https://apps.rebble.io/en_US/application/5dcdca6ac393f50cf6dbc264) listing is the preferred method to install for automatic updates.
+- RePebble: https://apps.repebble.com/5dcdca6ac393f50cf6dbc264
+- Rebble: https://apps.rebble.io/en_US/application/5dcdca6ac393f50cf6dbc264
 
-Follow https://help.rebble.io/setup to set up your Pebble app to use the Rebble store.
+If you're using the modern Pebble app, the RePebble listing should be the simplest install path. If you prefer the Rebble flow, follow https://help.rebble.io/setup to set up your Pebble app first. The RePebble store uses Rebble's backend ([blog](https://ericmigi.com/blog/re-introducing-the-pebble-appstore)), so the they're effectively the same catalog through a different entry point.
 
 ### Manual install
 

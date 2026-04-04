@@ -26,18 +26,72 @@ static void draw_bitmap(GContext *ctx, GBitmap *bitmap, GRect frame) {
     graphics_context_set_compositing_mode(ctx, GCompOpAssign);
 }
 
+static void ensure_mute_bitmap_loaded(void) {
+    if (!s_mute_bitmap) {
+        s_mute_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_MUTE);
+        s_mute_palette[0] = GColorWhite;
+        s_mute_palette[1] = GColorClear;
+        gbitmap_set_palette(s_mute_bitmap, s_mute_palette, false);
+    }
+}
+
+static void ensure_bt_bitmap_loaded(void) {
+    if (!s_bt_bitmap) {
+        s_bt_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BT_CONNECT);
+        s_bt_palette[0] = PBL_IF_COLOR_ELSE(GColorPictonBlue, GColorWhite);
+        s_bt_palette[1] = GColorClear;
+        gbitmap_set_palette(s_bt_bitmap, s_bt_palette, false);
+    }
+}
+
+static void ensure_bt_disconnect_bitmap_loaded(void) {
+    if (!s_bt_disconnect_bitmap) {
+        s_bt_disconnect_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BT_DISCONNECT);
+        s_bt_disconnect_palette[0] = PBL_IF_COLOR_ELSE(GColorRed, GColorWhite);
+        s_bt_disconnect_palette[1] = GColorClear;
+        gbitmap_set_palette(s_bt_disconnect_bitmap, s_bt_disconnect_palette, false);
+    }
+}
+
+static void maybe_unload_calendar_status_bitmaps(bool show_qt, bool connected) {
+    bool show_bt = connected && g_config->show_bt;
+    bool show_bt_disconnect = !connected && g_config->show_bt_disconnect;
+
+    if (!show_qt && s_mute_bitmap) {
+        gbitmap_destroy(s_mute_bitmap);
+        s_mute_bitmap = NULL;
+    }
+
+    if (!show_bt && s_bt_bitmap) {
+        gbitmap_destroy(s_bt_bitmap);
+        s_bt_bitmap = NULL;
+    }
+
+    if (!show_bt_disconnect && s_bt_disconnect_bitmap) {
+        gbitmap_destroy(s_bt_disconnect_bitmap);
+        s_bt_disconnect_bitmap = NULL;
+    }
+}
+
 static void calendar_status_update_proc(Layer *layer, GContext *ctx) {
     bool show_qt = show_qt_icon();
     bool connected = connection_service_peek_pebble_app_connection();
     int icon_x = show_qt ? ICON_SLOT_2.origin.x : ICON_SLOT_1.origin.x;
+    bool show_bt = connected && g_config->show_bt;
+    bool show_bt_disconnect = !connected && g_config->show_bt_disconnect;
+
+    maybe_unload_calendar_status_bitmaps(show_qt, connected);
 
     if (show_qt) {
+        ensure_mute_bitmap_loaded();
         draw_bitmap(ctx, s_mute_bitmap, ICON_SLOT_1);
     }
 
-    if (connected && g_config->show_bt) {
+    if (show_bt) {
+        ensure_bt_bitmap_loaded();
         draw_bitmap(ctx, s_bt_bitmap, GRect(icon_x, 0, 10, 10));
-    } else if (!connected && g_config->show_bt_disconnect) {
+    } else if (show_bt_disconnect) {
+        ensure_bt_disconnect_bitmap_loaded();
         draw_bitmap(ctx, s_bt_disconnect_bitmap, GRect(icon_x, 0, 10, 10));
     }
 }
@@ -50,32 +104,6 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
 
     GRect bounds = layer_get_bounds(s_calendar_status_layer);
     int w = bounds.size.w;
-
-    // Set up icons
-    s_mute_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_MUTE);
-    MEMORY_HEAP_PROBE_SAMPLE("after_mute_bitmap", &probe);
-
-    s_bt_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BT_CONNECT);
-    MEMORY_HEAP_PROBE_SAMPLE("after_bt_bitmap", &probe);
-
-    s_bt_disconnect_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BT_DISCONNECT);
-    MEMORY_HEAP_PROBE_SAMPLE("after_bt_disconnect_bitmap", &probe);
-    
-    // Set up color palette
-    s_bt_palette[0] = PBL_IF_COLOR_ELSE(GColorPictonBlue, GColorWhite);
-    s_bt_palette[1] = GColorClear;
-    gbitmap_set_palette(s_bt_bitmap, s_bt_palette, false);
-    MEMORY_HEAP_PROBE_SAMPLE("after_bt_palette", &probe);
-
-    s_bt_disconnect_palette[0] = PBL_IF_COLOR_ELSE(GColorRed, GColorWhite);
-    s_bt_disconnect_palette[1] = GColorClear;
-    gbitmap_set_palette(s_bt_disconnect_bitmap, s_bt_disconnect_palette, false);
-    MEMORY_HEAP_PROBE_SAMPLE("after_bt_disconnect_palette", &probe);
-
-    s_mute_palette[0] = GColorWhite;
-    s_mute_palette[1] = GColorClear;
-    gbitmap_set_palette(s_mute_bitmap, s_mute_palette, false);
-    MEMORY_HEAP_PROBE_SAMPLE("after_mute_palette", &probe);
 
     // Set up month text layer
     s_calendar_month_layer = text_layer_create(GRect(0, -MONTH_FONT_OFFSET, w, 25));
@@ -143,9 +171,18 @@ void calendar_status_layer_refresh() {
 void calendar_status_layer_destroy() {
     MEMORY_LOG_HEAP("calendar_status_layer_destroy:before");
     battery_layer_destroy();
-    gbitmap_destroy(s_mute_bitmap);
-    gbitmap_destroy(s_bt_bitmap);
-    gbitmap_destroy(s_bt_disconnect_bitmap);
+    if (s_mute_bitmap) {
+        gbitmap_destroy(s_mute_bitmap);
+        s_mute_bitmap = NULL;
+    }
+    if (s_bt_bitmap) {
+        gbitmap_destroy(s_bt_bitmap);
+        s_bt_bitmap = NULL;
+    }
+    if (s_bt_disconnect_bitmap) {
+        gbitmap_destroy(s_bt_disconnect_bitmap);
+        s_bt_disconnect_bitmap = NULL;
+    }
     layer_destroy(s_calendar_status_layer);
     MEMORY_LOG_HEAP("calendar_status_layer_destroy:after");
 }

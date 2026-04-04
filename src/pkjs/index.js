@@ -25,6 +25,17 @@ function loadReleaseNotificationsManifest() {
 
 var releaseNotificationsManifest = loadReleaseNotificationsManifest();
 var clay = new Clay(clayConfig, customClay, { autoHandleEvents: false });
+/**
+ * @type {{
+ *     fetchInProgress: boolean,
+ *     pendingStartupFetch: boolean,
+ *     settings?: Object,
+ *     telemetry?: Object,
+ *     provider?: Object,
+ *     watchInfo?: Object,
+ *     devConfig?: Object
+ * }}
+ */
 var app = {};  // Namespace for global app variables
 var KEY_MAX_NOTIFIED_VERSION = 'max_notified_version';
 var KEY_FETCH_ATTEMPT = storageKeys.FETCH_ATTEMPT_KEY;
@@ -32,6 +43,33 @@ var KEY_LAST_FETCH_SUCCESS = storageKeys.LAST_FETCH_SUCCESS_KEY;
 var KEY_LAST_FETCH_ATTEMPT = storageKeys.LAST_FETCH_ATTEMPT_KEY;
 var KEY_GEOCODE_CACHE = storageKeys.GEOCODE_CACHE_KEY;
 var KEY_GEOCODE_BACKOFF = storageKeys.GEOCODE_BACKOFF_KEY;
+
+app.fetchInProgress = false;
+app.pendingStartupFetch = false;
+
+Pebble.addEventListener('appmessage', function(e) {
+    var payload = e && e.payload;
+
+    if (!payload || !Object.prototype.hasOwnProperty.call(payload, 'WATCH_HAS_FORECAST_DATA')) {
+        return;
+    }
+
+    var hasForecastData = Boolean(payload.WATCH_HAS_FORECAST_DATA);
+
+    if (hasForecastData) {
+        console.log('Watch reported valid forecast data at startup.');
+        app.pendingStartupFetch = false;
+        return;
+    }
+
+    console.log('Watch reported no forecast data at startup.');
+    app.pendingStartupFetch = true;
+
+    if (app.provider) {
+        app.pendingStartupFetch = false;
+        fetch(app.provider, true);
+    }
+});
 
 Pebble.addEventListener('showConfiguration', function(e) {
     // Set the userData here rather than in the Clay() constructor so it's actually up to date
@@ -83,6 +121,10 @@ Pebble.addEventListener('ready',
         }
         app.telemetry = createTelemetryClient(getRuntimeTelemetryConfig());
         refreshProvider();
+        if (app.pendingStartupFetch) {
+            app.pendingStartupFetch = false;
+            fetch(app.provider, true);
+        }
         startTick();
     }
 );
@@ -486,12 +528,18 @@ function fetch(provider, force) {
         return;
     }
 
+    if (app.fetchInProgress) {
+        console.log('Skipping weather fetch: another fetch is already in progress.');
+        return;
+    }
+
     if (typeof provider.isGeocodeBackoffActive === 'function' && provider.isGeocodeBackoffActive()) {
         console.log('Skipping weather fetch: geocoding is in backoff cooldown.');
         return;
     }
 
     console.log('Fetching from ' + provider.name);
+    app.fetchInProgress = true;
     var fetchStart = Date.now();
     var attempt = incrementFetchAttemptCounter();
     var fetchStatus = {
@@ -500,51 +548,59 @@ function fetch(provider, force) {
         name: provider.name
     }
     localStorage.setItem(KEY_LAST_FETCH_ATTEMPT, JSON.stringify(fetchStatus));
-    provider.fetch(
-        function() {
-            // Sucess, update recent fetch time
-            localStorage.setItem(KEY_LAST_FETCH_SUCCESS, JSON.stringify(fetchStatus));
-            resetFetchAttemptCounter();
-            console.log('Successfully fetched weather!');
-            maybeTrackWeatherFetch({
-                provider: provider.id,
-                success: true,
-                attempt: attempt,
-                usedGpsCache: provider.usedGpsCache,
-                gpsErrorCode: provider.gpsErrorCode,
-                locationMode: provider.locationMode,
-                countryCode: provider.countryCode,
-                settings: app.settings,
-                watchInfo: app.watchInfo,
-                durationMs: Date.now() - fetchStart
-            });
-        },
-        function(failure) {
-            // Failure
-            console.log('[!] Provider failed to update weather: ' + JSON.stringify(failure));
-            var attemptStatus = {
-                time: fetchStatus.time,
-                id: fetchStatus.id,
-                name: fetchStatus.name,
-                error: failure
-            };
-            localStorage.setItem(KEY_LAST_FETCH_ATTEMPT, JSON.stringify(attemptStatus));
-            maybeTrackWeatherFetch({
-                provider: provider.id,
-                success: false,
-                attempt: attempt,
-                usedGpsCache: provider.usedGpsCache,
-                gpsErrorCode: provider.gpsErrorCode,
-                locationMode: provider.locationMode,
-                countryCode: provider.countryCode,
-                error: failure,
-                settings: app.settings,
-                watchInfo: app.watchInfo,
-                durationMs: Date.now() - fetchStart
-            });
-        },
-        force
-    )
+    try {
+        provider.fetch(
+            function() {
+                // Sucess, update recent fetch time
+                app.fetchInProgress = false;
+                localStorage.setItem(KEY_LAST_FETCH_SUCCESS, JSON.stringify(fetchStatus));
+                resetFetchAttemptCounter();
+                console.log('Successfully fetched weather!');
+                maybeTrackWeatherFetch({
+                    provider: provider.id,
+                    success: true,
+                    attempt: attempt,
+                    usedGpsCache: provider.usedGpsCache,
+                    gpsErrorCode: provider.gpsErrorCode,
+                    locationMode: provider.locationMode,
+                    countryCode: provider.countryCode,
+                    settings: app.settings,
+                    watchInfo: app.watchInfo,
+                    durationMs: Date.now() - fetchStart
+                });
+            },
+            function(failure) {
+                // Failure
+                app.fetchInProgress = false;
+                console.log('[!] Provider failed to update weather: ' + JSON.stringify(failure));
+                var attemptStatus = {
+                    time: fetchStatus.time,
+                    id: fetchStatus.id,
+                    name: fetchStatus.name,
+                    error: failure
+                };
+                localStorage.setItem(KEY_LAST_FETCH_ATTEMPT, JSON.stringify(attemptStatus));
+                maybeTrackWeatherFetch({
+                    provider: provider.id,
+                    success: false,
+                    attempt: attempt,
+                    usedGpsCache: provider.usedGpsCache,
+                    gpsErrorCode: provider.gpsErrorCode,
+                    locationMode: provider.locationMode,
+                    countryCode: provider.countryCode,
+                    error: failure,
+                    settings: app.settings,
+                    watchInfo: app.watchInfo,
+                    durationMs: Date.now() - fetchStart
+                });
+            },
+            force
+        )
+    }
+    catch (e) {
+        app.fetchInProgress = false;
+        console.log('Weather fetch threw synchronously: ' + e.message);
+    }
 }
 
 /**

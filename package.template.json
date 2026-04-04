@@ -69,6 +69,7 @@
       "CURRENT_TEMP",
       "CITY",
       "SUN_EVENTS",
+      "WATCH_HAS_FORECAST_DATA",
       "CLAY_CELSIUS",
       "CLAY_TIME_LEAD_ZERO",
       "CLAY_AXIS_12H",

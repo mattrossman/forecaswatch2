@@ -1,6 +1,7 @@
 #include "weather_status_layer.h"
 #include "c/appendix/persist.h"
 #include "c/appendix/config.h"
+#include "c/appendix/memory_log.h"
 
 #define FONT_18_OFFSET 7
 #define FONT_14_OFFSET 3
@@ -32,6 +33,7 @@ static TextLayer *s_current_temp_layer;
 static TextLayer *s_next_sun_event_layer;
 
 static GPath *s_arrow_path = NULL;
+static GPath *s_raindrop_path = NULL;
 static const GPathInfo ARROW_PATH_INFO = {
     // Downward facing arrow, centered at the origin
     .num_points = 6,
@@ -52,6 +54,17 @@ static const GPathInfo RAINDROP_PATH_INFO = {
         {0, -5}, {-3, 1}, {-2, 4}, {0, 5}, {2, 4}, {3, 1}
     }
 };
+
+static void destroy_icon_paths() {
+    if (s_raindrop_path) {
+        gpath_destroy(s_raindrop_path);
+        s_raindrop_path = NULL;
+    }
+    if (s_arrow_path) {
+        gpath_destroy(s_arrow_path);
+        s_arrow_path = NULL;
+    }
+}
 
 static void text_layer_move_frame(TextLayer *text_layer, GRect frame) {
     layer_set_frame(text_layer_get_layer(text_layer), frame);
@@ -161,6 +174,9 @@ static void weather_status_layer_init(GRect bounds) {
 }
 
 static void weather_status_update_proc(Layer *layer, GContext *ctx) {
+    (void) layer;
+    MEMORY_LOG_HEAP("weather_status_update:enter");
+
     if (should_show_precip()) {
         uint8_t precip_type = persist_get_precip_type();
         if (precip_type > 0) {
@@ -171,22 +187,25 @@ static void weather_status_update_proc(Layer *layer, GContext *ctx) {
             int cx = frame_sun_event.origin.x + ICON_W / 2;
             int cy = 6;
             if (precip_type == 2) {
-                // Snow: 6-armed asterisk (3 lines at 60° apart)
+                // Snow: 6-armed asterisk (3 lines at 60 degrees apart)
                 graphics_context_set_stroke_color(ctx, icon_color);
                 graphics_draw_line(ctx, GPoint(cx, cy - 4), GPoint(cx, cy + 4));
                 graphics_draw_line(ctx, GPoint(cx - 3, cy - 2), GPoint(cx + 3, cy + 2));
                 graphics_draw_line(ctx, GPoint(cx + 3, cy - 2), GPoint(cx - 3, cy + 2));
             } else {
-                // Rain: teardrop GPath
-                GPath *icon_path = gpath_create(&RAINDROP_PATH_INFO);
-                gpath_move_to(icon_path, GPoint(cx, cy));
+                // Rain: cached teardrop GPath
+                if (!s_raindrop_path) {
+                    s_raindrop_path = gpath_create(&RAINDROP_PATH_INFO);
+                }
+                gpath_move_to(s_raindrop_path, GPoint(cx, cy));
                 graphics_context_set_fill_color(ctx, icon_color);
-                gpath_draw_filled(ctx, icon_path);
-                gpath_destroy(icon_path);
+                gpath_draw_filled(ctx, s_raindrop_path);
             }
         }
     } else {
-        s_arrow_path = gpath_create(&ARROW_PATH_INFO);
+        if (!s_arrow_path) {
+            s_arrow_path = gpath_create(&ARROW_PATH_INFO);
+        }
         if (persist_get_sun_event_start_type() == 0)
             gpath_rotate_to(s_arrow_path, TRIG_MAX_ANGLE / 2);
         gpath_move_to(s_arrow_path, GPoint(frame_sun_event.origin.x + ARROW_W / 2, 6));
@@ -194,8 +213,8 @@ static void weather_status_update_proc(Layer *layer, GContext *ctx) {
         gpath_draw_outline_open(ctx, s_arrow_path);
         graphics_context_set_fill_color(ctx, GColorWhite);
         gpath_draw_filled(ctx, s_arrow_path);
-        gpath_destroy(s_arrow_path);
     }
+    MEMORY_LOG_HEAP("weather_status_update:exit");
 }
 
 static void tap_handler(AccelAxisType axis, int32_t direction) {
@@ -232,6 +251,7 @@ void weather_status_layer_create(Layer* parent_layer, GRect frame) {
 
     // Add the weather status bar to its parent
     layer_add_child(parent_layer, s_weather_status_layer);
+    MEMORY_LOG_HEAP("after_weather_status_layer_create");
 }
 
 void weather_status_layer_refresh() {
@@ -240,6 +260,7 @@ void weather_status_layer_refresh() {
     current_temp_layer_refresh();
     sun_event_layer_refresh();
     city_layer_refresh();
+    MEMORY_LOG_HEAP("after_weather_refresh");
 }
 
 void weather_status_layer_destroy() {
@@ -247,8 +268,11 @@ void weather_status_layer_destroy() {
         accel_tap_service_unsubscribe();
         s_accel_tap_subscribed = false;
     }
+    MEMORY_LOG_HEAP("weather_status_layer_destroy:before");
+    destroy_icon_paths();
     text_layer_destroy(s_city_layer);
     text_layer_destroy(s_current_temp_layer);
     text_layer_destroy(s_next_sun_event_layer);
     layer_destroy(s_weather_status_layer);
+    MEMORY_LOG_HEAP("weather_status_layer_destroy:after");
 }

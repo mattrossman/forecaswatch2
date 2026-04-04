@@ -1,7 +1,7 @@
 {
   "name": "forecaswatch2",
   "author": "Matt Rossman",
-  "version": "1.30.0",
+  "version": "1.32.0",
   "buildProfile": "{{buildProfile}}",
   "keywords": [
     "pebble-app"
@@ -69,6 +69,7 @@
       "CURRENT_TEMP",
       "CITY",
       "SUN_EVENTS",
+      "WATCH_HAS_FORECAST_DATA",
       "PRECIP_TOTAL_UINT16",
       "PRECIP_TYPE_UINT8",
       "CLAY_CELSIUS",

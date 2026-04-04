@@ -48,7 +48,13 @@ app.fetchInProgress = false;
 app.pendingStartupFetch = false;
 
 Pebble.addEventListener('appmessage', function(e) {
-    var hasForecastData = Boolean(e && e.payload && e.payload.WATCH_HAS_FORECAST_DATA);
+    var payload = e && e.payload;
+
+    if (!payload || !Object.prototype.hasOwnProperty.call(payload, 'WATCH_HAS_FORECAST_DATA')) {
+        return;
+    }
+
+    var hasForecastData = Boolean(payload.WATCH_HAS_FORECAST_DATA);
 
     if (hasForecastData) {
         console.log('Watch reported valid forecast data at startup.');

@@ -118,7 +118,10 @@ void battery_layer_refresh() {
 void battery_layer_destroy() {
     MEMORY_LOG_HEAP("battery_layer_destroy:before");
     battery_state_service_unsubscribe();
-    if (s_battery_power_bitmap) gbitmap_destroy(s_battery_power_bitmap);
+    if (s_battery_power_bitmap) {
+        gbitmap_destroy(s_battery_power_bitmap);
+        s_battery_power_bitmap = NULL;
+    }
     layer_destroy(s_battery_layer);
     MEMORY_LOG_HEAP("battery_layer_destroy:after");
 }

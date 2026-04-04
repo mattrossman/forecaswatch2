@@ -171,9 +171,18 @@ void calendar_status_layer_refresh() {
 void calendar_status_layer_destroy() {
     MEMORY_LOG_HEAP("calendar_status_layer_destroy:before");
     battery_layer_destroy();
-    if (s_mute_bitmap) gbitmap_destroy(s_mute_bitmap);
-    if (s_bt_bitmap) gbitmap_destroy(s_bt_bitmap);
-    if (s_bt_disconnect_bitmap) gbitmap_destroy(s_bt_disconnect_bitmap);
+    if (s_mute_bitmap) {
+        gbitmap_destroy(s_mute_bitmap);
+        s_mute_bitmap = NULL;
+    }
+    if (s_bt_bitmap) {
+        gbitmap_destroy(s_bt_bitmap);
+        s_bt_bitmap = NULL;
+    }
+    if (s_bt_disconnect_bitmap) {
+        gbitmap_destroy(s_bt_disconnect_bitmap);
+        s_bt_disconnect_bitmap = NULL;
+    }
     layer_destroy(s_calendar_status_layer);
     MEMORY_LOG_HEAP("calendar_status_layer_destroy:after");
 }

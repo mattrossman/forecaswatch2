@@ -7,6 +7,7 @@
 #include "c/layers/calendar_layer.h"
 #include "c/layers/calendar_status_layer.h"
 #include "c/windows/main_window.h"
+#include "memory_log.h"
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Message received!");
@@ -48,6 +49,12 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         persist_set_forecast_start((time_t)forecast_start_tuple->value->int32);
         const int num_entries = ((int)num_entries_tuple->value->int32);
         persist_set_num_entries(num_entries);
+#ifdef FCW2_ENABLE_MEMORY_LOGGING
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "MEM|forecast_payload|entries=%d|free=%lu|used=%lu",
+                num_entries,
+                (unsigned long)heap_bytes_free(),
+                (unsigned long)heap_bytes_used());
+#endif
         int16_t *temp_data = (int16_t*) temp_trend_tuple->value->data;
         persist_set_temp_trend(temp_data, num_entries);
         uint8_t *precip_data = (uint8_t*) precip_trend_tuple->value->data;
@@ -130,6 +137,23 @@ static void inbox_dropped_callback(AppMessageResult reason, void *context) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
 }
 
+void app_message_send_startup_state(bool has_forecast_data) {
+    DictionaryIterator *outbox;
+    AppMessageResult result = app_message_outbox_begin(&outbox);
+
+    if (result != APP_MSG_OK) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Unable to begin startup outbox: %d", result);
+        return;
+    }
+
+    dict_write_uint8(outbox, MESSAGE_KEY_WATCH_HAS_FORECAST_DATA, has_forecast_data ? 1 : 0);
+    result = app_message_outbox_send();
+
+    if (result != APP_MSG_OK) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Unable to send startup state: %d", result);
+    }
+}
+
 void app_message_init() {
     // Register callbacks
     app_message_register_inbox_received(inbox_received_callback);
@@ -137,6 +161,8 @@ void app_message_init() {
 
     // Open AppMessage
     const int inbox_size = 256;
-    const int outbox_size = 0;
+    const int outbox_size = dict_calc_buffer_size(1, sizeof(uint8_t));
+    APP_LOG(APP_LOG_LEVEL_INFO, "AppMessage buffer sizes: inbox=%d outbox=%d", inbox_size, outbox_size);
     app_message_open(inbox_size, outbox_size);
+    MEMORY_LOG_HEAP("after_app_message_open");
 }

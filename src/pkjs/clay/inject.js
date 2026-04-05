@@ -2,17 +2,54 @@ module.exports = function (minified) {
     clayConfig = this;
     var $ = minified.$;
 
+    /**
+     * Parse stored JSON safely.
+     *
+     * @param {string|null} value Raw JSON string.
+     * @returns {Object|null} Parsed object or null.
+     */
+    function parseStoredJson(value) {
+        if (value === null) {
+            return null;
+        }
+
+        try {
+            return JSON.parse(value);
+        }
+        catch (ex) {
+            return null;
+        }
+    }
+
     clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function() {
-        var clayFetch = clayConfig.getItemByMessageKey('fetch');
+        var clayFetch;
+        var clayOwmApiKey;
+        var clayProvider;
+        var clayLocation;
+        var initProvider;
+        var initOwmApiKey;
+        var initLocation;
+        var lastFetchSuccessString;
+        var lastFetchSuccess;
+        var date;
+        var lastFetchSuccessTime;
+        var lastFetchAttemptString;
+        var lastFetchAttempt;
+        var attemptDate;
+        var attemptTime;
+        var attemptText;
+        var shouldShowLastAttempt;
+
+        clayFetch = clayConfig.getItemByMessageKey('fetch');
         clayFetch.set(false);
 
         // Save initial states to detect changes to provider
-        var clayOwmApiKey = clayConfig.getItemByMessageKey('owmApiKey');
-        var clayProvider = clayConfig.getItemByMessageKey('provider');
-        var clayLocation = clayConfig.getItemByMessageKey('location');
-        var initProvider = clayProvider.get();
-        var initOwmApiKey = clayOwmApiKey.get();
-        var initLocation = clayLocation.get();
+        clayOwmApiKey = clayConfig.getItemByMessageKey('owmApiKey');
+        clayProvider = clayConfig.getItemByMessageKey('provider');
+        clayLocation = clayConfig.getItemByMessageKey('location');
+        initProvider = clayProvider.get();
+        initOwmApiKey = clayOwmApiKey.get();
+        initLocation = clayLocation.get();
 
         // Configure default provide section layout
         if (initProvider !== 'openweathermap') {
@@ -31,15 +68,35 @@ module.exports = function (minified) {
         })
 
         // Show last weather fetch status
-        var lastFetchSuccessString = clayConfig.meta.userData.lastFetchSuccess;
-        if (lastFetchSuccessString !== null) {
-            var lastFetchSuccess = JSON.parse(lastFetchSuccessString);
-            var date = new Date(lastFetchSuccess.time);
+        lastFetchSuccessString = clayConfig.meta.userData.lastFetchSuccess;
+        lastFetchSuccessTime = null;
+        lastFetchSuccess = parseStoredJson(lastFetchSuccessString);
+        if (lastFetchSuccess !== null) {
+            date = new Date(lastFetchSuccess.time);
+            lastFetchSuccessTime = date.getTime();
             $('#lastFetchSpan').ht(date.toLocaleDateString() + ' ' + date.toLocaleTimeString() + ' with ' + lastFetchSuccess.name);
+        }
+
+        lastFetchAttemptString = clayConfig.meta.userData.lastFetchAttempt;
+        lastFetchAttempt = parseStoredJson(lastFetchAttemptString);
+        if (lastFetchAttempt !== null) {
+            if (lastFetchAttempt.error) {
+                attemptDate = new Date(lastFetchAttempt.time);
+                attemptTime = attemptDate.getTime();
+                shouldShowLastAttempt = !Boolean(lastFetchSuccessTime) || attemptTime > lastFetchSuccessTime;
+
+                if (shouldShowLastAttempt) {
+                    attemptText = '<br>Last failed attempt:<br>';
+                    attemptText += attemptDate.toLocaleDateString() + ' ' + attemptDate.toLocaleTimeString() + ' with ' + lastFetchAttempt.name;
+                    attemptText += '<br>Error: ' + lastFetchAttempt.error.stage + ': ' + lastFetchAttempt.error.code;
+                    $('#lastAttemptBlock').ht(attemptText);
+                }
+            }
         }
 
         // Override submit handler to force re-fetch if provider config changed
         $('#main-form').on('submit', function() {
+            var returnTo;
             if (clayProvider.get() !== initProvider
                 || clayOwmApiKey.get() !== initOwmApiKey
                 || clayLocation.get() !== initLocation) {
@@ -47,7 +104,7 @@ module.exports = function (minified) {
             }
 
             // Copied from original handler ($.off requires non-anonymous handler)
-            var returnTo = window.returnTo || 'pebblejs://close#';
+            returnTo = window.returnTo || 'pebblejs://close#';
             location.href = returnTo +
                 encodeURIComponent(JSON.stringify(clayConfig.serialize()));
         })

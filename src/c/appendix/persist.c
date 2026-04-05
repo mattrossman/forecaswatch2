@@ -3,7 +3,7 @@
 
 enum key {
     TEMP_LO, TEMP_HI, TEMP_TREND, PRECIP_TREND, FORECAST_START, CITY, SUN_EVENT_START_TYPE, SUN_EVENT_TIMES, NUM_ENTRIES,
-    CURRENT_TEMP, BATTERY_LEVEL, CONFIG
+    CURRENT_TEMP, BATTERY_LEVEL, CONFIG, PRECIP_TOTAL, PRECIP_TYPE
 }; // Deprecated: BATTERY_LEVEL
 
 void persist_init() {
@@ -40,6 +40,12 @@ void persist_init() {
         uint32_t data[] = {0, 0};
         persist_write_data(SUN_EVENT_TIMES, (void*) data, 2*sizeof(uint32_t));
     }
+    if (!persist_exists(PRECIP_TOTAL)) {
+        persist_write_int(PRECIP_TOTAL, 0);
+    }
+    if (!persist_exists(PRECIP_TYPE)) {
+        persist_write_int(PRECIP_TYPE, 0);
+    }
     if (!persist_exists(CONFIG)) {
         Config config = (Config) {
             .celsius = false,
@@ -54,11 +60,12 @@ void persist_init() {
             .show_bt_disconnect = true,
             .vibe = false,
             .show_am_pm = false,
-            .color_saturday = GColorWhite,	
+            .color_saturday = GColorWhite,
             .color_sunday = GColorWhite,
             .color_us_federal = GColorWhite,
             .color_time = GColorWhite,
-            .day_night_shading = true
+            .day_night_shading = true,
+            .status_bar_mode = STATUS_BAR_MODE_BOTH
         };
         persist_set_config(config);
     }
@@ -151,4 +158,20 @@ void persist_set_sun_event_times(time_t *data, const size_t size) {
 void persist_set_config(Config config) {
     persist_write_data(CONFIG, &config, sizeof(Config));
     config_refresh();  // Refresh global config variable
+}
+
+uint16_t persist_get_precip_total() {
+    return (uint16_t) persist_read_int(PRECIP_TOTAL);
+}
+
+void persist_set_precip_total(uint16_t val) {
+    persist_write_int(PRECIP_TOTAL, (int) val);
+}
+
+uint8_t persist_get_precip_type() {
+    return (uint8_t) persist_read_int(PRECIP_TYPE);
+}
+
+void persist_set_precip_type(uint8_t val) {
+    persist_write_int(PRECIP_TYPE, (int) val);
 }

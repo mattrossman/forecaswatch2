@@ -27,7 +27,8 @@ static Config config_defaults(void) {
         .color_sunday = GColorWhite,
         .color_us_federal = GColorWhite,
         .color_time = GColorWhite,
-        .day_night_shading = true
+        .day_night_shading = true,
+        .status_bar_mode = STATUS_BAR_MODE_BOTH
     };
 }
 
@@ -120,4 +121,8 @@ bool config_highlight_sundays() {
 
 bool config_highlight_saturdays() {
     return !gcolor_equal(g_config->color_saturday, GColorWhite);
+}
+
+bool config_is_celsius() {
+    return g_config->celsius;
 }

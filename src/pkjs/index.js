@@ -88,13 +88,14 @@ Pebble.addEventListener('webviewclosed', function(e) {
     app.settings = getClaySettings();  // This reads from localStorage in sensible format
     app.telemetry = createTelemetryClient(getRuntimeTelemetryConfig());
     refreshProvider();
-    sendClaySettings();
-
-    // Fetching goes last, after other settings have been handled
-    if (app.settings.fetch === true) {
-        console.log('Force fetch!');
-        fetch(app.provider, true);
-    }
+    // Flush settings before any forced fetch so the watch sees the new config.
+    sendClaySettings(function() {
+        // Fetching goes last, after other settings have been handled
+        if (app.settings.fetch === true) {
+            console.log('Force fetch!');
+            fetch(app.provider, true);
+        }
+    });
     console.log('Closing clay: ' + JSON.stringify(getClaySettings()));
 });
 
@@ -121,11 +122,13 @@ Pebble.addEventListener('ready',
         }
         app.telemetry = createTelemetryClient(getRuntimeTelemetryConfig());
         refreshProvider();
-        if (app.pendingStartupFetch) {
-            app.pendingStartupFetch = false;
-            fetch(app.provider, true);
-        }
-        startTick();
+        sendClaySettings(function() {
+            if (app.pendingStartupFetch) {
+                app.pendingStartupFetch = false;
+                fetch(app.provider, true);
+            }
+            startTick();
+        });
     }
 );
 
@@ -179,26 +182,6 @@ function compareSemver(a, b) {
     return 0;
 }
 
-/**
- * Normalize bundled pkg.releaseNotification into title/body or null.
- *
- * @param {Object|undefined} releaseNotification Field from package.json.
- * @returns {{title: string, body: string}|null} Payload or null when disabled/empty.
- */
-function getBundledReleaseNotificationPayload(releaseNotification) {
-    if (
-        !releaseNotification ||
-        releaseNotification.enabled !== true
-    ) {
-        return null;
-    }
-    var title = releaseNotification.title ? String(releaseNotification.title).trim() : '';
-    var body = releaseNotification.body ? String(releaseNotification.body).trim() : '';
-    if (title === '' || body === '') {
-        return null;
-    }
-    return { title: title, body: body };
-}
 
 /**
  * Look up a release notification in release-notifications.json (dev force-show).
@@ -256,7 +239,7 @@ function maybeShowReleaseNotification(hadExistingInstall, forceVersionSpec) {
         );
     }
 
-    var bundledPayload = getBundledReleaseNotificationPayload(pkg.releaseNotification);
+    var bundledPayload = getReleaseNotificationFromManifest(appVersion);
     var maxNotified = localStorage.getItem(KEY_MAX_NOTIFIED_VERSION) || '0.0.0';
     var isNewer = compareSemver(appVersion, maxNotified) > 0;
     var shouldNotifyUpgrade = hadExistingInstall && isNewer && bundledPayload !== null;
@@ -354,13 +337,54 @@ function resetFetchAttemptCounter() {
     localStorage.setItem(KEY_FETCH_ATTEMPT, '0');
 }
 
+/**
+ * Convert weather status mode setting to numeric app-message enum value.
+ *
+ * @param {'both'|'sun'|'precip'|undefined} mode Clay setting value.
+ * @returns {number} 0=both, 1=sun, 2=precip.
+ */
+function weatherStatusRightModeToInt(mode) {
+    switch (mode) {
+        case 'sun':
+            return 1;
+        case 'precip':
+            return 2;
+        default:
+            return 0;
+    }
+}
+
 function startTick() {
     console.log('Tick from PKJS!');
     tryFetch(app.provider);
     setTimeout(startTick, 60 * 1000); // 60 * 1000 milsec = 1 minute
 }
 
-function sendClaySettings() {
+/**
+ * Send Clay settings to the watch and invoke callback when done.
+ *
+ * @param {Function=} done Optional callback once send attempt completes.
+ * @returns {void}
+ */
+function sendClaySettings(done) {
+    var completed = false;
+
+    /**
+     * @returns {void}
+     */
+    function finish() {
+        if (completed) {
+            return;
+        }
+        completed = true;
+        if (typeof done === 'function') {
+            done();
+        }
+    }
+
+    // Pebble can occasionally drop the callback path, so unblock the flow after a short fallback.
+    var finishTimeout = setTimeout(finish, 1500);
+
     var payload = {
         "CLAY_CELSIUS": app.settings.temperatureUnits === 'c',
         "CLAY_TIME_LEAD_ZERO": app.settings.timeLeadingZero,
@@ -379,11 +403,17 @@ function sendClaySettings() {
         "CLAY_COLOR_US_FEDERAL": app.settings.hasOwnProperty('colorUSFederal') ? app.settings.colorUSFederal : 16777215,
         "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : 16777215,
         "CLAY_DAY_NIGHT_SHADING": app.settings.hasOwnProperty('dayNightShading') ? app.settings.dayNightShading : true,
-    }
+        "CLAY_WEATHER_STATUS_RIGHT_MODE": weatherStatusRightModeToInt(app.settings.weatherStatusRightMode),
+    };
+
     Pebble.sendAppMessage(payload, function() {
+        clearTimeout(finishTimeout);
         console.log('Message sent successfully: ' + JSON.stringify(payload));
+        finish();
     }, function(e) {
+        clearTimeout(finishTimeout);
         console.log('Message failed: ' + JSON.stringify(e));
+        finish();
     });
 }
 

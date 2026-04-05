@@ -162,6 +162,8 @@ var WeatherProvider = function() {
     this.usedGpsCache = false;
     this.gpsErrorCode = null;
     this.locationMode = null;
+    this.precipAmountTenthsMm = 0;
+    this.precipType = 0; // 0=none, 1=rain, 2=snow
 };
 
 WeatherProvider.prototype.gpsEnable = function() {
@@ -608,7 +610,9 @@ WeatherProvider.prototype.getPayload = function() {
         CURRENT_TEMP: Math.round(this.currentTemp),
         CITY: this.cityName,
         // The first byte determines whether the list of events starts on a sunrise (0) or sunset (1)
-        SUN_EVENTS: [this.sunEvents[0].type === 'sunrise' ? 0 : 1].concat(sunEventsByteArray)
+        SUN_EVENTS: [this.sunEvents[0].type === 'sunrise' ? 0 : 1].concat(sunEventsByteArray),
+        PRECIP_TOTAL_UINT16: this.precipAmountTenthsMm,
+        PRECIP_TYPE_UINT8: this.precipType
     };
     return payload;
 };

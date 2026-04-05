@@ -32,7 +32,6 @@ static TextLayer *s_city_layer;
 static TextLayer *s_current_temp_layer;
 static TextLayer *s_next_sun_event_layer;
 
-static GPath *s_arrow_path = NULL;
 static GPath *s_raindrop_path = NULL;
 static const GPathInfo ARROW_PATH_INFO = {
     // Downward facing arrow, centered at the origin
@@ -59,10 +58,6 @@ static void destroy_icon_paths() {
     if (s_raindrop_path) {
         gpath_destroy(s_raindrop_path);
         s_raindrop_path = NULL;
-    }
-    if (s_arrow_path) {
-        gpath_destroy(s_arrow_path);
-        s_arrow_path = NULL;
     }
 }
 
@@ -203,16 +198,15 @@ static void weather_status_update_proc(Layer *layer, GContext *ctx) {
             }
         }
     } else {
-        if (!s_arrow_path) {
-            s_arrow_path = gpath_create(&ARROW_PATH_INFO);
-        }
+        GPath *arrow_path = gpath_create(&ARROW_PATH_INFO);
         if (persist_get_sun_event_start_type() == 0)
-            gpath_rotate_to(s_arrow_path, TRIG_MAX_ANGLE / 2);
-        gpath_move_to(s_arrow_path, GPoint(frame_sun_event.origin.x + ARROW_W / 2, 6));
+            gpath_rotate_to(arrow_path, TRIG_MAX_ANGLE / 2);
+        gpath_move_to(arrow_path, GPoint(frame_sun_event.origin.x + ARROW_W / 2, 6));
         graphics_context_set_stroke_color(ctx, GColorWhite);
-        gpath_draw_outline_open(ctx, s_arrow_path);
+        gpath_draw_outline_open(ctx, arrow_path);
         graphics_context_set_fill_color(ctx, GColorWhite);
-        gpath_draw_filled(ctx, s_arrow_path);
+        gpath_draw_filled(ctx, arrow_path);
+        gpath_destroy(arrow_path);
     }
     MEMORY_LOG_HEAP("weather_status_update:exit");
 }

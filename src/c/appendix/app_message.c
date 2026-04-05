@@ -9,21 +9,6 @@
 #include "c/windows/main_window.h"
 #include "memory_log.h"
 
-static uint32_t app_message_pick_inbox_size(uint32_t inbox_size_max) {
-    // 512 is a tested compromise: it fits current Clay + weather payloads
-    // while preserving heap on Aplite. Increase only if inbox drops show APP_MSG_BUFFER_OVERFLOW.
-    const uint32_t target_size = 512;
-
-    uint32_t inbox_size = target_size;
-    if (inbox_size < APP_MESSAGE_INBOX_SIZE_MINIMUM) {
-        inbox_size = APP_MESSAGE_INBOX_SIZE_MINIMUM;
-    }
-    if (inbox_size > inbox_size_max) {
-        inbox_size = inbox_size_max;
-    }
-    return inbox_size;
-}
-
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Message received!");
     // Weather data
@@ -157,7 +142,7 @@ void app_message_init() {
 
     // Open AppMessage
     const uint32_t inbox_size_max = app_message_inbox_size_maximum();
-    uint32_t inbox_size_chosen = app_message_pick_inbox_size(inbox_size_max);
+    uint32_t inbox_size_chosen = inbox_size_max;
     const int outbox_size = dict_calc_buffer_size(1, sizeof(uint8_t));
     AppMessageResult open_result = app_message_open(inbox_size_chosen, outbox_size);
 

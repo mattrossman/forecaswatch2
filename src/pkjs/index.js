@@ -88,6 +88,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
     app.settings = getClaySettings();  // This reads from localStorage in sensible format
     app.telemetry = createTelemetryClient(getRuntimeTelemetryConfig());
     refreshProvider();
+    // Flush settings before any forced fetch so the watch sees the new config.
     sendClaySettings(function() {
         // Fetching goes last, after other settings have been handled
         if (app.settings.fetch === true) {
@@ -339,7 +340,7 @@ function resetFetchAttemptCounter() {
 /**
  * Convert weather status mode setting to numeric app-message enum value.
  *
- * @param {string|undefined} mode Clay setting value.
+ * @param {'both'|'sun'|'precip'|undefined} mode Clay setting value.
  * @returns {number} 0=both, 1=sun, 2=precip.
  */
 function weatherStatusRightModeToInt(mode) {
@@ -381,6 +382,7 @@ function sendClaySettings(done) {
         }
     }
 
+    // Pebble can occasionally drop the callback path, so unblock the flow after a short fallback.
     var finishTimeout = setTimeout(finish, 1500);
 
     var payload = {

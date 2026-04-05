@@ -10,9 +10,9 @@ If you need runtime logs, `mise install-emulator --logs` runs it in an emulator 
 - Heap probes: use `MEMORY_LOG_HEAP("tag")` for dev-only `MEM|...` logs around lifecycle and redraw checkpoints.
 - JS: `console.log("msg")`
 
-## Message Keys
+## Package.json templating
 
-When adding AppMessage keys, update **both** `package.json` and `package.template.json` — they must stay in sync. After changing either file, run `pebble clean && pebble build` (not just `pebble build`) to force regeneration of the message keys header.
+Package metadata (e.g. AppMessage keys) source of truth lives in `package.template.json`. `package.json` is generated from the template by `prepare-package.sh` (part of `mise build`) and intentionally ignored by git, so direct edits there will be lost.
 
 ## Pebble Memory Tips
 

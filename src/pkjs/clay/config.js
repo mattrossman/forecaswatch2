@@ -180,6 +180,37 @@ module.exports = [
                 "description": "Show hatch shading between sunset and sunrise to distinguish day and night on the forecast graph."
             },
             {
+                "type": "select",
+                "defaultValue": "mph",
+                "messageKey": "windUnit",
+                "label": "Wind Units",
+                "options": [
+                    { "label": "mph", "value": "mph" },
+                    { "label": "kph", "value": "kph" }
+                ]
+            },
+            {
+                "type": "select",
+                "defaultValue": "20",
+                "messageKey": "windMax",
+                "label": "Wind graph max speed",
+                "description": "Sets the top of the wind speed scale. Default 20 for mph / 30 for kph.",
+                "options": [
+                    { "label": "10", "value": "10" },
+                    { "label": "20", "value": "20" },
+                    { "label": "30", "value": "30" },
+                    { "label": "40", "value": "40" },
+                    { "label": "60", "value": "60" },
+                    { "label": "80", "value": "80" }
+                ]
+            },
+            {
+                "type": "toggle",
+                "label": "Show wind speed graph",
+                "messageKey": "showWindGraph",
+                "defaultValue": true
+            },
+            {
                 "type": "radiogroup",
                 "label": "Provider",
                 "messageKey": "provider",

@@ -67,6 +67,13 @@ module.exports = function (minified) {
             console.log('Provider set to ' + this.get());
         })
 
+        // Auto-update wind max default when wind unit changes
+        var clayWindUnit = clayConfig.getItemByMessageKey('windUnit');
+        var clayWindMax = clayConfig.getItemByMessageKey('windMax');
+        clayWindUnit.on('change', function() {
+            clayWindMax.set(this.get() === 'kph' ? '30' : '20');
+        });
+
         // Show last weather fetch status
         lastFetchSuccessString = clayConfig.meta.userData.lastFetchSuccess;
         lastFetchSuccessTime = null;

@@ -1,8 +1,16 @@
 #include "loading_layer.h"
 #include "c/appendix/persist.h"
+#include "c/appendix/memory_log.h"
 
 static Layer *s_loading_layer;
 static TextLayer *s_loading_text_layer;
+
+bool loading_layer_has_valid_data() {
+    const time_t forecast_start = persist_get_forecast_start();
+    const time_t now = time(NULL);
+
+    return now - forecast_start <= 60 * 60 * 12;
+}
 
 static void loading_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
@@ -29,18 +37,19 @@ void loading_layer_create(Layer* parent_layer, GRect frame) {
     layer_set_update_proc(s_loading_layer, loading_update_proc);
     layer_add_child(s_loading_layer, text_layer_get_layer(s_loading_text_layer));
     layer_add_child(parent_layer, s_loading_layer);
+    MEMORY_LOG_HEAP("after_loading_layer_create");
 }
 
 void loading_layer_refresh() {
-    const time_t forecast_start = persist_get_forecast_start();
-    const time_t now = time(NULL);
-    if (now - forecast_start > 60 * 60 * 12) // 60 sec/min * 60 min/h * 12h
-        layer_set_hidden(s_loading_layer, false); // show the no data notice
+    if (loading_layer_has_valid_data())
+        layer_set_hidden(s_loading_layer, true);
     else
-        layer_set_hidden(s_loading_layer, true); // hide the no data notice
+        layer_set_hidden(s_loading_layer, false); // show the no data notice
 }
 
 void loading_layer_destroy() {
-    layer_destroy(s_loading_layer);
+    MEMORY_LOG_HEAP("loading_layer_destroy:before");
     text_layer_destroy(s_loading_text_layer);
+    layer_destroy(s_loading_layer);
+    MEMORY_LOG_HEAP("loading_layer_destroy:after");
 }

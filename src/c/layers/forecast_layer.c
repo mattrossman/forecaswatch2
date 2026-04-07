@@ -468,15 +468,12 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     struct tm *forecast_start_local = localtime(&forecast_start);
     int16_t temps[num_entries];
     uint8_t precips[num_entries];
-    uint8_t winds[num_entries];
     persist_get_temp_trend(temps, num_entries);
     persist_get_precip_trend(precips, num_entries);
-    persist_get_wind_trend(winds, num_entries);
 
     // Allocate point arrays for plots
     GPoint points_temp[num_entries];
     GPoint points_precip[num_entries + 2]; // We need 2 more to complete the area
-    GPoint points_wind[num_entries];
 
     // Calculate the temperature range
     int lo, hi;
@@ -591,34 +588,32 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
 
     // Prepare and draw the wind speed line (scaled independently)
     if (g_config && g_config->show_wind_graph) {
-    int max_wind = 0;
-    // If a fixed max is configured, use it (in same units as persisted wind data)
-    if (g_config && g_config->wind_max > 0) {
-        max_wind = g_config->wind_max;
-    } else {
-        for (int i = 0; i < num_entries; ++i) {
-            if ((int)winds[i] > max_wind) max_wind = winds[i];
-        }
-        if (max_wind == 0) max_wind = 1; // avoid divide by zero
-    }
+    uint8_t winds[num_entries];
+    GPoint points_wind[num_entries];
+    persist_get_wind_trend(winds, num_entries);
+    int max_wind = (g_config->wind_max > 0) ? g_config->wind_max : 20;
     for (int i = 0; i < num_entries; ++i) {
         int entry_x = graph_bounds.origin.x + i * entry_w;
         int wind = winds[i];
         if (wind > max_wind) {
             wind = max_wind; // Clamp to configured max so line sticks to top
         }
-        int wind_h = (float) wind / max_wind * (h - MARGIN_TEMP_H * 2 - BOTTOM_AXIS_H);
+        int wind_h = (int32_t)wind * temp_plot_h / max_wind;
         points_wind[i] = GPoint(entry_x, h - wind_h - MARGIN_TEMP_H - BOTTOM_AXIS_H);
     }
     GPathInfo path_info_wind = {
         .num_points = num_entries,
         .points = points_wind
     };
+    MEMORY_HEAP_PROBE_SAMPLE("before_wind_path_create", &redraw_probe);
     GPath *path_wind = gpath_create(&path_info_wind);
+    MEMORY_HEAP_PROBE_SAMPLE("after_wind_path_create", &redraw_probe);
     graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorYellow, GColorWhite));
     graphics_context_set_stroke_width(ctx, 1);
     gpath_draw_outline_open(ctx, path_wind);
+    MEMORY_HEAP_PROBE_SAMPLE("before_wind_path_destroy", &redraw_probe);
     gpath_destroy(path_wind);
+    MEMORY_HEAP_PROBE_SAMPLE("after_wind_path_destroy", &redraw_probe);
     } // end show_wind_graph
 
     // Prepare and draw the wind speed line (scaled independently)

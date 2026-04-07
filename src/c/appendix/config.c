@@ -23,7 +23,7 @@ static Config config_defaults(void) {
         .show_am_pm = false,
         .time_font = TIME_FONT_ROBOTO,
         .wind_unit = 0,
-        .wind_max = 0,
+        .wind_max = 20,
         .color_today = GColorBlack,
         .color_saturday = GColorWhite,
         .color_sunday = GColorWhite,
@@ -70,7 +70,7 @@ static void config_migrate(int bytes_read) {
         GColor old_color_time       = (GColor){ .argb = raw[16] };
         // Wind fields: safe defaults
         g_config->wind_unit         = 0;    // mph
-        g_config->wind_max          = 0;    // auto
+        g_config->wind_max          = 20;
         // Restore colors at their correct new offsets
         g_config->color_today       = old_color_today;
         g_config->color_saturday    = old_color_saturday;
@@ -82,7 +82,7 @@ static void config_migrate(int bytes_read) {
     } else if (bytes_read < (int)sizeof(Config)) {
         // Unknown layout smaller than current — apply safe defaults for all new fields
         g_config->wind_unit         = 0;
-        g_config->wind_max          = 0;
+        g_config->wind_max          = 20;
         g_config->show_wind_graph   = true;
         g_config->day_night_shading = true;
     }

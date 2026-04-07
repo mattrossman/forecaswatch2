@@ -191,11 +191,10 @@ module.exports = [
             },
             {
                 "type": "select",
-                "defaultValue": "0",
+                "defaultValue": "20",
                 "messageKey": "windMax",
-                "label": "Fixed wind graph max (0 = auto)",
+                "label": "Wind graph max speed (default: 20 mph/kph — scale stays consistent day-to-day)",
                 "options": [
-                    { "label": "Auto", "value": "0" },
                     { "label": "5", "value": "5" },
                     { "label": "10", "value": "10" },
                     { "label": "15", "value": "15" },

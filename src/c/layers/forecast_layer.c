@@ -591,16 +591,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
 
     // Prepare and draw the wind speed line (scaled independently)
     if (g_config && g_config->show_wind_graph) {
-    int max_wind = 0;
-    // If a fixed max is configured, use it (in same units as persisted wind data)
-    if (g_config && g_config->wind_max > 0) {
-        max_wind = g_config->wind_max;
-    } else {
-        for (int i = 0; i < num_entries; ++i) {
-            if ((int)winds[i] > max_wind) max_wind = winds[i];
-        }
-        if (max_wind == 0) max_wind = 1; // avoid divide by zero
-    }
+    int max_wind = (g_config->wind_max > 0) ? g_config->wind_max : 20;
     for (int i = 0; i < num_entries; ++i) {
         int entry_x = graph_bounds.origin.x + i * entry_w;
         int wind = winds[i];

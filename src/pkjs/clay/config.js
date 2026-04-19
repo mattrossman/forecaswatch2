@@ -226,6 +226,26 @@ module.exports = [
                 "defaultValue": "Misc"
             },
             {
+                "type": "select",
+                "defaultValue": "0",
+                "messageKey": "chime",
+                "label": "Vibrate",
+                "options": [
+                    {
+                        "label": "Never",
+                        "value": "0"
+                    },
+                    {
+                        "label": "Half hour",
+                        "value": "30"
+                    },
+                    {
+                        "label": "Hourly",
+                        "value": "60"
+                    }
+                ]
+            },
+            {
                 "type": "toggle",
                 "label": "Show quiet time icon",
                 "messageKey": "showQt",

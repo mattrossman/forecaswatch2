@@ -372,6 +372,7 @@ function sendClaySettings() {
         "CLAY_SHOW_QT": app.settings.showQt,
         "CLAY_SHOW_BT": app.settings.btIcons === "connected" || app.settings.btIcons === "both",
         "CLAY_SHOW_BT_DISCONNECT": app.settings.btIcons === "disconnected" || app.settings.btIcons === "both",
+        "CLAY_CHIME": parseInt(app.settings.chime, 0),
         "CLAY_VIBE": app.settings.vibe,
         "CLAY_SHOW_AM_PM": app.settings.timeShowAmPm,
         "CLAY_COLOR_SUNDAY": app.settings.hasOwnProperty('colorSunday') ? app.settings.colorSunday : 16777215,

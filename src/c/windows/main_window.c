@@ -7,6 +7,7 @@
 #include "c/layers/loading_layer.h"
 #include "c/appendix/app_message.h"
 #include "c/appendix/persist.h"
+#include "c/appendix/chime.h"
 #include "c/appendix/memory_log.h"
 
 #define FORECAST_HEIGHT 51
@@ -61,6 +62,9 @@ static void minute_handler(struct tm *tick_time, TimeUnits units_changed) {
         calendar_layer_refresh();
         calendar_status_layer_refresh();
     }
+
+    chime_handle(tick_time);
+
     status_icons_refresh();
     loading_layer_refresh();
 }

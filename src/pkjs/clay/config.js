@@ -229,7 +229,8 @@ module.exports = [
                 "type": "select",
                 "defaultValue": "0",
                 "messageKey": "chime",
-                "label": "Vibrate",
+                "label": "Chime / Vibration",
+                "description": "One short pulse at half hour, two short pulses hourly.",
                 "options": [
                     {
                         "label": "Never",

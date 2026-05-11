@@ -12,7 +12,10 @@ call you aren't 100% certain of — the C API docs are not in your training data
 
 ## How the docs site is structured
 
-Base URL: https://developer.rebble.io
+Primary base URL: https://developer.repebble.com
+
+If a page is missing on the Core Devices / RePebble site, fall back to the
+community mirror at https://developer.rebble.io.
 
 The C API lives at `/docs/c/` and is organized as:
   /docs/c/{Module}/{Submodule}/
@@ -23,6 +26,16 @@ for that submodule. Symbols are anchor-linked:
 
 **Always fetch the submodule page, not the symbol anchor directly.**
 The full page contains context about related symbols you'll want.
+
+The docs index is a little different between the two sites:
+
+- RePebble's C SDK index currently presents 5 top-level C modules:
+  Foundation, Graphics, User Interface, Worker, and Standard C.
+- Rebble's older index still shows Smartstrap as a top-level C module and
+  lacks some newer entries on the RePebble site, such as Alloy, TouchService,
+  and Speaker.
+- The guide paths are broadly the same on both sites, so most older
+  `developer.rebble.io` guide URLs still work on `developer.repebble.com`.
 
 ## Complete C API module tree
 
@@ -46,6 +59,7 @@ Foundation/
     ConnectionService/
     HealthService/
     TickTimerService/
+    TouchService/
   Exit_Reason/
   Internationalization/
   Launch_Reason/
@@ -61,6 +75,7 @@ Foundation/
   Wakeup/
   Wall_Time/
   WatchInfo/
+  Alloy/
 
 Graphics/
   Draw_Commands/
@@ -87,14 +102,13 @@ User_Interface/
     TextLayer/
   Light/
   Preferences/
+  Speaker/
   UnobstructedArea/
   Vibes/
   Window/
     ActionMenu/
     NumberWindow/
   Window_Stack/
-
-Smartstrap/
 Worker/
 
 Standard_C/
@@ -116,7 +130,7 @@ Standard_C/
    - Persistent storage → Foundation/Storage/
 
 2. Fetch the submodule page:
-   https://developer.rebble.io/docs/c/{Module}/{Submodule}/
+   https://developer.repebble.com/docs/c/{Module}/{Submodule}/
 
 3. Read the full page. It will contain all typedefs, structs, enums, and
    function signatures with parameters and descriptions.
@@ -124,28 +138,28 @@ Standard_C/
 ## Lookup examples
 
 Q: What are the parameters for text_layer_set_text()?
-→ Fetch: https://developer.rebble.io/docs/c/User_Interface/Layers/TextLayer/
+→ Fetch: https://developer.repebble.com/docs/c/User_Interface/Layers/TextLayer/
 
 Q: How does BatteryChargeState work?
-→ Fetch: https://developer.rebble.io/docs/c/Foundation/Event_Service/BatteryStateService/
+→ Fetch: https://developer.repebble.com/docs/c/Foundation/Event_Service/BatteryStateService/
 
 Q: What drawing functions are available?
-→ Fetch: https://developer.rebble.io/docs/c/Graphics/Drawing_Primitives/
-   and:   https://developer.rebble.io/docs/c/Graphics/Graphics_Context/
+→ Fetch: https://developer.repebble.com/docs/c/Graphics/Drawing_Primitives/
+   and:   https://developer.repebble.com/docs/c/Graphics/Graphics_Context/
 
 Q: How do I subscribe to tick events?
-→ Fetch: https://developer.rebble.io/docs/c/Foundation/Event_Service/TickTimerService/
+→ Fetch: https://developer.repebble.com/docs/c/Foundation/Event_Service/TickTimerService/
 
 ## Other docs sections
 
 Guides (conceptual, tutorial-style):
-  https://developer.rebble.io/guides/
+  https://developer.repebble.com/guides/
 
 JavaScript/Rocky (JS on watch):
-  https://developer.rebble.io/docs/rockyjs/
+  https://developer.repebble.com/docs/rockyjs/
 
 PebbleKit JS (phone-side JS):
-  https://developer.rebble.io/docs/pebblekit-js/
+  https://developer.repebble.com/docs/pebblekit-js/
 
 ## Important caveats
 

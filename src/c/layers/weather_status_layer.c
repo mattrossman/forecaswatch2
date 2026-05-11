@@ -91,7 +91,6 @@ static void sun_event_layer_refresh() {
 static void weather_status_layer_init(GRect bounds) {
     // Set up the city text layer properties
     int w = bounds.size.w;
-    int h = bounds.size.h;
 
     // Current temperature
     s_current_temp_layer = text_layer_create(GRect(MARGIN, -FONT_18_OFFSET, 40, 25));
@@ -123,23 +122,32 @@ static void weather_status_update_proc(Layer *layer, GContext *ctx) {
     MEMORY_LOG_HEAP("weather_status_update:enter");
     GRect bounds = layer_get_bounds(layer);
     int w = bounds.size.w;
-    int h = bounds.size.h;
-    s_arrow_path = gpath_create(&ARROW_PATH_INFO);
+    if (!s_arrow_path) {
+        MEMORY_LOG_HEAP("weather_status_update:missing_arrow_path");
+        return;
+    }
     // Translate to correct location in layer
-    if (persist_get_sun_event_start_type() == 0)
+    if (persist_get_sun_event_start_type() == 0) {
         gpath_rotate_to(s_arrow_path, TRIG_MAX_ANGLE / 2);
+    } else {
+        gpath_rotate_to(s_arrow_path, 0);
+    }
     gpath_move_to(s_arrow_path, GPoint(w - 4, 6));
     graphics_context_set_stroke_color(ctx, GColorWhite);
     gpath_draw_outline_open(ctx, s_arrow_path);
     graphics_context_set_fill_color(ctx, GColorWhite);
     gpath_draw_filled(ctx, s_arrow_path);
-    gpath_destroy(s_arrow_path);
     MEMORY_LOG_HEAP("weather_status_update:exit");
 }
 
 void weather_status_layer_create(Layer* parent_layer, GRect frame) {
     s_weather_status_layer = layer_create(frame);
     GRect bounds = layer_get_bounds(s_weather_status_layer);
+
+    s_arrow_path = gpath_create(&ARROW_PATH_INFO);
+    if (!s_arrow_path) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "weather_status_layer_create: failed to allocate arrow path");
+    }
 
     // Set up all the text layers
     weather_status_layer_init(bounds);
@@ -166,6 +174,10 @@ void weather_status_layer_destroy() {
     text_layer_destroy(s_city_layer);
     text_layer_destroy(s_current_temp_layer);
     text_layer_destroy(s_next_sun_event_layer);
+    if (s_arrow_path) {
+        gpath_destroy(s_arrow_path);
+        s_arrow_path = NULL;
+    }
     layer_destroy(s_weather_status_layer);
     MEMORY_LOG_HEAP("weather_status_layer_destroy:after");
 }

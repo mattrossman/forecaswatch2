@@ -36,9 +36,6 @@ static void main_window_load(Window *window) {
             GRect(0, CALENDAR_STATUS_HEIGHT, bounds.size.w, CALENDAR_HEIGHT));
     calendar_status_layer_create(window_layer,
             GRect(0, 0, bounds.size.w, CALENDAR_STATUS_HEIGHT + 1));  // +1 to stop text clipping
-    loading_layer_create(window_layer,
-            GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, w, FORECAST_HEIGHT + WEATHER_STATUS_HEIGHT));
-    loading_layer_refresh();
     app_message_send_startup_state(loading_layer_has_valid_data());
     MEMORY_LOG_HEAP("after_window_load");
 }
@@ -50,7 +47,6 @@ static void main_window_unload(Window *window) {
     forecast_layer_destroy();
     calendar_layer_destroy();
     calendar_status_layer_destroy();
-    loading_layer_destroy();
     MEMORY_LOG_HEAP("after_window_unload");
 }
 
@@ -62,7 +58,7 @@ static void minute_handler(struct tm *tick_time, TimeUnits units_changed) {
         calendar_status_layer_refresh();
     }
     status_icons_refresh();
-    loading_layer_refresh();
+    forecast_layer_refresh();
 }
 
 /*----------------------------

@@ -8,6 +8,12 @@ enum TimeFont {
     TIME_FONT_BITHAM = 2,
 };
 
+enum StatusBarMode {
+    STATUS_BAR_MODE_BOTH = 0,
+    STATUS_BAR_MODE_SUN = 1,
+    STATUS_BAR_MODE_PRECIP = 2,
+};
+
 typedef struct {
     bool celsius;
     bool time_lead_zero;
@@ -26,6 +32,7 @@ typedef struct {
     GColor color_us_federal;
     GColor color_time;
     bool day_night_shading;
+    enum StatusBarMode status_bar_mode;
 } Config;
 
 Config *g_config;
@@ -51,3 +58,5 @@ bool config_highlight_holidays();
 bool config_highlight_sundays();
 
 bool config_highlight_saturdays();
+
+bool config_is_celsius();

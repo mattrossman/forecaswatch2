@@ -102,6 +102,13 @@ OpenWeatherMapProvider.prototype.withProviderData = function(lat, lon, force, on
         });
         this.startTime = weatherData.hourly[0].dt;
         this.currentTemp = weatherData.current.temp;
+        var rainMm = 0, snowMm = 0;
+        weatherData.hourly.slice(0, this.numEntries).forEach(function(entry) {
+            rainMm += (entry.rain && entry.rain['1h']) ? entry.rain['1h'] : 0;
+            snowMm += (entry.snow && entry.snow['1h']) ? entry.snow['1h'] : 0;
+        });
+        this.precipAmountTenthsMm = Math.round((rainMm + snowMm) * 10);
+        this.precipType = (rainMm === 0 && snowMm === 0) ? 0 : (snowMm > rainMm ? 2 : 1);
         onSuccess();
     }).bind(this), onFailure);
 };

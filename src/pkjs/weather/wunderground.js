@@ -139,6 +139,13 @@ WundergroundProvider.prototype.withProviderData = function(lat, lon, force, onSu
                 });
                 this.startTime = forecast[0].fcst_valid;
                 this.currentTemp = currentTemp;
+                var rainMm = 0, snowMm = 0;
+                forecast.slice(0, this.numEntries).forEach(function(entry) {
+                    rainMm += (entry.qpf || 0) * 25.4;
+                    snowMm += (entry.snow_qpf || 0) * 25.4;
+                });
+                this.precipAmountTenthsMm = Math.round((rainMm + snowMm) * 10);
+                this.precipType = (rainMm === 0 && snowMm === 0) ? 0 : (snowMm > rainMm ? 2 : 1);
                 onSuccess();
             }).bind(this), onFailure);
         }).bind(this), onFailure);

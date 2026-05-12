@@ -62,3 +62,8 @@ run = "scripts/screenshot-phone.sh"
 description = "Take a screenshot from emulator (default: basalt)"
 alias = "screenshot-emu"
 run = "scripts/screenshot-emulator.sh"
+
+[tasks.tap-emulator]
+description = "Send a tap to the emulator (default: basalt)"
+alias = "tap"
+run = "pebble emu-tap --emulator ${PEBBLE_EMULATOR:-basalt}"

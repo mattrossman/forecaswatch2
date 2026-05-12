@@ -170,6 +170,9 @@ PEBBLE_EMULATOR=aplite mise install-emulator
 # Legacy pass-through separator (still works)
 mise install-emulator -- --logs
 
+# Trigger the tap/shake handler in the emulator (default platform: basalt)
+mise shake-emulator
+
 # Take a screenshot from emulator (default platform: basalt)
 mise screenshot-emulator
 

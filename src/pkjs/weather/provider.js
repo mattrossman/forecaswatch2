@@ -162,6 +162,8 @@ var WeatherProvider = function() {
     this.usedGpsCache = false;
     this.gpsErrorCode = null;
     this.locationMode = null;
+    this.precipAmountTenthsMm = 0;
+    this.precipType = 0; // 0=none, 1=rain, 2=snow
 };
 
 WeatherProvider.prototype.gpsEnable = function() {
@@ -592,23 +594,56 @@ WeatherProvider.prototype.getPayload = function() {
         return Math.round(temperature);
     });
     var precips = this.precipTrend.slice(0, this.numEntries).map(function(probability) {
-        return Math.round(probability * 100);
+        return Math.round(probability * 15);
     });
-    var tempsIntView = new Int16Array(temps);
-    var tempsByteArray = Array.prototype.slice.call(new Uint8Array(tempsIntView.buffer));
-    var sunEventsIntView = new Int32Array(this.sunEvents.map(function(sunEvent) {
-        return sunEvent.date.getTime() / 1000; // Seconds since epoch
-    }));
-    var sunEventsByteArray = Array.prototype.slice.call(new Uint8Array(sunEventsIntView.buffer));
+    var tempLo = temps.reduce(function(min, temp) {
+        return temp < min ? temp : min;
+    }, temps[0]);
+    var tempHi = temps.reduce(function(max, temp) {
+        return temp > max ? temp : max;
+    }, temps[0]);
+    var tempRange = tempHi - tempLo;
+    var tempsPacked = [];
+    var precipsPacked = [];
+    var tempIndex;
+    var tempBucket;
+    var precipBucket;
+    var packedByte;
+    var sunEventsPacked = new Uint16Array(this.sunEvents.map(function(sunEvent, index) {
+        var offsetMinutes = Math.round((sunEvent.date.getTime() / 1000 - this.startTime) / 60);
+        return (index === 0 && sunEvent.type !== 'sunrise' ? 0x8000 : 0) | (offsetMinutes & 0x7fff);
+    }.bind(this)));
+
+    for (tempIndex = 0; tempIndex < temps.length; tempIndex += 2) {
+        tempBucket = tempRange > 0 ? Math.round((temps[tempIndex] - tempLo) * 15 / tempRange) : 0;
+        tempBucket = Math.max(0, Math.min(15, tempBucket));
+        packedByte = tempBucket & 0x0f;
+        if (tempIndex + 1 < temps.length) {
+            tempBucket = tempRange > 0 ? Math.round((temps[tempIndex + 1] - tempLo) * 15 / tempRange) : 0;
+            tempBucket = Math.max(0, Math.min(15, tempBucket));
+            packedByte |= (tempBucket & 0x0f) << 4;
+        }
+        tempsPacked.push(packedByte);
+
+        precipBucket = Math.max(0, Math.min(15, precips[tempIndex] || 0));
+        packedByte = precipBucket & 0x0f;
+        if (tempIndex + 1 < precips.length) {
+            precipBucket = Math.max(0, Math.min(15, precips[tempIndex + 1] || 0));
+            packedByte |= (precipBucket & 0x0f) << 4;
+        }
+        precipsPacked.push(packedByte);
+    }
+
     var payload = {
-        TEMP_TREND_INT16: tempsByteArray,
-        PRECIP_TREND_UINT8: precips, // Holds values within [0,100]
+        TRENDS_PACKED_UINT8: tempsPacked.concat(precipsPacked), // first half = temps, second half = precip
         FORECAST_START: this.startTime,
-        NUM_ENTRIES: this.numEntries,
-        CURRENT_TEMP: Math.round(this.currentTemp),
+        TEMP_LO: tempLo,
+        TEMP_HI: tempHi,
+        CURRENT_TEMP: [Math.round(this.currentTemp)],
         CITY: this.cityName,
-        // The first byte determines whether the list of events starts on a sunrise (0) or sunset (1)
-        SUN_EVENTS: [this.sunEvents[0].type === 'sunrise' ? 0 : 1].concat(sunEventsByteArray)
+        SUN_EVENTS: Array.prototype.slice.call(new Uint8Array(sunEventsPacked.buffer)),
+        PRECIP_TOTAL_UINT16: this.precipAmountTenthsMm,
+        PRECIP_TYPE_UINT8: [this.precipType]
     };
     return payload;
 };

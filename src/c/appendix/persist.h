@@ -49,3 +49,11 @@ void persist_set_sun_event_start_type(int val);
 void persist_set_sun_event_times(time_t *data, const size_t size);
 
 void persist_set_config(Config config);
+
+uint16_t persist_get_precip_total();
+
+void persist_set_precip_total(uint16_t val);
+
+uint8_t persist_get_precip_type();
+
+void persist_set_precip_type(uint8_t val);

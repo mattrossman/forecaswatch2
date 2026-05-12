@@ -1,5 +1,11 @@
 var WeatherProvider = require('./provider.js');
 
+var PRECIP_TYPES = {
+    NONE: 0,
+    RAIN: 1,
+    SNOW: 2,
+};
+
 var MOCK_SCENARIOS = {
     clearMorning: {
         startEpoch: 1772870400,
@@ -24,8 +30,10 @@ var MOCK_SCENARIOS = {
     extremeCold: {
         startEpoch: 1772870400,
         currentTemp: -3,
-        temps: [-9, -10, -10, -9, -8, -7, -7, -5, -4, -3, -2, -2, 0, 1, 3, 5, 5, 3, 1, -1, -2, -4, -6, -8],
-        precipPct: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 4, 3, 1, 0, 0, 0, 0, 0, 0],
+        temps: [-9, -10, -10, -9, -8, -7, -5, -3, -1, 1, 3, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -7, -8],
+        precipPct: [5, 5, 8, 10, 15, 20, 25, 35, 45, 55, 65, 70, 75, 80, 85, 90, 88, 82, 75, 65, 50, 35, 20, 10],
+        precipMm: 36,
+        precipType: PRECIP_TYPES.SNOW,
         sunEvents: [
             { type: 'sunrise', epoch: 1772883000 },
             { type: 'sunset', epoch: 1772923800 },
@@ -46,6 +54,8 @@ var MOCK_SCENARIOS = {
         currentTemp: 38,
         temps: [38, 38, 37, 37, 36, 36, 35, 35, 35, 34, 34, 34, 33, 33, 33, 33, 32, 32, 32, 32, 31, 31, 31, 31],
         precipPct: [40, 45, 55, 65, 70, 75, 80, 78, 70, 60, 50, 45, 40, 35, 30, 25, 20, 15, 10, 8, 6, 4, 2, 0],
+        precipMm: 18,
+        precipType: PRECIP_TYPES.RAIN,
         sunEvents: [
             { type: 'sunset', epoch: 1772923800 },
             { type: 'sunrise', epoch: 1772968800 },
@@ -56,6 +66,8 @@ var MOCK_SCENARIOS = {
         currentTemp: 64,
         temps: [64, 66, 68, 70, 71, 72, 72, 71, 69, 67, 65, 63, 61, 59, 57, 55, 53, 51, 50, 49, 48, 47, 46, 45],
         precipPct: [5, 10, 15, 25, 40, 60, 80, 90, 85, 70, 55, 40, 30, 20, 12, 8, 6, 4, 3, 2, 2, 1, 1, 0],
+        precipMm: 32,
+        precipType: PRECIP_TYPES.RAIN,
         sunEvents: [
             { type: 'sunset', epoch: 1772923800 },
             { type: 'sunrise', epoch: 1772968800 },
@@ -108,6 +120,10 @@ function epochForClockTimeToday(clockTime) {
     return Math.floor(out.getTime() / 1000);
 }
 
+function currentEpoch() {
+    return Math.floor(Date.now() / 1000);
+}
+
 var MockProvider = function(devConfig) {
     this._super.call(this);
     this.name = 'Mock';
@@ -152,6 +168,8 @@ MockProvider.prototype.normalizeScenario = function(name, data) {
         currentTemp: data.currentTemp,
         temps: data.temps,
         precipPct: data.precipPct,
+        precipMm: data.precipMm,
+        precipType: data.precipType,
         sunEvents: data.sunEvents,
     };
 
@@ -162,6 +180,9 @@ MockProvider.prototype.normalizeScenario = function(name, data) {
         parsedClockTime = parseClockTime(data.emuTime);
         if (parsedClockTime) {
             normalized.startEpoch = epochForClockTimeToday(parsedClockTime);
+        }
+        else {
+            normalized.startEpoch = currentEpoch();
         }
     }
 
@@ -219,10 +240,13 @@ MockProvider.prototype.withProviderData = function(lat, lon, force, callback) {
     });
     this.startTime = data.startEpoch;
     this.currentTemp = data.currentTemp;
+    this.precipAmountTenthsMm = Math.round((data.precipMm || 0) * 10);
+    this.precipType = data.precipType || PRECIP_TYPES.NONE;
 
     callback();
 };
 
 MockProvider.SCENARIOS = MOCK_SCENARIOS;
+MockProvider.PRECIP_TYPES = PRECIP_TYPES;
 
 module.exports = MockProvider;

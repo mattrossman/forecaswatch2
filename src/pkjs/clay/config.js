@@ -160,14 +160,14 @@ module.exports = [
                 "type": "select",
                 "defaultValue": "f",
                 "messageKey": "temperatureUnits",
-                "label": "Temperature Units",
+                "label": "Units",
                 "options": [
                     {
-                        "label": "°F",
+                        "label": "Imperial (°F, in)",
                         "value": "f"
                     },
                     {
-                        "label": "°C",
+                        "label": "Metric (°C, mm)",
                         "value": "c"
                     }
                 ]
@@ -178,6 +178,27 @@ module.exports = [
                 "messageKey": "dayNightShading",
                 "defaultValue": true,
                 "description": "Show hatch shading between sunset and sunrise to distinguish day and night on the forecast graph."
+            },
+            {
+                "type": "radiogroup",
+                "label": "Weather detail (right)",
+                "messageKey": "weatherStatusRightMode",
+                "defaultValue": "both",
+                "description": "When set to 'Both', flick your wrist to toggle between precipitation amount and sunrise/sunset time.",
+                "options": [
+                    {
+                        "label": "Next sunrise/sunset",
+                        "value": "sun"
+                    },
+                    {
+                        "label": "Precipitation amount (24hr)",
+                        "value": "precip"
+                    },
+                    {
+                        "label": "Both",
+                        "value": "both"
+                    }
+                ]
             },
             {
                 "type": "radiogroup",

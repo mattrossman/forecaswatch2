@@ -10,6 +10,10 @@ If you need runtime logs, `mise install-emulator --logs` runs it in an emulator 
 - Heap probes: use `MEMORY_LOG_HEAP("tag")` for dev-only `MEM|...` logs around lifecycle and redraw checkpoints.
 - JS: `console.log("msg")`
 
+## Package.json templating
+
+Package metadata (e.g. AppMessage keys) source of truth lives in `package.template.json`. `package.json` is generated from the template by `prepare-package.sh` (part of `mise build`) and intentionally ignored by git, so direct edits there will be lost.
+
 ## Pebble Memory Tips
 
 - Lazy-load bitmaps and destroy them when they are not needed to keep startup and steady-state heap usage low.

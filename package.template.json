@@ -62,10 +62,10 @@
       "configurable"
     ],
     "messageKeys": [
-      "TEMP_TREND_INT16",
-      "PRECIP_TREND_UINT8",
+      "TRENDS_PACKED_UINT8",
       "FORECAST_START",
-      "NUM_ENTRIES",
+      "TEMP_LO",
+      "TEMP_HI",
       "CURRENT_TEMP",
       "CITY",
       "SUN_EVENTS",

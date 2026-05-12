@@ -12,10 +12,10 @@
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Message received!");
     // Weather data
-    Tuple *temp_trend_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_TREND_INT16);
-    Tuple *precip_trend_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_TREND_UINT8);
+    Tuple *trends_packed_tuple = dict_find(iterator, MESSAGE_KEY_TRENDS_PACKED_UINT8);
     Tuple *forecast_start_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_START);
-    Tuple *num_entries_tuple = dict_find(iterator, MESSAGE_KEY_NUM_ENTRIES);
+    Tuple *temp_lo_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_LO);
+    Tuple *temp_hi_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_HI);
     Tuple *current_temp_tuple = dict_find(iterator, MESSAGE_KEY_CURRENT_TEMP);
     Tuple *city_tuple = dict_find(iterator, MESSAGE_KEY_CITY);
     Tuple *sun_events_tuple = dict_find(iterator, MESSAGE_KEY_SUN_EVENTS);
@@ -48,11 +48,13 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         || clay_color_sunday_tuple || clay_color_us_federal_tuple || clay_color_time_tuple || clay_day_night_shading_tuple
         || clay_weather_status_right_mode_tuple;
 
-    if(temp_trend_tuple && precip_trend_tuple && forecast_start_tuple && num_entries_tuple && current_temp_tuple && city_tuple && sun_events_tuple && precip_total_tuple && precip_type_tuple) {
+    if(trends_packed_tuple && forecast_start_tuple && temp_lo_tuple && temp_hi_tuple && current_temp_tuple && city_tuple && sun_events_tuple && precip_total_tuple && precip_type_tuple) {
         // Weather data received
         APP_LOG(APP_LOG_LEVEL_INFO, "All tuples received!");
         persist_set_forecast_start((time_t)forecast_start_tuple->value->int32);
-        const int num_entries = ((int)num_entries_tuple->value->int32);
+        const int packed_trend_bytes = (int) trends_packed_tuple->length;
+        const int packed_trend_half_bytes = packed_trend_bytes / 2;
+        const int num_entries = packed_trend_half_bytes * 2;
         persist_set_num_entries(num_entries);
 #ifdef FCW2_ENABLE_MEMORY_LOGGING
         APP_LOG(APP_LOG_LEVEL_DEBUG, "MEM|forecast_payload|entries=%d|free=%lu|used=%lu",
@@ -60,22 +62,48 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
                 (unsigned long)heap_bytes_free(),
                 (unsigned long)heap_bytes_used());
 #endif
-        int16_t *temp_data = (int16_t*) temp_trend_tuple->value->data;
+        const int temp_lo = (int) temp_lo_tuple->value->int32;
+        const int temp_hi = (int) temp_hi_tuple->value->int32;
+        const int temp_range = temp_hi - temp_lo;
+        const uint8_t *packed_trend_data = (const uint8_t*) trends_packed_tuple->value->data;
+        const uint8_t *packed_temp_data = packed_trend_data;
+        const uint8_t *packed_precip_data = packed_trend_data + packed_trend_half_bytes;
+        int16_t temp_data[num_entries];
+        uint8_t precip_data[num_entries];
+        for (int i = 0; i < num_entries; ++i) {
+            const uint8_t temp_packed = packed_temp_data[i / 2];
+            const uint8_t temp_bucket = (i % 2 == 0) ? (temp_packed & 0x0f) : (temp_packed >> 4);
+            const uint8_t precip_packed = packed_precip_data[i / 2];
+            const uint8_t precip_bucket = (i % 2 == 0) ? (precip_packed & 0x0f) : (precip_packed >> 4);
+
+            if (temp_range > 0) {
+                temp_data[i] = (int16_t)(temp_lo + ((temp_range * temp_bucket + 7) / 15));
+            } else {
+                temp_data[i] = (int16_t) temp_lo;
+            }
+            precip_data[i] = (uint8_t)((precip_bucket * 100 + 7) / 15);
+        }
         persist_set_temp_trend(temp_data, num_entries);
-        uint8_t *precip_data = (uint8_t*) precip_trend_tuple->value->data;
         persist_set_precip_trend(precip_data, num_entries);
         persist_set_city((char*)city_tuple->value->cstring);
-        int lo, hi;
-        min_max(temp_data, num_entries, &lo, &hi);
-        persist_set_temp_lo(lo);
-        persist_set_temp_hi(hi);
-        persist_set_current_temp((int)current_temp_tuple->value->int32);
-        uint8_t sun_event_start_type = (uint8_t) sun_events_tuple->value->uint8;
-        time_t *sun_event_times = (time_t*) (sun_events_tuple->value->data + 1);
+        persist_set_temp_lo(temp_lo);
+        persist_set_temp_hi(temp_hi);
+        const int current_temp = current_temp_tuple->length == 1
+            ? (int) ((int8_t) current_temp_tuple->value->data[0])
+            : (int) current_temp_tuple->value->int32;
+        persist_set_current_temp(current_temp);
+        const uint16_t *sun_event_words = (const uint16_t*) sun_events_tuple->value->data;
+        const uint8_t sun_event_start_type = (uint8_t) (sun_event_words[0] >> 15);
+        time_t sun_event_times[2];
+        sun_event_times[0] = (time_t) forecast_start_tuple->value->int32 + (time_t) ((sun_event_words[0] & 0x7fff) * 60);
+        sun_event_times[1] = (time_t) forecast_start_tuple->value->int32 + (time_t) (sun_event_words[1] * 60);
         persist_set_sun_event_start_type(sun_event_start_type);
         persist_set_sun_event_times(sun_event_times, 2);
         persist_set_precip_total((uint16_t) precip_total_tuple->value->int32);
-        persist_set_precip_type((uint8_t) precip_type_tuple->value->int32);
+        const uint8_t precip_type = precip_type_tuple->length == 1
+            ? (uint8_t) precip_type_tuple->value->data[0]
+            : (uint8_t) precip_type_tuple->value->int32;
+        persist_set_precip_type(precip_type);
         loading_layer_refresh();
         forecast_layer_refresh();
         weather_status_layer_refresh();

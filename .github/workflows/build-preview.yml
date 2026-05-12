@@ -41,7 +41,11 @@ jobs:
       - name: Build dev .pbw
         env:
           TELEMETRY_ENDPOINT: ${{ secrets.TELEMETRY_ENDPOINT_PREVIEW }}
-        run: mise build dev
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          mise build dev 2>&1 | tee build/build-preview.log
 
       - name: Verify artifact exists
         run: test -f build/forecaswatch2-dev.pbw
@@ -59,8 +63,12 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         env:
           ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
+          MEMORY_LOG_PATH: ${{ github.workspace }}/build/build-preview.log
         with:
           script: |
+            const fs = require('node:fs');
+            const { parsePebbleMemoryReport, renderPebbleMemoryReport } = require(`${process.env.GITHUB_WORKSPACE}/scripts/parse-pebble-memory-report`);
+
             const marker = '<!-- build-preview-artifact -->';
             const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
             if (!process.env.ARTIFACT_URL) {
@@ -69,12 +77,18 @@ jobs:
             const runUrl = `${process.env.GITHUB_SERVER_URL}/${owner}/${repo}/actions/runs/${process.env.GITHUB_RUN_ID}`;
             const prNumber = context.payload.pull_request.number;
             const artifactName = `forecaswatch2-dev-pbw-pr-${prNumber}.zip`;
+            const memoryLogPath = process.env.MEMORY_LOG_PATH;
+            const memoryReport = memoryLogPath && fs.existsSync(memoryLogPath)
+              ? renderPebbleMemoryReport(parsePebbleMemoryReport(fs.readFileSync(memoryLogPath, 'utf8')))
+              : '_No memory usage log was captured for this run._';
 
             const body = [
               marker,
               '✅ Preview dev build available.',
               '',
               `Download [${artifactName}](${process.env.ARTIFACT_URL})`,
+              '',
+              memoryReport,
               '',
               'Artifacts are attached to the workflow run/job and require GitHub access to this repository.',
               `Run: [#${process.env.GITHUB_RUN_NUMBER}](${runUrl})`,

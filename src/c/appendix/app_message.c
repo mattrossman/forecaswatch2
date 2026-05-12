@@ -3,7 +3,6 @@
 #include "math.h"
 #include "c/layers/forecast_layer.h"
 #include "c/layers/weather_status_layer.h"
-#include "c/layers/loading_layer.h"
 #include "c/layers/calendar_layer.h"
 #include "c/layers/calendar_status_layer.h"
 #include "c/windows/main_window.h"

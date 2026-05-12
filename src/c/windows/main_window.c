@@ -4,9 +4,7 @@
 #include "c/layers/weather_status_layer.h"
 #include "c/layers/calendar_layer.h"
 #include "c/layers/calendar_status_layer.h"
-#include "c/layers/loading_layer.h"
 #include "c/appendix/app_message.h"
-#include "c/appendix/persist.h"
 #include "c/appendix/memory_log.h"
 
 #define FORECAST_HEIGHT 51
@@ -36,7 +34,7 @@ static void main_window_load(Window *window) {
             GRect(0, CALENDAR_STATUS_HEIGHT, bounds.size.w, CALENDAR_HEIGHT));
     calendar_status_layer_create(window_layer,
             GRect(0, 0, bounds.size.w, CALENDAR_STATUS_HEIGHT + 1));  // +1 to stop text clipping
-    app_message_send_startup_state(loading_layer_has_valid_data());
+    app_message_send_startup_state(forecast_layer_has_valid_data());
     MEMORY_LOG_HEAP("after_window_load");
 }
 

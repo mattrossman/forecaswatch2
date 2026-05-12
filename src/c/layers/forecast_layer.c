@@ -3,7 +3,7 @@
 #include "c/appendix/math.h"
 #include "c/appendix/config.h"
 #include "c/appendix/memory_log.h"
-#include "loading_layer.h"
+#include "c/components/loading_component.h"
 
 #define LEFT_AXIS_LABEL_STRIP_MIN_W 15
 #define LEFT_AXIS_LABEL_TO_GRAPH_GAP 2
@@ -70,19 +70,6 @@ static GPath s_path_precip_area_under;
 static GPath s_path_precip_top;
 static GPath s_path_temp;
 
-static void draw_no_data_notice(GContext *ctx, GRect bounds)
-{
-    graphics_context_set_fill_color(ctx, GColorBlack);
-    graphics_fill_rect(ctx, bounds, 0, GCornerNone);
-    graphics_context_set_text_color(ctx, GColorWhite);
-    graphics_draw_text(ctx, "No data :(",
-                       fonts_get_system_font(FONT_KEY_GOTHIC_18),
-                       GRect(0, bounds.size.h / 3, bounds.size.w, bounds.size.h),
-                       GTextOverflowModeWordWrap,
-                       GTextAlignmentCenter,
-                       NULL);
-}
-
 static RenderSpec make_render_spec()
 {
     RenderSpec spec = {
@@ -95,6 +82,19 @@ static RenderSpec make_render_spec()
     }
 
     return spec;
+}
+
+bool forecast_layer_has_valid_data()
+{
+    const time_t forecast_start = persist_get_forecast_start();
+    const time_t now = time(NULL);
+
+    return now - forecast_start <= 60 * 60 * 12;
+}
+
+static bool forecast_should_show_loading_state(int num_entries)
+{
+    return num_entries < 2 || !forecast_layer_has_valid_data();
 }
 
 static ForecastLayout compute_layout(GRect bounds)
@@ -475,9 +475,9 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     const int raw_num_entries = persist_get_num_entries();
     const int num_entries = raw_num_entries > MAX_FORECAST_ENTRIES ? MAX_FORECAST_ENTRIES : raw_num_entries;
     MemoryHeapProbe redraw_probe = MEMORY_HEAP_PROBE_START("forecast_update");
-    if (!loading_layer_has_valid_data() || num_entries < 2)
+    if (forecast_should_show_loading_state(num_entries))
     {
-        draw_no_data_notice(ctx, bounds);
+        loading_component_render(ctx, bounds);
         MEMORY_LOG_HEAP("forecast_update:exit");
         return;
     }

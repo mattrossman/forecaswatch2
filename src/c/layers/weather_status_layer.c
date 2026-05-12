@@ -33,6 +33,7 @@ static TextLayer *s_current_temp_layer;
 static TextLayer *s_next_sun_event_layer;
 
 static GPath *s_raindrop_path = NULL;
+static GPath *s_arrow_path = NULL;
 static const GPathInfo ARROW_PATH_INFO = {
     // Downward facing arrow, centered at the origin
     .num_points = 6,
@@ -171,7 +172,6 @@ static void weather_status_layer_init(GRect bounds) {
 static void weather_status_update_proc(Layer *layer, GContext *ctx) {
     (void) layer;
     MEMORY_LOG_HEAP("weather_status_update:enter");
-
     if (should_show_precip()) {
         uint8_t precip_type = persist_get_precip_type();
         if (precip_type > 0) {
@@ -198,15 +198,21 @@ static void weather_status_update_proc(Layer *layer, GContext *ctx) {
             }
         }
     } else {
-        GPath *arrow_path = gpath_create(&ARROW_PATH_INFO);
-        if (persist_get_sun_event_start_type() == 0)
-            gpath_rotate_to(arrow_path, TRIG_MAX_ANGLE / 2);
-        gpath_move_to(arrow_path, GPoint(frame_sun_event.origin.x + ARROW_W / 2, 6));
+        if (!s_arrow_path) {
+            MEMORY_LOG_HEAP("weather_status_update:missing_arrow_path");
+            MEMORY_LOG_HEAP("weather_status_update:exit");
+            return;
+        }
+        if (persist_get_sun_event_start_type() == 0) {
+            gpath_rotate_to(s_arrow_path, TRIG_MAX_ANGLE / 2);
+        } else {
+            gpath_rotate_to(s_arrow_path, 0);
+        }
+        gpath_move_to(s_arrow_path, GPoint(frame_sun_event.origin.x + ARROW_W / 2, 6));
         graphics_context_set_stroke_color(ctx, GColorWhite);
-        gpath_draw_outline_open(ctx, arrow_path);
+        gpath_draw_outline_open(ctx, s_arrow_path);
         graphics_context_set_fill_color(ctx, GColorWhite);
-        gpath_draw_filled(ctx, arrow_path);
-        gpath_destroy(arrow_path);
+        gpath_draw_filled(ctx, s_arrow_path);
     }
     MEMORY_LOG_HEAP("weather_status_update:exit");
 }
@@ -233,6 +239,11 @@ static void update_accel_subscription() {
 void weather_status_layer_create(Layer* parent_layer, GRect frame) {
     s_weather_status_layer = layer_create(frame);
     GRect bounds = layer_get_bounds(s_weather_status_layer);
+
+    s_arrow_path = gpath_create(&ARROW_PATH_INFO);
+    if (!s_arrow_path) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "weather_status_layer_create: failed to allocate arrow path");
+    }
 
     // Set up all the text layers
     weather_status_layer_init(bounds);
@@ -267,6 +278,10 @@ void weather_status_layer_destroy() {
     text_layer_destroy(s_city_layer);
     text_layer_destroy(s_current_temp_layer);
     text_layer_destroy(s_next_sun_event_layer);
+    if (s_arrow_path) {
+        gpath_destroy(s_arrow_path);
+        s_arrow_path = NULL;
+    }
     layer_destroy(s_weather_status_layer);
     MEMORY_LOG_HEAP("weather_status_layer_destroy:after");
 }

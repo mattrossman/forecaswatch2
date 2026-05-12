@@ -24,6 +24,7 @@
 #define NIGHT_BOUNDARY_COLOR_PRECIP PBL_IF_COLOR_ELSE(GColorVividCerulean, GColorWhite)
 #define FORECAST_STEP_SECONDS (60 * 60)
 #define DAY_SECONDS (24 * 60 * 60)
+#define MAX_FORECAST_ENTRIES 24
 
 typedef struct
 {
@@ -62,6 +63,11 @@ static int s_axis_left_w = LEFT_AXIS_GRAPH_INSET_DEFAULT;
 static int s_label_strip_w = LEFT_AXIS_LABEL_STRIP_MIN_W;
 static char s_buffer_lo[12];
 static char s_buffer_hi[12];
+static GPoint s_points_temp[MAX_FORECAST_ENTRIES];
+static GPoint s_points_precip[MAX_FORECAST_ENTRIES + 2];
+static GPath s_path_precip_area_under;
+static GPath s_path_precip_top;
+static GPath s_path_temp;
 
 static RenderSpec make_render_spec()
 {
@@ -452,7 +458,8 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     int h = layout.h;
 
     // Load data from storage
-    const int num_entries = persist_get_num_entries();
+    const int raw_num_entries = persist_get_num_entries();
+    const int num_entries = raw_num_entries > MAX_FORECAST_ENTRIES ? MAX_FORECAST_ENTRIES : raw_num_entries;
     MemoryHeapProbe redraw_probe = MEMORY_HEAP_PROBE_START("forecast_update");
     if (num_entries < 2)
     {
@@ -472,9 +479,6 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     persist_get_precip_trend(precips, num_entries);
 
     // Allocate point arrays for plots
-    GPoint points_temp[num_entries];
-    GPoint points_precip[num_entries + 2]; // We need 2 more to complete the area
-
     // Calculate the temperature range
     int lo, hi;
     min_max(temps, num_entries, &lo, &hi);
@@ -503,7 +507,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
         // Save a point for the precipitation probability
         int precip = precips[i];
         int precip_h = (float)precip / 100.0 * (h - BOTTOM_AXIS_H);
-        points_precip[i] = GPoint(entry_x, h - BOTTOM_AXIS_H - precip_h);
+        s_points_precip[i] = GPoint(entry_x, h - BOTTOM_AXIS_H - precip_h);
 
         // Save a point for the temperature reading
         int temp = temps[i];
@@ -512,7 +516,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
         {
             temp_h = (int)(((int32_t)(temp - lo) * temp_plot_h) / range_safe);
         }
-        points_temp[i] = GPoint(entry_x, h - temp_h - MARGIN_TEMP_H - BOTTOM_AXIS_H);
+        s_points_temp[i] = GPoint(entry_x, h - temp_h - MARGIN_TEMP_H - BOTTOM_AXIS_H);
 
         if (i % entries_per_label == 0)
         {
@@ -536,55 +540,42 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     }
 
     // Complete the area under the precipitation
-    points_precip[num_entries] = GPoint(graph_bounds.origin.x + w, h - BOTTOM_AXIS_H);
-    points_precip[num_entries + 1] = GPoint(graph_bounds.origin.x, h - BOTTOM_AXIS_H);
+    s_points_precip[num_entries] = GPoint(graph_bounds.origin.x + w, h - BOTTOM_AXIS_H);
+    s_points_precip[num_entries + 1] = GPoint(graph_bounds.origin.x, h - BOTTOM_AXIS_H);
 
     // Fill the precipitation area
-    GPathInfo path_info_precip = {
-        .num_points = num_entries + 2,
-        .points = points_precip};
-    MEMORY_HEAP_PROBE_SAMPLE("before_precip_path_create", &redraw_probe);
-    GPath *path_precip_area_under = gpath_create(&path_info_precip);
-    MEMORY_HEAP_PROBE_SAMPLE("after_precip_path_create", &redraw_probe);
+    s_path_precip_area_under.num_points = num_entries + 2;
+    s_path_precip_area_under.points = s_points_precip;
+    MEMORY_HEAP_PROBE_SAMPLE("before_precip_path_draw", &redraw_probe);
     graphics_context_set_fill_color(ctx, PRECIP_FILL_COLOR);
-    gpath_draw_filled(ctx, path_precip_area_under);
-    MEMORY_HEAP_PROBE_SAMPLE("before_precip_path_destroy", &redraw_probe);
-    gpath_destroy(path_precip_area_under);
-    MEMORY_HEAP_PROBE_SAMPLE("after_precip_path_destroy", &redraw_probe);
+    gpath_draw_filled(ctx, &s_path_precip_area_under);
+    MEMORY_HEAP_PROBE_SAMPLE("after_precip_path_draw", &redraw_probe);
 
     if (render_spec.draw_night_overlay)
     {
         draw_night_hatch_over_precip(ctx, graph_plot_rect, forecast_start, forecast_end, &night_segments,
-                                     points_precip, num_entries);
+                                     s_points_precip, num_entries);
         draw_night_boundaries_over_precip(ctx, graph_plot_rect, forecast_start, forecast_end, &night_segments,
-                                          points_precip, num_entries);
+                                          s_points_precip, num_entries);
     }
 
     // Draw the precipitation line
-    path_info_precip.num_points = num_entries;
-    MEMORY_HEAP_PROBE_SAMPLE("before_precip_top_create", &redraw_probe);
-    GPath *path_precip_top = gpath_create(&path_info_precip);
-    MEMORY_HEAP_PROBE_SAMPLE("after_precip_top_create", &redraw_probe);
+    s_path_precip_top.num_points = num_entries;
+    s_path_precip_top.points = s_points_precip;
+    MEMORY_HEAP_PROBE_SAMPLE("before_precip_top_draw", &redraw_probe);
     graphics_context_set_stroke_color(ctx, GColorPictonBlue);
     graphics_context_set_stroke_width(ctx, 1);
-    gpath_draw_outline_open(ctx, path_precip_top);
-    MEMORY_HEAP_PROBE_SAMPLE("before_precip_top_destroy", &redraw_probe);
-    gpath_destroy(path_precip_top);
-    MEMORY_HEAP_PROBE_SAMPLE("after_precip_top_destroy", &redraw_probe);
+    gpath_draw_outline_open(ctx, &s_path_precip_top);
+    MEMORY_HEAP_PROBE_SAMPLE("after_precip_top_draw", &redraw_probe);
 
     // Draw the temperature line
-    GPathInfo path_info_temp = {
-        .num_points = num_entries,
-        .points = points_temp};
-    MEMORY_HEAP_PROBE_SAMPLE("before_temp_path_create", &redraw_probe);
-    GPath *path_temp = gpath_create(&path_info_temp);
-    MEMORY_HEAP_PROBE_SAMPLE("after_temp_path_create", &redraw_probe);
+    s_path_temp.num_points = num_entries;
+    s_path_temp.points = s_points_temp;
+    MEMORY_HEAP_PROBE_SAMPLE("before_temp_path_draw", &redraw_probe);
     graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorRed, GColorWhite));
     graphics_context_set_stroke_width(ctx, 3); // Only odd stroke width values supported
-    gpath_draw_outline_open(ctx, path_temp);
-    MEMORY_HEAP_PROBE_SAMPLE("before_temp_path_destroy", &redraw_probe);
-    gpath_destroy(path_temp);
-    MEMORY_HEAP_PROBE_SAMPLE("after_temp_path_destroy", &redraw_probe);
+    gpath_draw_outline_open(ctx, &s_path_temp);
+    MEMORY_HEAP_PROBE_SAMPLE("after_temp_path_draw", &redraw_probe);
 
     // Draw a line for the bottom axis
     graphics_context_set_stroke_color(ctx, render_spec.axis_color);

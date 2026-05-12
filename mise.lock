@@ -65,5 +65,5 @@ checksum = "sha256:Algorithm"
 url = "https://dl.deno.land/release/v2.1.4/deno-x86_64-pc-windows-msvc.zip"
 
 [[tools."pipx:pebble-tool"]]
-version = "5.0.31"
+version = "5.0.35"
 backend = "pipx:pebble-tool"

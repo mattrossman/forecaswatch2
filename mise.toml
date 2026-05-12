@@ -6,7 +6,7 @@ lockfile = true
 # https://developer.rebble.io/sdk/
 # https://github.com/coredevices/pebble-tool
 # https://mise.jdx.dev/dev-tools/backends/pipx.html
-"pipx:pebble-tool" = "5.0.31"
+"pipx:pebble-tool" = "5.0.35"
 
 # https://deno.com/
 deno = "2.1.4"

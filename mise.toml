@@ -74,3 +74,7 @@ run = "scripts/screenshot-emulator.sh"
 [tasks.composite-screenshot]
 description = "Composite a screenshot PNG into an SVG Pebble frame"
 run = "screenshot/composite_svg.sh"
+
+[tasks.composite]
+description = "Composite all raw screenshots for a screenshot version"
+run = "scripts/composite-version.sh"

@@ -38,6 +38,9 @@ def build(ctx):
     cached_env = ctx.env
     for platform in ctx.env.TARGET_PLATFORMS:
         ctx.env = ctx.all_envs[platform]
+        # Suppress SDK linker-script RWX segment noise.
+        # Pebble's single APP region is expected: https://sourceware.org/binutils/docs/ld/Options.html#index-_002d_002dwarn_002drwx_002dsegments
+        ctx.env.LINKFLAGS += ['-Wl,--no-warn-rwx-segments']
         if enable_memory_logging:
             ctx.env.CFLAGS += ['-DFCW2_ENABLE_MEMORY_LOGGING=1']
         ctx.set_group(ctx.env.PLATFORM_NAME)

@@ -18,6 +18,7 @@ static void battery_state_handler(BatteryChargeState charge) {
     battery_layer_refresh();
 }
 
+#ifdef PBL_COLOR
 static GColor get_battery_color(int level) {
     if (level >= 50)
         return GColorGreen;
@@ -26,6 +27,7 @@ static GColor get_battery_color(int level) {
     else
         return GColorRed;
 }
+#endif
 
 static void ensure_battery_power_bitmap_loaded(void) {
     if (!s_battery_power_bitmap) {
@@ -77,7 +79,11 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     GRect color_area = GRect(
         color_bounds.origin.x, color_bounds.origin.y,
         color_bounds.size.w * (float) (battery_level + 10) / (100.0 + 10), color_bounds.size.h);
-    graphics_context_set_fill_color(ctx, PBL_IF_COLOR_ELSE(get_battery_color(battery_level), GColorWhite));
+#ifdef PBL_COLOR
+    graphics_context_set_fill_color(ctx, get_battery_color(battery_level));
+#else
+    graphics_context_set_fill_color(ctx, GColorWhite);
+#endif
     graphics_fill_rect(ctx, color_area, 0, GCornerNone);
 
     if (show_power_icon) {

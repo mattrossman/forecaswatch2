@@ -14,3 +14,9 @@ Flow:
 - [Rebble Developer Portal](https://dev-portal.rebble.io/
 )
 - [Pebble Developer Dashboard (RePebble)](https://developer.repebble.com/dashboard)
+
+## Screenshots
+
+Device frames and banner templates were originally obtained from [Appstore Assets](https://developer.rebble.io/guides/appstore-publishing/appstore-assets/) in Pebble docs.
+
+Those download links are since broken, but you can still download from the wayback machine (e.g. [banner templates](https://web.archive.org/web/20161207160612/https://s3.amazonaws.com/developer.getpebble.com/assets/other/banner-templates-design.zip))

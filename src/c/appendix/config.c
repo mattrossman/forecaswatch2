@@ -114,9 +114,7 @@ GFont config_time_font() {
         font_index = TIME_FONT_ROBOTO;
     }
 
-    const char *font_key = font_keys[font_index];
-
-    return fonts_get_system_font(font_key);
+    return fonts_get_system_font(font_keys[font_index]);
 }
 
 bool config_highlight_holidays() {

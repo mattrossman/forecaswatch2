@@ -27,6 +27,7 @@ static GRect calendar_cell_rect(GRect bounds, int i) {
                  box_w, box_h);
 }
 
+#ifdef PBL_PLATFORM_EMERY
 // Apply a tiny Emery-only horizontal tweak for two-digit dates that start with "1"
 // to ensure they stay visually centered within calendar boxes.
 static int emery_calendar_text_shift_x(const char *text) {
@@ -36,15 +37,10 @@ static int emery_calendar_text_shift_x(const char *text) {
 
     return 0;
 }
+#endif
 
-static GRect calendar_text_rect(GRect cell_rect, const char *text, GFont font, bool is_emery) {
-    if (!is_emery) {
-        return GRect(cell_rect.origin.x,
-                     cell_rect.origin.y - FONT_OFFSET,
-                     cell_rect.size.w,
-                     cell_rect.size.h + FONT_OFFSET);
-    }
-
+#ifdef PBL_PLATFORM_EMERY
+static GRect calendar_text_rect(GRect cell_rect, const char *text, GFont font) {
     // emery: measure real glyph bounds and vertically center text in each date cell.
     const GRect measure_box = GRect(0, 0, cell_rect.size.w, cell_rect.size.h);
     const GSize text_size = graphics_text_layout_get_content_size(
@@ -52,6 +48,16 @@ static GRect calendar_text_rect(GRect cell_rect, const char *text, GFont font, b
     const int text_top = cell_rect.origin.y + (cell_rect.size.h - text_size.h) / 2 - EMERY_CALENDAR_TEXT_SHIFT_Y;
     return GRect(cell_rect.origin.x - emery_calendar_text_shift_x(text), text_top, cell_rect.size.w, text_size.h);
 }
+#else
+static GRect calendar_text_rect(GRect cell_rect, const char *text, GFont font) {
+    (void)text;
+    (void)font;
+    return GRect(cell_rect.origin.x,
+                 cell_rect.origin.y - FONT_OFFSET,
+                 cell_rect.size.w,
+                 cell_rect.size.h + FONT_OFFSET);
+}
+#endif
 
 /* Copy struct tm out of localtime's static buffer — see localtime(3). */
 static struct tm relative_tm(int days_from_today)
@@ -137,12 +143,6 @@ static GColor today_color() {
 
 static void calendar_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
-    // emery: switch to center-by-measurement text placement instead of legacy offset placement.
-#ifdef PBL_PLATFORM_EMERY
-    const bool is_emery = true;
-#else
-    const bool is_emery = false;
-#endif
     int w = bounds.size.w;
     int h = bounds.size.h;
     float box_w = (float) w / DAYS_PER_WEEK;
@@ -172,7 +172,7 @@ static void calendar_update_proc(Layer *layer, GContext *ctx) {
         graphics_draw_text(ctx,
             (snprintf(buffer, sizeof(buffer), "%d", t.tm_mday), buffer),
             font,
-            calendar_text_rect(cell_rect, buffer, font, is_emery), GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+            calendar_text_rect(cell_rect, buffer, font), GTextOverflowModeFill, GTextAlignmentCenter, NULL);
     }
 }
 

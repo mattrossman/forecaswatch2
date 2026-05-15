@@ -44,6 +44,12 @@ static void main_window_load(Window *window)
     window_set_background_color(window, GColorBlack);
 
     int h = bounds.size.h;
+    GRect forecast_frame;
+    GRect weather_status_frame;
+    GRect time_frame;
+    GRect calendar_frame;
+    GRect calendar_status_frame;
+    GRect loading_frame;
 #ifdef PBL_PLATFORM_EMERY
     // emery: pad to avoid content getting obscured by screen edge
     int content_x = EMERY_WINDOW_PAD_X;
@@ -61,33 +67,27 @@ static void main_window_load(Window *window)
     int weather_status_y = time_y + time_h;
     int forecast_y = weather_status_y + WEATHER_STATUS_HEIGHT;
 
-    forecast_layer_create(window_layer,
-                          GRect(content_x, forecast_y, forecast_w, forecast_h));
-    weather_status_layer_create(window_layer,
-                                GRect(content_x, weather_status_y, content_w, WEATHER_STATUS_HEIGHT));
-    time_layer_create(window_layer,
-                      GRect(content_x, time_y, content_w, time_h));
-    calendar_layer_create(window_layer,
-                          GRect(content_x, calendar_y, content_w, calendar_h));
-    calendar_status_layer_create(window_layer,
-                                 GRect(content_x, content_y, content_w, CALENDAR_STATUS_HEIGHT + 1)); // +1 to stop text clipping
-    loading_layer_create(window_layer,
-                         GRect(content_x, weather_status_y, content_w, h - EMERY_WINDOW_PAD_BOTTOM - weather_status_y));
+    forecast_frame = GRect(content_x, forecast_y, forecast_w, forecast_h);
+    weather_status_frame = GRect(content_x, weather_status_y, content_w, WEATHER_STATUS_HEIGHT);
+    time_frame = GRect(content_x, time_y, content_w, time_h);
+    calendar_frame = GRect(content_x, calendar_y, content_w, calendar_h);
+    calendar_status_frame = GRect(content_x, content_y, content_w, CALENDAR_STATUS_HEIGHT + 1); // +1 to stop text clipping
+    loading_frame = GRect(content_x, weather_status_y, content_w, h - EMERY_WINDOW_PAD_BOTTOM - weather_status_y);
 #else
-    forecast_layer_create(window_layer,
-                          GRect(0, h - FORECAST_HEIGHT, bounds.size.w, FORECAST_HEIGHT));
-    weather_status_layer_create(window_layer,
-                                GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, bounds.size.w, WEATHER_STATUS_HEIGHT));
-    time_layer_create(window_layer,
-                      GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT - TIME_HEIGHT,
-                            bounds.size.w, TIME_HEIGHT));
-    calendar_layer_create(window_layer,
-                          GRect(0, CALENDAR_STATUS_HEIGHT, bounds.size.w, CALENDAR_HEIGHT));
-    calendar_status_layer_create(window_layer,
-                                 GRect(0, 0, bounds.size.w, CALENDAR_STATUS_HEIGHT + 1)); // +1 to stop text clipping
-    loading_layer_create(window_layer,
-                         GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, bounds.size.w, FORECAST_HEIGHT + WEATHER_STATUS_HEIGHT));
+    forecast_frame = GRect(0, h - FORECAST_HEIGHT, bounds.size.w, FORECAST_HEIGHT);
+    weather_status_frame = GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, bounds.size.w, WEATHER_STATUS_HEIGHT);
+    time_frame = GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT - TIME_HEIGHT,
+                       bounds.size.w, TIME_HEIGHT);
+    calendar_frame = GRect(0, CALENDAR_STATUS_HEIGHT, bounds.size.w, CALENDAR_HEIGHT);
+    calendar_status_frame = GRect(0, 0, bounds.size.w, CALENDAR_STATUS_HEIGHT + 1); // +1 to stop text clipping
+    loading_frame = GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, bounds.size.w, FORECAST_HEIGHT + WEATHER_STATUS_HEIGHT);
 #endif
+    forecast_layer_create(window_layer, forecast_frame);
+    weather_status_layer_create(window_layer, weather_status_frame);
+    time_layer_create(window_layer, time_frame);
+    calendar_layer_create(window_layer, calendar_frame);
+    calendar_status_layer_create(window_layer, calendar_status_frame);
+    loading_layer_create(window_layer, loading_frame);
     loading_layer_refresh();
     app_message_send_startup_state(loading_layer_has_valid_data());
     MEMORY_LOG_HEAP("after_window_load");

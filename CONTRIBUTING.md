@@ -202,7 +202,13 @@ mise screenshot-phone -- screenshot/my-capture.png
 ```
 
 ## Config
-You can create `src/pkjs/dev-config.js` to override Clay keys and local dev behavior.
+Local dev config has three layers:
+
+- Use `.env` to choose the local mode or scenario, such as `FIXTURE=readme`.
+- Use `fixtures/*.json` for committed, deterministic UI state: watch facts, Clay render settings, weather payloads, and other data that should make emulator screenshots reproducible.
+- Use `src/pkjs/dev-config.js` for uncommitted behavior testing, including preloaded Clay settings when you are exercising real app flows instead of deterministic fixture UI.
+
+When a fixture is active, prefer `claySettings` in the fixture for render-affecting Clay values. `dev-config.js` remains useful for local-only behavior switches and non-fixture testing.
 
 Example:
 

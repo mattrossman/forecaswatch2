@@ -87,9 +87,8 @@ int config_axis_hour(int hour) {
 int config_n_today() {
     // Returns the index of the calendar box that holds today's date
 
-    time_t today = watch_services_now();
-    struct tm *tm_today = localtime(&today);
-    int wday = tm_today->tm_wday;
+    struct tm tm_today = watch_services_localtime();
+    int wday = tm_today.tm_wday;
     // Offset if user wants to start the week on monday
     wday = g_config->start_mon ? (wday + 6) % 7 : wday;
     // Offset if user wants to show the previous week first

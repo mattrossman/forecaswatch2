@@ -113,7 +113,7 @@ If you use Supabase GitHub sync/branching, Supabase can auto-apply migrations an
 
 If you want the extra Pebble heap debug logs, set `ENABLE_MEMORY_LOGGING=1` in your `.env` before building or installing. This is independent of the dev/release package profile.
 
-For deterministic emulator screenshots, set `MOCK_NOW_EPOCH=<unix seconds>` in `.env` before building or installing. This freezes C-rendered time/date UI through the app's watch services boundary. Weather and city mocks are still configured through `src/pkjs/dev-config.js`.
+For deterministic emulator UI, set `FIXTURE=<name>` in `.env` before building or installing. Fixture files live in `fixtures/<name>.json` and define the watch facts and weather payload used by local builds.
 
 Release notification copy (optional “what’s new” toast on upgrade) lives in `release-notifications.json`, keyed by the exact `version` string from the template (e.g. `"1.26.0"`). `prepare-package` copies only the entry for the version being built into `package.json`; versions with no key ship without a notification.
 
@@ -246,29 +246,27 @@ Notes:
 - Remove the key (or comment it out) when testing normal upgrade behavior.
 - This is local-only dev behavior and is not written into Clay settings.
 
-### Mock weather (emulator/dev)
+### Fixtures (emulator/dev)
 
-Use these keys in `src/pkjs/dev-config.js`:
+Set `FIXTURE=<name>` in `.env` to load deterministic app-state data from `fixtures/<name>.json`.
+Fixtures currently support:
 
-- `provider = 'mock'` enables the mock provider.
-- `mockCity` sets the city label independently.
-- `mockScenario` selects the active built-in scenario.
+- `watch.now`: local date/time fields used for C-rendered time/date UI.
+- `settings`: Clay-compatible settings keyed by `messageKey`, such as `"axisTimeFormat": "12h"`.
+- `weather.city`: weather status city label.
+- `weather.currentTemp`: current temperature in Fahrenheit.
+- `weather.startEpoch`: Unix seconds for the first forecast entry.
+- `weather.temps`: hourly Fahrenheit forecast values.
+- `weather.precipPct`: hourly precipitation percentages, 0-100.
+- `weather.sunEvents`: the next two sun events as `{ "type": "sunrise"|"sunset", "epoch": <unix seconds> }`.
 
-Scenario data is tracked in git inside `src/pkjs/weather/mock.js` (`MOCK_SCENARIOS`).
+Minimal `.env`:
 
-Minimal shape:
-
-```javascript
-module.exports.provider = 'mock';
-module.exports.mockCity = 'New York, NY';
-module.exports.mockScenario = 'clearMorning';
+```bash
+FIXTURE=readme
 ```
 
-Notes:
-
-- If `mockScenario` is missing/invalid, the app falls back to the first built-in scenario.
-- To add/edit scenarios, update `MOCK_SCENARIOS` in `src/pkjs/weather/mock.js`.
-- `startEpoch` and `sunEvents[].epoch` should be coherent in emulator local time (the graph and shading use watch localtime).
+Fixture data is tracked in git inside `fixtures/`.
 
 ### Emulator time overrides (applied automatically)
 
@@ -288,9 +286,7 @@ Reset behavior when keys are removed:
 - `emuTimeFormat` defaults to `24h`
 - `emuTime` fallback order is:
   1. explicit `emuTime` in `dev-config.js`
-  2. `emuTime` of active mock scenario (when `provider = 'mock'`, if present)
-  3. `startEpoch` of active mock scenario (when `provider = 'mock'`)
-  4. current host time
+  2. current host time
 
 ## Upgrading pebble-tool
 

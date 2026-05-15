@@ -11,26 +11,6 @@ read_dev_config_value() {
   node -e 'try { var cfg = require("./src/pkjs/dev-config.js"); var key = process.argv[1]; if (!Object.prototype.hasOwnProperty.call(cfg, key) || cfg[key] === null || typeof cfg[key] === "undefined") { process.exit(2); } process.stdout.write(String(cfg[key])); } catch (e) { process.exit(2); }' "$key"
 }
 
-read_mock_scenario_time() {
-  node -e 'try {
-    var cfg = require("./src/pkjs/dev-config.js");
-    if (cfg.provider !== "mock") { process.exit(2); }
-    var MockProvider = require("./src/pkjs/weather/mock.js");
-    var scenarios = MockProvider.SCENARIOS || {};
-    var names = Object.keys(scenarios);
-    if (!names.length) { process.exit(2); }
-    var selected = cfg.mockScenario;
-    var scenarioName = Object.prototype.hasOwnProperty.call(scenarios, selected) ? selected : names[0];
-    var scenario = scenarios[scenarioName] || {};
-    if (typeof scenario.emuTime === "string" || typeof scenario.emuTime === "number") {
-      process.stdout.write(String(scenario.emuTime));
-      process.exit(0);
-    }
-    if (typeof scenario.startEpoch !== "number") { process.exit(2); }
-    process.stdout.write(String(scenario.startEpoch));
-  } catch (e) { process.exit(2); }'
-}
-
 apply_emulator_overrides() {
   local emu_time_format
   local emu_time
@@ -49,8 +29,6 @@ apply_emulator_overrides() {
   pebble emu-time-format --emulator "$emulator" --format "$emu_time_format"
 
   if emu_time="$(read_dev_config_value emuTime)"; then
-    :
-  elif emu_time="$(read_mock_scenario_time)"; then
     :
   else
     emu_time="$(date +%s)"

@@ -8,6 +8,7 @@
 !.release-please-manifest.json
 build
 src/pkjs/dev-config.js
+src/pkjs/active-fixture.generated.js
 screenshot/**/*
 !screenshot/snowy-red.png
 !screenshot/steel-black.png

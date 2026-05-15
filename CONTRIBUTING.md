@@ -113,6 +113,8 @@ If you use Supabase GitHub sync/branching, Supabase can auto-apply migrations an
 
 If you want the extra Pebble heap debug logs, set `ENABLE_MEMORY_LOGGING=1` in your `.env` before building or installing. This is independent of the dev/release package profile.
 
+For deterministic emulator UI, set `FIXTURE=<name>` in `.env` before building or installing. Fixture files live in `fixtures/<name>.json` and define the watch facts and weather payload used by local builds.
+
 Release notification copy (optional “what’s new” toast on upgrade) lives in `release-notifications.json`, keyed by the exact `version` string from the template (e.g. `"1.26.0"`). `prepare-package` copies only the entry for the version being built into `package.json`; versions with no key ship without a notification.
 
 If you want to regenerate `package.json` without building:
@@ -200,7 +202,13 @@ mise screenshot-phone -- screenshot/my-capture.png
 ```
 
 ## Config
-You can create `src/pkjs/dev-config.js` to override Clay keys and local dev behavior.
+Local dev config has three layers:
+
+- Use `.env` to choose the local mode or scenario, such as `FIXTURE=readme`.
+- Use `fixtures/*.json` for committed, deterministic UI state: watch facts, Clay render settings, weather payloads, and other data that should make emulator screenshots reproducible.
+- Use `src/pkjs/dev-config.js` for uncommitted behavior testing, including preloaded Clay settings when you are exercising real app flows instead of deterministic fixture UI.
+
+When a fixture is active, prefer `claySettings` in the fixture for render-affecting Clay values. `dev-config.js` remains useful for local-only behavior switches and non-fixture testing.
 
 Example:
 
@@ -244,29 +252,28 @@ Notes:
 - Remove the key (or comment it out) when testing normal upgrade behavior.
 - This is local-only dev behavior and is not written into Clay settings.
 
-### Mock weather (emulator/dev)
+### Fixtures (emulator/dev)
 
-Use these keys in `src/pkjs/dev-config.js`:
+Set `FIXTURE=<name>` in `.env` to load deterministic app-state data from `fixtures/<name>.json`.
+Fixtures currently support:
 
-- `provider = 'mock'` enables the mock provider.
-- `mockCity` sets the city label independently.
-- `mockScenario` selects the active built-in scenario.
+- `watch.now`: local date/time fields used for C-rendered time/date UI.
+- `watchSettings.timeFormat`: watch-level time display preference, `"12h"` or `"24h"`.
+- `claySettings`: Clay-compatible settings keyed by `messageKey`, such as `"axisTimeFormat": "12h"`. Color settings use Pebble SDK color constants like `"GColorFolly"` from the Rebble color definitions: https://developer.rebble.io/docs/c/Graphics/Graphics_Types/Color_Definitions/
+- `weather.city`: weather status city label.
+- `weather.currentTemp`: current temperature in Fahrenheit.
+- `weather.startHour`: local hour for the first forecast entry; fixture prep converts it to the runtime forecast timestamp.
+- `weather.temps`: hourly Fahrenheit forecast values.
+- `weather.precipPct`: hourly precipitation percentages, 0-100.
+- `weather.sunEvents`: the next two sun events as local fields, e.g. `{ "type": "sunset", "dayOffset": 0, "hour": 20, "minute": 10 }`.
 
-Scenario data is tracked in git inside `src/pkjs/weather/mock.js` (`MOCK_SCENARIOS`).
+Minimal `.env`:
 
-Minimal shape:
-
-```javascript
-module.exports.provider = 'mock';
-module.exports.mockCity = 'New York, NY';
-module.exports.mockScenario = 'clearMorning';
+```bash
+FIXTURE=readme
 ```
 
-Notes:
-
-- If `mockScenario` is missing/invalid, the app falls back to the first built-in scenario.
-- To add/edit scenarios, update `MOCK_SCENARIOS` in `src/pkjs/weather/mock.js`.
-- `startEpoch` and `sunEvents[].epoch` should be coherent in emulator local time (the graph and shading use watch localtime).
+Fixture data is tracked in git inside `fixtures/`.
 
 ### Emulator time overrides (applied automatically)
 
@@ -286,9 +293,7 @@ Reset behavior when keys are removed:
 - `emuTimeFormat` defaults to `24h`
 - `emuTime` fallback order is:
   1. explicit `emuTime` in `dev-config.js`
-  2. `emuTime` of active mock scenario (when `provider = 'mock'`, if present)
-  3. `startEpoch` of active mock scenario (when `provider = 'mock'`)
-  4. current host time
+  2. current host time
 
 ## Upgrading pebble-tool
 

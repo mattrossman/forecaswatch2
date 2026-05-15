@@ -1,13 +1,15 @@
 
 var WundergroundProvider = require('./weather/wunderground.js');
 var OpenWeatherMapProvider = require('./weather/openweathermap.js')
-var MockProvider = require('./weather/mock.js');
+var WeatherProvider = require('./weather/provider.js');
 var createTelemetryClient = require('./telemetry.js');
 var Clay = require('./clay/_source.js');
 var clayConfig = require('./clay/config.js');
 var customClay = require('./clay/inject.js');
 var storageKeys = require('./storage-keys.js');
 var pkg = require('../../package.json');
+var activeFixture = require('./active-fixture.generated.js');
+var pebbleColors = require('./pebble-colors.js');
 
 /**
  * Full release-notification manifest (dev: force-show by version). Omitted from bundle if missing.
@@ -110,6 +112,7 @@ Pebble.addEventListener('ready',
         );
         clayTryDefaults();
         clayTryDevConfig(app.devConfig);
+        clayTryFixtureSettings(activeFixture);
         console.log('PebbleKit JS ready!');
         app.settings = getClaySettings();
         try {
@@ -121,6 +124,14 @@ Pebble.addEventListener('ready',
         }
         app.telemetry = createTelemetryClient(getRuntimeTelemetryConfig());
         refreshProvider();
+        if (activeFixture) {
+            sendClaySettings(function() {
+                sendFixtureWeather(activeFixture);
+            }, function() {
+                sendFixtureWeather(activeFixture);
+            });
+            return;
+        }
         if (app.pendingStartupFetch) {
             app.pendingStartupFetch = false;
             fetch(app.provider, true);
@@ -360,7 +371,7 @@ function startTick() {
     setTimeout(startTick, 60 * 1000); // 60 * 1000 milsec = 1 minute
 }
 
-function sendClaySettings() {
+function sendClaySettings(onSuccess, onFailure) {
     var payload = {
         "CLAY_CELSIUS": app.settings.temperatureUnits === 'c',
         "CLAY_TIME_LEAD_ZERO": app.settings.timeLeadingZero,
@@ -382,8 +393,14 @@ function sendClaySettings() {
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));
+        if (typeof onSuccess === 'function') {
+            onSuccess();
+        }
     }, function(e) {
         console.log('Message failed: ' + JSON.stringify(e));
+        if (typeof onFailure === 'function') {
+            onFailure(e);
+        }
     });
 }
 
@@ -407,9 +424,6 @@ function setProvider(providerId) {
         case 'wunderground':
             app.provider = new WundergroundProvider();
             break;
-        case 'mock':
-            app.provider = new MockProvider(app.devConfig || {});
-            break;
         default:
             console.log('Unknown provider: "' + providerId + '", defaulting to wunderground');
             clay.setSettings("provider", "wunderground");
@@ -423,16 +437,12 @@ function clayTryDefaults() {
      * defaults set even if the user has not made a custom config
      */
     var persistClayString = localStorage.getItem('clay-settings');
+    var defaults = getDefaultClaySettings();
     var persistClay;
+    var prop;
     if (persistClayString === null) {
         console.log('No clay settings found, setting defaults');
-        persistClay = {
-            provider: 'wunderground',
-            location: '',
-            dayNightShading: true,
-            telemetryEnabled: true,
-        }
-        localStorage.setItem('clay-settings', JSON.stringify(persistClay));
+        localStorage.setItem('clay-settings', JSON.stringify(defaults));
         return;
     }
 
@@ -441,21 +451,51 @@ function clayTryDefaults() {
     }
     catch (ex) {
         console.log('Malformed clay settings found, resetting defaults');
-        persistClay = {
-            provider: 'wunderground',
-            location: '',
-            dayNightShading: true,
-            telemetryEnabled: true,
-        }
-        localStorage.setItem('clay-settings', JSON.stringify(persistClay));
+        localStorage.setItem('clay-settings', JSON.stringify(defaults));
         return;
     }
 
-    if (!Object.prototype.hasOwnProperty.call(persistClay, 'telemetryEnabled')) {
-        persistClay.telemetryEnabled = true;
-        localStorage.setItem('clay-settings', JSON.stringify(persistClay));
+    for (prop in defaults) {
+        if (
+            Object.prototype.hasOwnProperty.call(defaults, prop) &&
+            !Object.prototype.hasOwnProperty.call(persistClay, prop)
+        ) {
+            persistClay[prop] = defaults[prop];
+        }
     }
+    localStorage.setItem('clay-settings', JSON.stringify(persistClay));
 
+}
+
+/**
+ * Get the full Clay settings defaults needed to send a complete config payload.
+ *
+ * @returns {Object} Default Clay-compatible settings.
+ */
+function getDefaultClaySettings() {
+    return {
+        provider: 'wunderground',
+        owmApiKey: '',
+        fetch: false,
+        location: '',
+        temperatureUnits: 'f',
+        dayNightShading: true,
+        timeLeadingZero: false,
+        timeShowAmPm: false,
+        axisTimeFormat: '24h',
+        timeFont: 'roboto',
+        colorTime: 16777215,
+        weekStartDay: 'sun',
+        firstWeek: 'prev',
+        colorToday: 0,
+        colorSunday: 16777215,
+        colorSaturday: 16777215,
+        colorUSFederal: 16777215,
+        showQt: true,
+        vibe: false,
+        btIcons: 'both',
+        telemetryEnabled: true
+    };
 }
 
 function getDevConfig() {
@@ -478,8 +518,6 @@ function clayTryDevConfig(devConfig) {
     var localOnlyDevConfigKeys = {
         emuTime: true,
         emuTimeFormat: true,
-        mockCity: true,
-        mockScenario: true,
         clearPkjsStorageOnBoot: true,
         forceShowReleaseNotificationOnBoot: true,
     };
@@ -496,6 +534,76 @@ function clayTryDevConfig(devConfig) {
         }
     }
     localStorage.setItem('clay-settings', JSON.stringify(persistClay));
+}
+
+/**
+ * Apply Clay-compatible settings from the active fixture.
+ *
+ * @param {Object|null} fixture Active fixture, or null when fixtures are disabled.
+ * @returns {void}
+ */
+function clayTryFixtureSettings(fixture) {
+    var persistClay;
+    var settings;
+    var prop;
+
+    if (!fixture || !fixture.claySettings || typeof fixture.claySettings !== 'object' || Array.isArray(fixture.claySettings)) {
+        return;
+    }
+
+    settings = fixture.claySettings;
+    persistClay = getClaySettings();
+    for (prop in settings) {
+        if (Object.prototype.hasOwnProperty.call(settings, prop)) {
+            persistClay[prop] = normalizeFixtureSetting(prop, settings[prop]);
+        }
+    }
+    localStorage.setItem('clay-settings', JSON.stringify(persistClay));
+}
+
+/**
+ * Normalize fixture settings into the same shape Clay stores locally.
+ *
+ * @param {string} key Clay setting key.
+ * @param {*} value Fixture setting value.
+ * @returns {*} Normalized setting value.
+ */
+function normalizeFixtureSetting(key, value) {
+    if (isColorSettingKey(key)) {
+        return normalizeFixtureColor(value);
+    }
+
+    return value;
+}
+
+/**
+ * Determine whether a Clay setting is a color value.
+ *
+ * @param {string} key Clay setting key.
+ * @returns {boolean} True for color settings.
+ */
+function isColorSettingKey(key) {
+    return key === 'colorTime' ||
+        key === 'colorToday' ||
+        key === 'colorSunday' ||
+        key === 'colorSaturday' ||
+        key === 'colorUSFederal';
+}
+
+/**
+ * Normalize fixture colors from SDK color constant names.
+ *
+ * @param {*} value Fixture color value.
+ * @returns {number} Clay-compatible RGB integer.
+ */
+function normalizeFixtureColor(value) {
+    if (typeof value === 'string') {
+        if (Object.prototype.hasOwnProperty.call(pebbleColors, value)) {
+            return pebbleColors[value];
+        }
+    }
+
+    return value;
 }
 
 function getClaySettings() {
@@ -515,6 +623,76 @@ function isWatchConnected() {
         console.log('Unable to read active watch info: ' + ex.message);
         return false;
     }
+}
+
+/**
+ * Convert a fixture weather object into the real watch weather AppMessage payload.
+ *
+ * @param {Object} fixture Active fixture loaded from fixtures/<name>.json.
+ * @returns {Object|null} Pebble weather payload, or null when invalid.
+ */
+function getFixtureWeatherPayload(fixture) {
+    var weather;
+    var provider;
+    var sunEvents;
+
+    if (!fixture || typeof fixture !== 'object') {
+        return null;
+    }
+
+    weather = fixture.weather;
+    if (!weather || typeof weather !== 'object') {
+        console.log('[fixture] Missing weather block');
+        return null;
+    }
+
+    sunEvents = Array.isArray(weather.sunEvents) ? weather.sunEvents.map(function(event) {
+        return {
+            type: event.type,
+            date: new Date(event.epoch * 1000)
+        };
+    }) : [];
+
+    provider = new WeatherProvider();
+    provider.name = 'Fixture';
+    provider.id = 'fixture';
+    provider.numEntries = Array.isArray(weather.temps) ? weather.temps.length : 0;
+    provider.cityName = weather.city || 'Fixture City';
+    provider.currentTemp = weather.currentTemp;
+    provider.startTime = weather.startEpoch;
+    provider.tempTrend = Array.isArray(weather.temps) ? weather.temps.slice(0) : [];
+    provider.precipTrend = Array.isArray(weather.precipPct) ? weather.precipPct.map(function(probabilityPercent) {
+        return probabilityPercent / 100.0;
+    }) : [];
+    provider.sunEvents = sunEvents;
+
+    if (provider.numEntries <= 0 || sunEvents.length < 2 || !provider.hasValidData()) {
+        console.log('[fixture] Invalid weather data in fixture ' + (fixture.name || '(unknown)'));
+        return null;
+    }
+
+    return provider.getPayload();
+}
+
+/**
+ * Send fixture weather directly to the watch, bypassing live provider fetch logic.
+ *
+ * @param {Object} fixture Active fixture loaded from fixtures/<name>.json.
+ * @returns {void}
+ */
+function sendFixtureWeather(fixture) {
+    var payload = getFixtureWeatherPayload(fixture);
+
+    if (!payload) {
+        return;
+    }
+
+    console.log('[fixture] Sending weather fixture: ' + (fixture.name || '(unknown)'));
+    Pebble.sendAppMessage(payload, function() {
+        console.log('[fixture] Weather fixture sent successfully');
+    }, function(e) {
+        console.log('[fixture] Weather fixture failed: ' + JSON.stringify(e));
+    });
 }
 
 /**

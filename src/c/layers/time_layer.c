@@ -1,6 +1,7 @@
 #include "time_layer.h"
 #include "c/appendix/config.h"
 #include "c/appendix/memory_log.h"
+#include "c/services/watch_services.h"
 
 // MT = Margin Top
 #define MT_TIME 14
@@ -49,17 +50,16 @@ static void text_layer_move_frame(TextLayer *text_layer, GRect frame) {
 
 void time_layer_tick() {
     // Get a tm structure
-    time_t temp = time(NULL);
-    struct tm *tick_time = localtime(&temp);
+    struct tm tick_time = watch_services_localtime();
 
     // Format the time into a buffer
     static char s_buffer[8];
-    config_format_time(s_buffer, 8, tick_time);
+    config_format_time(s_buffer, 8, &tick_time);
 
     // Update the time and AM/PM indicator
     text_layer_set_text(s_time_layer, s_buffer);
     if (g_config->show_am_pm)
-        text_layer_set_text(s_am_pm_layer, tick_time->tm_hour < 12 ? "AM" : "PM");
+        text_layer_set_text(s_am_pm_layer, tick_time.tm_hour < 12 ? "AM" : "PM");
     
     // Reposition everything
     GRect bounds = layer_get_bounds(text_layer_get_layer(s_container_layer));

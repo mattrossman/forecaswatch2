@@ -98,38 +98,22 @@ int config_n_today() {
 }
 
 GFont config_time_font() {
-    const char *font_key = FONT_KEY_ROBOTO_BOLD_SUBSET_49;
     int16_t font_index = g_config->time_font;
+    static const char *font_keys[] = {
+        [TIME_FONT_ROBOTO] = FONT_KEY_ROBOTO_BOLD_SUBSET_49,
+        [TIME_FONT_LECO] = FONT_KEY_LECO_42_NUMBERS,
+        [TIME_FONT_BITHAM] = FONT_KEY_BITHAM_42_MEDIUM_NUMBERS
+    };
 
     if (font_index < 0 || font_index > TIME_FONT_BITHAM) {
         font_index = TIME_FONT_ROBOTO;
     }
 
+    const char *font_key = font_keys[font_index];
 #ifdef PBL_PLATFORM_EMERY
-    switch (font_index) {
-        case TIME_FONT_LECO:
-            font_key = FONT_KEY_LECO_60_NUMBERS_AM_PM;
-            break;
-        case TIME_FONT_BITHAM:
-            font_key = FONT_KEY_BITHAM_42_MEDIUM_NUMBERS;
-            break;
-        case TIME_FONT_ROBOTO:
-        default:
-            font_key = FONT_KEY_ROBOTO_BOLD_SUBSET_49;
-            break;
-    }
-#else
-    switch (font_index) {
-        case TIME_FONT_LECO:
-            font_key = FONT_KEY_LECO_42_NUMBERS;
-            break;
-        case TIME_FONT_BITHAM:
-            font_key = FONT_KEY_BITHAM_42_MEDIUM_NUMBERS;
-            break;
-        case TIME_FONT_ROBOTO:
-        default:
-            font_key = FONT_KEY_ROBOTO_BOLD_SUBSET_49;
-            break;
+    // emery: use larger LECO numerals to preserve legibility on the 200x228 display.
+    if (font_index == TIME_FONT_LECO) {
+        font_key = FONT_KEY_LECO_60_NUMBERS_AM_PM;
     }
 #endif
 

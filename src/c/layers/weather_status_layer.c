@@ -8,6 +8,7 @@
 #define CITY_INIT_WIDTH 100
 #define MARGIN 2
 
+// emery: use larger text and arrow geometry
 #ifdef PBL_PLATFORM_EMERY
 #define CITY_FONT_KEY FONT_KEY_GOTHIC_18
 #define SUN_EVENT_FONT_KEY FONT_KEY_GOTHIC_18
@@ -61,6 +62,7 @@ static void city_layer_refresh() {
     GSize size = text_layer_get_content_size(s_city_layer);
     int x = frame_curr_temp.origin.x + frame_curr_temp.size.w + MARGIN * 2;
     int y;
+    // emery: align city text baseline with 18px font metrics instead of 14px metrics.
 #ifdef PBL_PLATFORM_EMERY
     y = -FONT_18_OFFSET;
 #else
@@ -101,6 +103,7 @@ static void sun_event_layer_refresh() {
     text_layer_move_frame(s_next_sun_event_layer, GRect(0, 0, 100, 100));  // Make it big so content doesn't get clipped
     GSize size = text_layer_get_content_size(s_next_sun_event_layer);
     int y;
+    // emery: align sun-event text baseline with 18px font metrics instead of 14px metrics.
 #ifdef PBL_PLATFORM_EMERY
     y = -FONT_18_OFFSET;
 #else
@@ -155,6 +158,7 @@ static void weather_status_update_proc(Layer *layer, GContext *ctx) {
     } else {
         gpath_rotate_to(s_arrow_path, 0);
     }
+    // emery: place arrow lower so it is vertically centered in the taller status row.
 #ifdef PBL_PLATFORM_EMERY
     gpath_move_to(s_arrow_path, GPoint(w - 4, bounds.size.h - (ARROW_H / 2) - 4));
 #else

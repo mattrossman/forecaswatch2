@@ -9,6 +9,7 @@
 #define EMERY_CALENDAR_TEXT_SHIFT_Y 5
 #define EMERY_CALENDAR_TEXT_SHIFT_X 1
 
+// emery: render calendar dates with larger fonts
 #ifdef PBL_PLATFORM_EMERY
 #define CALENDAR_FONT_KEY FONT_KEY_GOTHIC_24
 #define CALENDAR_FONT_KEY_BOLD FONT_KEY_GOTHIC_24_BOLD
@@ -44,6 +45,7 @@ static GRect calendar_text_rect(GRect cell_rect, const char *text, GFont font, b
                      cell_rect.size.h + FONT_OFFSET);
     }
 
+    // emery: measure real glyph bounds and vertically center text in each date cell.
     const GRect measure_box = GRect(0, 0, cell_rect.size.w, cell_rect.size.h);
     const GSize text_size = graphics_text_layout_get_content_size(
         text, font, measure_box, GTextOverflowModeFill, GTextAlignmentCenter);
@@ -135,6 +137,7 @@ static GColor today_color() {
 
 static void calendar_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
+    // emery: switch to center-by-measurement text placement instead of legacy offset placement.
 #ifdef PBL_PLATFORM_EMERY
     const bool is_emery = true;
 #else

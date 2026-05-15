@@ -10,6 +10,7 @@
 #define ICON_SLOT_2 GRect(PADDING * 2 + 10, 0, 10, 10)
 
 static Layer *s_calendar_status_layer;
+// emery: draw month text in update proc instead of maintaining a dedicated TextLayer.
 #ifndef PBL_PLATFORM_EMERY
 static TextLayer *s_calendar_month_layer;
 #endif
@@ -21,6 +22,7 @@ static GColor s_bt_palette[2];
 static GColor s_bt_disconnect_palette[2];
 static GColor s_mute_palette[2];
 
+// emery: vertically center month text using measured height to match taller status bar.
 #ifdef PBL_PLATFORM_EMERY
 static GRect month_text_rect(GRect bounds, GFont font) {
     const GRect measure_box = GRect(0, 0, bounds.size.w, bounds.size.h);
@@ -95,6 +97,7 @@ static void calendar_status_update_proc(Layer *layer, GContext *ctx) {
     maybe_unload_calendar_status_bitmaps(show_qt, connected);
 
     graphics_context_set_text_color(ctx, GColorWhite);
+    // emery: render month text directly with a larger font in the status layer draw pass.
 #ifdef PBL_PLATFORM_EMERY
     const GFont month_font = fonts_get_system_font(FONT_KEY_GOTHIC_24);
     graphics_draw_text(
@@ -131,6 +134,7 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     GRect bounds = layer_get_bounds(s_calendar_status_layer);
     int w = bounds.size.w;
 
+    // emery: skip month TextLayer creation because month is drawn directly in update proc.
 #ifndef PBL_PLATFORM_EMERY
     // Set up month text layer
     s_calendar_month_layer = text_layer_create(GRect(0, -7, w, 25));
@@ -148,6 +152,7 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     MEMORY_HEAP_PROBE_SAMPLE("after_connection_subscribe", &probe);
 
     calendar_status_layer_refresh();
+    // emery: do not attach month TextLayer since Emery uses direct text drawing.
 #ifndef PBL_PLATFORM_EMERY
     layer_add_child(s_calendar_status_layer, text_layer_get_layer(s_calendar_month_layer));
     MEMORY_HEAP_PROBE_SAMPLE("after_month_child_added", &probe);
@@ -193,6 +198,7 @@ void calendar_status_layer_refresh() {
     time_t now = time(NULL);
     struct tm *tm_now = localtime(&now);
     strftime(s_calendar_month_text, sizeof(s_calendar_month_text), "%b %Y", tm_now);
+    // emery: avoid text_layer_set_text because Emery month text comes from custom drawing.
 #ifndef PBL_PLATFORM_EMERY
     text_layer_set_text(s_calendar_month_layer, s_calendar_month_text);
 #endif

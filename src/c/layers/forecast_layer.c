@@ -15,6 +15,7 @@
 #define LABEL_PADDING 20          // Minimum width a label should cover
 #define BOTTOM_AXIS_H 10          // Height of the bottom axis (hour labels)
 #define MARGIN_TEMP_H 7           // Height of margins for the temperature plot
+// emery: reserve extra bottom space for larger hour labels and tick marks.
 #ifdef PBL_PLATFORM_EMERY
 #define FORECAST_BOTTOM_PAD 10
 #define EMERY_AXIS_LABEL_TOP 6
@@ -507,6 +508,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     graphics_context_set_text_color(ctx, GColorWhite);
     graphics_context_set_stroke_color(ctx, GColorLightGray);
 
+    // emery: reduce label density to every 3 points so the wider labels do not overlap.
 #ifdef PBL_PLATFORM_EMERY
     const int entries_per_label = 3;
 #else
@@ -531,6 +533,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
         }
         s_points_temp[i] = GPoint(entry_x, h - temp_h - MARGIN_TEMP_H - BOTTOM_AXIS_H);
 
+        // emery: draw emphasized major/minor bottom-axis ticks for improved readability.
 #ifdef PBL_PLATFORM_EMERY
         const bool is_label_tick = (i % entries_per_label) == 0;
         const GColor tick_color = is_label_tick ? GColorLightGray : GColorDarkGray;
@@ -542,6 +545,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
 #endif
     }
 
+// non-emery: draw labels with classic font-offset positioning and midpoint ticks.
 #ifndef PBL_PLATFORM_EMERY
     for (int label_i = 0; label_i < num_entries; label_i += entries_per_label)
     {
@@ -549,13 +553,8 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
         char buf[4];
 
         snprintf(buf, sizeof(buf), "%d", config_axis_hour(forecast_start_local->tm_hour + label_i));
-#ifdef PBL_PLATFORM_EMERY
-        const int label_y = h - BOTTOM_AXIS_H + EMERY_AXIS_LABEL_TOP;
-        const int label_h = EMERY_AXIS_LABEL_H;
-#else
         const int label_y = h - BOTTOM_AXIS_H - BOTTOM_AXIS_FONT_OFFSET;
         const int label_h = BOTTOM_AXIS_H;
-#endif
         graphics_draw_text(ctx, buf,
                            fonts_get_system_font(FONT_KEY_GOTHIC_14),
                            GRect(label_x - 20, label_y, 40, label_h),
@@ -576,6 +575,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
             }
         }
     }
+// emery: draw labels lower in the reserved pad and skip midpoint tick loop.
 #else
     for (int label_i = 0; label_i < num_entries; label_i += entries_per_label)
     {
@@ -644,6 +644,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     graphics_context_set_text_color(ctx, GColorWhite);
     GSize hi_size = temp_label_string_size(s_buffer_hi);
     GSize lo_size = temp_label_string_size(s_buffer_lo);
+    // emery: anchor hi/lo labels to the top/bottom of the axis strip to avoid clipping.
 #ifdef PBL_PLATFORM_EMERY
     const int hi_y = 0;
     const int lo_y = axis_y - lo_size.h - 2;

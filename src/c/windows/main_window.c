@@ -16,6 +16,7 @@
 #define EMERY_WINDOW_PAD_X 2
 #define EMERY_WINDOW_PAD_TOP 2
 #define EMERY_WINDOW_PAD_BOTTOM 4
+// emery: increase top calendar status row height to fit larger month and icon alignment.
 #ifdef PBL_PLATFORM_EMERY
 #define CALENDAR_STATUS_HEIGHT 20
 #else
@@ -24,11 +25,7 @@
 
 static Window *s_main_window;
 
-static bool is_emery_display(GRect bounds)
-{
-    return bounds.size.w == 200 && bounds.size.h == 228;
-}
-
+#ifdef PBL_PLATFORM_EMERY
 static void compute_content_layout(int content_h, int *calendar_h, int *time_h, int *forecast_h)
 {
     const int weight_sum = CALENDAR_HEIGHT + TIME_HEIGHT + FORECAST_HEIGHT;
@@ -37,6 +34,7 @@ static void compute_content_layout(int content_h, int *calendar_h, int *time_h, 
     *time_h = (content_h * TIME_HEIGHT) / weight_sum;
     *forecast_h = content_h - *calendar_h - *time_h;
 }
+#endif
 
 static void main_window_load(Window *window)
 {
@@ -45,59 +43,51 @@ static void main_window_load(Window *window)
     GRect bounds = layer_get_bounds(window_layer);
     window_set_background_color(window, GColorBlack);
 
-    if (is_emery_display(bounds))
-    {
-        int h = bounds.size.h;
-        int content_x = EMERY_WINDOW_PAD_X;
-        int content_y = EMERY_WINDOW_PAD_TOP;
-        int content_w = bounds.size.w - EMERY_WINDOW_PAD_X * 2;
-        int forecast_w = bounds.size.w - content_x;
-        int content_h = bounds.size.h - EMERY_WINDOW_PAD_TOP - EMERY_WINDOW_PAD_BOTTOM - CALENDAR_STATUS_HEIGHT - WEATHER_STATUS_HEIGHT;
-        int calendar_h;
-        int time_h;
-        int forecast_h;
-        int calendar_y;
-        int time_y;
-        int weather_status_y;
-        int forecast_y;
+    int h = bounds.size.h;
+#ifdef PBL_PLATFORM_EMERY
+    // emery: pad to avoid content getting obscured by screen edge
+    int content_x = EMERY_WINDOW_PAD_X;
+    int content_y = EMERY_WINDOW_PAD_TOP;
+    int content_w = bounds.size.w - EMERY_WINDOW_PAD_X * 2;
+    int forecast_w = bounds.size.w - content_x;
+    int content_h = h - EMERY_WINDOW_PAD_TOP - EMERY_WINDOW_PAD_BOTTOM - CALENDAR_STATUS_HEIGHT - WEATHER_STATUS_HEIGHT;
+    int calendar_h;
+    int time_h;
+    int forecast_h;
+    compute_content_layout(content_h, &calendar_h, &time_h, &forecast_h);
 
-        compute_content_layout(content_h, &calendar_h, &time_h, &forecast_h);
-        calendar_y = content_y + CALENDAR_STATUS_HEIGHT;
-        time_y = calendar_y + calendar_h;
-        weather_status_y = time_y + time_h;
-        forecast_y = weather_status_y + WEATHER_STATUS_HEIGHT;
+    int calendar_y = content_y + CALENDAR_STATUS_HEIGHT;
+    int time_y = calendar_y + calendar_h;
+    int weather_status_y = time_y + time_h;
+    int forecast_y = weather_status_y + WEATHER_STATUS_HEIGHT;
 
-        forecast_layer_create(window_layer,
-                              GRect(content_x, forecast_y, forecast_w, forecast_h));
-        weather_status_layer_create(window_layer,
-                                    GRect(content_x, weather_status_y, content_w, WEATHER_STATUS_HEIGHT));
-        time_layer_create(window_layer,
-                          GRect(content_x, time_y, content_w, time_h));
-        calendar_layer_create(window_layer,
-                              GRect(content_x, calendar_y, content_w, calendar_h));
-        calendar_status_layer_create(window_layer,
-                                     GRect(content_x, content_y, content_w, CALENDAR_STATUS_HEIGHT + 1)); // +1 to stop text clipping
-        loading_layer_create(window_layer,
-                             GRect(content_x, weather_status_y, content_w, h - EMERY_WINDOW_PAD_BOTTOM - weather_status_y));
-    }
-    else
-    {
-        int h = bounds.size.h;
-
-        forecast_layer_create(window_layer,
-                              GRect(0, h - FORECAST_HEIGHT, bounds.size.w, FORECAST_HEIGHT));
-        weather_status_layer_create(window_layer,
-                                    GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, bounds.size.w, WEATHER_STATUS_HEIGHT));
-        time_layer_create(window_layer,
-                          GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT - TIME_HEIGHT,
-                                bounds.size.w, TIME_HEIGHT));
-        calendar_layer_create(window_layer,
-                              GRect(0, CALENDAR_STATUS_HEIGHT, bounds.size.w, CALENDAR_HEIGHT));
-        calendar_status_layer_create(window_layer,
-                                     GRect(0, 0, bounds.size.w, CALENDAR_STATUS_HEIGHT + 1)); // +1 to stop text clipping
-        loading_layer_create(window_layer,
-                             GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, bounds.size.w, FORECAST_HEIGHT + WEATHER_STATUS_HEIGHT));
-    }
+    forecast_layer_create(window_layer,
+                          GRect(content_x, forecast_y, forecast_w, forecast_h));
+    weather_status_layer_create(window_layer,
+                                GRect(content_x, weather_status_y, content_w, WEATHER_STATUS_HEIGHT));
+    time_layer_create(window_layer,
+                      GRect(content_x, time_y, content_w, time_h));
+    calendar_layer_create(window_layer,
+                          GRect(content_x, calendar_y, content_w, calendar_h));
+    calendar_status_layer_create(window_layer,
+                                 GRect(content_x, content_y, content_w, CALENDAR_STATUS_HEIGHT + 1)); // +1 to stop text clipping
+    loading_layer_create(window_layer,
+                         GRect(content_x, weather_status_y, content_w, h - EMERY_WINDOW_PAD_BOTTOM - weather_status_y));
+#else
+    forecast_layer_create(window_layer,
+                          GRect(0, h - FORECAST_HEIGHT, bounds.size.w, FORECAST_HEIGHT));
+    weather_status_layer_create(window_layer,
+                                GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, bounds.size.w, WEATHER_STATUS_HEIGHT));
+    time_layer_create(window_layer,
+                      GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT - TIME_HEIGHT,
+                            bounds.size.w, TIME_HEIGHT));
+    calendar_layer_create(window_layer,
+                          GRect(0, CALENDAR_STATUS_HEIGHT, bounds.size.w, CALENDAR_HEIGHT));
+    calendar_status_layer_create(window_layer,
+                                 GRect(0, 0, bounds.size.w, CALENDAR_STATUS_HEIGHT + 1)); // +1 to stop text clipping
+    loading_layer_create(window_layer,
+                         GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, bounds.size.w, FORECAST_HEIGHT + WEATHER_STATUS_HEIGHT));
+#endif
     loading_layer_refresh();
     app_message_send_startup_state(loading_layer_has_valid_data());
     MEMORY_LOG_HEAP("after_window_load");

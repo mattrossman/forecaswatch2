@@ -62,14 +62,16 @@ static void city_layer_refresh() {
     GSize size = text_layer_get_content_size(s_city_layer);
     int x = frame_curr_temp.origin.x + frame_curr_temp.size.w + MARGIN * 2;
     int y;
+    int h;
     // emery: align city text baseline with 18px font metrics instead of 14px metrics.
 #ifdef PBL_PLATFORM_EMERY
     y = -FONT_18_OFFSET;
+    h = size.h + FONT_18_OFFSET;
 #else
     y = -FONT_14_OFFSET;
+    h = size.h + FONT_14_OFFSET;
 #endif
     int w = bounds.size.w - frame_curr_temp.size.w - frame_sun_event.size.w - MARGIN * 4;
-    int h = size.h;
     text_layer_move_frame(s_city_layer, GRect(x, y, w, h));
 }
 

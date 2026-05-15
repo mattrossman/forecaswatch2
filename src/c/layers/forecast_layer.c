@@ -563,16 +563,14 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
                            NULL);
 
         const int next_label_i = label_i + entries_per_label;
-        if (next_label_i < num_entries)
+        const int midpoint_i = label_i + entries_per_label / 2;
+        if (next_label_i < num_entries && midpoint_i > label_i && midpoint_i < next_label_i)
         {
-            for (int tick_offset = 1; tick_offset < entries_per_label; ++tick_offset)
-            {
-                const float tick_x_f = graph_bounds.origin.x + ((label_i + tick_offset) * entry_w);
-                int tick_x = (int)(tick_x_f + 0.5f);
-                graphics_draw_line(ctx,
-                                   GPoint(tick_x, h - BOTTOM_AXIS_H - 0),
-                                   GPoint(tick_x, h - BOTTOM_AXIS_H + 4));
-            }
+            const float tick_x_f = graph_bounds.origin.x + (midpoint_i * entry_w);
+            const int tick_x = (int)(tick_x_f + 0.5f);
+            graphics_draw_line(ctx,
+                               GPoint(tick_x, h - BOTTOM_AXIS_H - 0),
+                               GPoint(tick_x, h - BOTTOM_AXIS_H + 4));
         }
     }
 // emery: draw labels lower in the reserved pad and skip midpoint tick loop.

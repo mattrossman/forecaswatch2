@@ -101,7 +101,12 @@ GFont config_time_font() {
     int16_t font_index = g_config->time_font;
     static const char *font_keys[] = {
         [TIME_FONT_ROBOTO] = FONT_KEY_ROBOTO_BOLD_SUBSET_49,
+#ifdef PBL_PLATFORM_EMERY
+        // emery: use larger LECO font size
+        [TIME_FONT_LECO] = FONT_KEY_LECO_60_NUMBERS_AM_PM,
+#else
         [TIME_FONT_LECO] = FONT_KEY_LECO_42_NUMBERS,
+#endif
         [TIME_FONT_BITHAM] = FONT_KEY_BITHAM_42_MEDIUM_NUMBERS
     };
 
@@ -110,12 +115,6 @@ GFont config_time_font() {
     }
 
     const char *font_key = font_keys[font_index];
-#ifdef PBL_PLATFORM_EMERY
-    // emery: use larger LECO numerals to preserve legibility on the 200x228 display.
-    if (font_index == TIME_FONT_LECO) {
-        font_key = FONT_KEY_LECO_60_NUMBERS_AM_PM;
-    }
-#endif
 
     return fonts_get_system_font(font_key);
 }

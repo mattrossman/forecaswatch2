@@ -28,3 +28,11 @@ struct tm watch_services_localtime(void) {
     return *local_time;
 #endif
 }
+
+bool watch_services_clock_is_24h_style(void) {
+#ifdef FCW2_FIXTURE_CLOCK_24H
+    return FCW2_FIXTURE_CLOCK_24H;
+#else
+    return clock_is_24h_style();
+#endif
+}

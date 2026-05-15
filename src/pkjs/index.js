@@ -547,11 +547,11 @@ function clayTryFixtureSettings(fixture) {
     var settings;
     var prop;
 
-    if (!fixture || !fixture.settings || typeof fixture.settings !== 'object' || Array.isArray(fixture.settings)) {
+    if (!fixture || !fixture.claySettings || typeof fixture.claySettings !== 'object' || Array.isArray(fixture.claySettings)) {
         return;
     }
 
-    settings = fixture.settings;
+    settings = fixture.claySettings;
     persistClay = getClaySettings();
     for (prop in settings) {
         if (Object.prototype.hasOwnProperty.call(settings, prop)) {

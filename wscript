@@ -34,6 +34,7 @@ def build(ctx):
     enable_memory_logging = os.environ.get('ENABLE_MEMORY_LOGGING', '').strip().lower() in ('1', 'true', 'yes', 'on')
     fixture_name = os.environ.get('FIXTURE', '').strip()
     fixture_now = None
+    fixture_clock_24h = None
     if fixture_name:
         if not re.match(r'^[a-z0-9][a-z0-9-]*$', fixture_name):
             ctx.fatal('FIXTURE must be a fixture slug like "readme" or "rainy-night"')
@@ -63,6 +64,12 @@ def build(ctx):
             ctx.fatal('Fixture watch.now.minute must be 0-59')
         if not (0 <= fixture_now['second'] <= 59):
             ctx.fatal('Fixture watch.now.second must be 0-59')
+        watch_settings = fixture.get('watchSettings', {})
+        time_format = watch_settings.get('timeFormat')
+        if time_format:
+            if time_format not in ('12h', '24h'):
+                ctx.fatal('Fixture watchSettings.timeFormat must be "12h" or "24h"')
+            fixture_clock_24h = '1' if time_format == '24h' else '0'
 
     build_worker = os.path.exists('worker_src')
     binaries = []
@@ -84,6 +91,8 @@ def build(ctx):
                 '-DFCW2_FIXTURE_NOW_MINUTE={}'.format(fixture_now['minute']),
                 '-DFCW2_FIXTURE_NOW_SECOND={}'.format(fixture_now['second']),
             ]
+        if fixture_clock_24h is not None:
+            ctx.env.CFLAGS += ['-DFCW2_FIXTURE_CLOCK_24H={}'.format(fixture_clock_24h)]
         ctx.set_group(ctx.env.PLATFORM_NAME)
         app_elf = '{}/pebble-app.elf'.format(ctx.env.BUILD_DIR)
         ctx.pbl_build(source=ctx.path.ant_glob('src/c/**/*.c'), target=app_elf, bin_type='app')

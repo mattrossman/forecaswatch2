@@ -3,13 +3,16 @@
     "now": {
       "year": 2026,
       "month": 5,
-      "day": 15,
+      "day": 14,
       "hour": 12,
       "minute": 34,
       "second": 0
     }
   },
-  "settings": {
+  "watchSettings": {
+    "timeFormat": "12h"
+  },
+  "claySettings": {
     "axisTimeFormat": "12h",
     "colorSaturday": "GColorFolly",
     "colorSunday": "GColorFolly",
@@ -18,7 +21,7 @@
   "weather": {
     "city": "Chicago",
     "currentTemp": 52,
-    "startEpoch": 1778860800,
+    "startHour": 12,
     "temps": [
       52,
       53,
@@ -74,11 +77,15 @@
     "sunEvents": [
       {
         "type": "sunset",
-        "epoch": 1778890200
+        "dayOffset": 0,
+        "hour": 20,
+        "minute": 10
       },
       {
         "type": "sunrise",
-        "epoch": 1778923680
+        "dayOffset": 1,
+        "hour": 5,
+        "minute": 28
       }
     ]
   }

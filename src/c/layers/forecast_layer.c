@@ -562,8 +562,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
         const int midpoint_i = label_i + entries_per_label / 2;
         if (midpoint_i > label_i && midpoint_i < next_label_i && midpoint_i < num_entries)
         {
-            const float tick_x_f = graph_bounds.origin.x + (midpoint_i * entry_w);
-            const int tick_x = (int)(tick_x_f + 0.5f);
+            const int tick_x = graph_bounds.origin.x + (int)(midpoint_i * entry_w);
             graphics_draw_line(ctx,
                                GPoint(tick_x, h - BOTTOM_AXIS_H - 0),
                                GPoint(tick_x, h - BOTTOM_AXIS_H + 4));

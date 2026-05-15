@@ -12,15 +12,16 @@
 #define TEMP_LABEL_MEASURE_BOX_W 200
 #define TEMP_LABEL_MEASURE_BOX_H 40
 #define BOTTOM_AXIS_FONT_OFFSET 4 // Adjustment for whitespace at top of font
-#define LABEL_PADDING 20          // Minimum width a label should cover
 #define BOTTOM_AXIS_H 10          // Height of the bottom axis (hour labels)
 #define MARGIN_TEMP_H 7           // Height of margins for the temperature plot
 // emery: reserve extra bottom space for larger hour labels and tick marks.
 #ifdef PBL_PLATFORM_EMERY
+#define HOUR_LABEL_MIN_SPACING 24 // Minimum horizontal spacing for hour labels
 #define FORECAST_BOTTOM_PAD 10
 #define EMERY_AXIS_LABEL_TOP 6
 #define EMERY_AXIS_LABEL_H 14
 #else
+#define HOUR_LABEL_MIN_SPACING 20 // Minimum horizontal spacing for hour labels
 #define FORECAST_BOTTOM_PAD 0
 #endif
 #define NIGHT_HATCH_SPACING PBL_IF_COLOR_ELSE(6, 7)
@@ -508,13 +509,8 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     graphics_context_set_text_color(ctx, GColorWhite);
     graphics_context_set_stroke_color(ctx, GColorLightGray);
 
-    // emery: reduce label density to every 3 points so the wider labels do not overlap.
-#ifdef PBL_PLATFORM_EMERY
-    const int entries_per_label = 3;
-#else
-    // Round this division up by adding (divisor - 1) to the dividend
-    const int entries_per_label = ((float)LABEL_PADDING + (entry_w - 1)) / entry_w;
-#endif
+    // Round this division up by adding (divisor - 1) to the dividend.
+    const int entries_per_label = ((float)HOUR_LABEL_MIN_SPACING + (entry_w - 1)) / entry_w;
     for (int i = 0; i < num_entries; ++i)
     {
         int entry_x = graph_bounds.origin.x + i * entry_w;

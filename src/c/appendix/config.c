@@ -98,8 +98,7 @@ int config_n_today() {
 }
 
 GFont config_time_font() {
-    int16_t font_index = g_config->time_font;
-    static const char *font_keys[] = {
+    const char *font_keys[] = {
         [TIME_FONT_ROBOTO] = FONT_KEY_ROBOTO_BOLD_SUBSET_49,
 #ifdef PBL_PLATFORM_EMERY
         // emery: use larger LECO font size
@@ -109,11 +108,10 @@ GFont config_time_font() {
 #endif
         [TIME_FONT_BITHAM] = FONT_KEY_BITHAM_42_MEDIUM_NUMBERS
     };
-
-    if (font_index < 0 || font_index > TIME_FONT_BITHAM) {
+    int16_t font_index = g_config->time_font;
+    const int16_t font_count = (int16_t)(sizeof(font_keys) / sizeof(font_keys[0]));
+    if (font_index < 0 || font_index >= font_count)
         font_index = TIME_FONT_ROBOTO;
-    }
-
     return fonts_get_system_font(font_keys[font_index]);
 }
 

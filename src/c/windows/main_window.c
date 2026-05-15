@@ -26,8 +26,7 @@
 static Window *s_main_window;
 
 #ifdef PBL_PLATFORM_EMERY
-static void compute_content_layout(int content_h, int *calendar_h, int *time_h, int *forecast_h)
-{
+static void compute_content_layout(int content_h, int *calendar_h, int *time_h, int *forecast_h) {
     const int weight_sum = CALENDAR_HEIGHT + TIME_HEIGHT + FORECAST_HEIGHT;
 
     *calendar_h = (content_h * CALENDAR_HEIGHT) / weight_sum;
@@ -36,8 +35,7 @@ static void compute_content_layout(int content_h, int *calendar_h, int *time_h, 
 }
 #endif
 
-static void main_window_load(Window *window)
-{
+static void main_window_load(Window *window) {
     // Get information about the Window
     Layer *window_layer = window_get_root_layer(window);
     GRect bounds = layer_get_bounds(window_layer);
@@ -93,8 +91,7 @@ static void main_window_load(Window *window)
     MEMORY_LOG_HEAP("after_window_load");
 }
 
-static void main_window_unload(Window *window)
-{
+static void main_window_unload(Window *window) {
     MEMORY_LOG_HEAP("before_window_unload");
     time_layer_destroy();
     weather_status_layer_destroy();
@@ -105,12 +102,10 @@ static void main_window_unload(Window *window)
     MEMORY_LOG_HEAP("after_window_unload");
 }
 
-static void minute_handler(struct tm *tick_time, TimeUnits units_changed)
-{
+static void minute_handler(struct tm *tick_time, TimeUnits units_changed) {
     time_layer_tick();
     /* tm_hour==0 missed day changes from emulator time jumps (same clock, new date). */
-    if (units_changed & DAY_UNIT)
-    {
+    if (units_changed & DAY_UNIT) {
         calendar_layer_refresh();
         calendar_status_layer_refresh();
     }
@@ -122,15 +117,15 @@ static void minute_handler(struct tm *tick_time, TimeUnits units_changed)
 -------- EXTERNAL ------------
 ----------------------------*/
 
-void main_window_create()
-{
+void main_window_create() {
     // Create main Window element and assign to pointer
     s_main_window = window_create();
 
     // Set handlers to manage the elements inside the Window
-    window_set_window_handlers(s_main_window, (WindowHandlers){
-                                                  .load = main_window_load,
-                                                  .unload = main_window_unload});
+    window_set_window_handlers(s_main_window, (WindowHandlers) {
+        .load = main_window_load,
+        .unload = main_window_unload
+    });
 
     // Register with TickTimerService
     tick_timer_service_subscribe(MINUTE_UNIT | DAY_UNIT, minute_handler);
@@ -140,8 +135,7 @@ void main_window_create()
     time_layer_refresh();
 }
 
-void main_window_refresh()
-{
+void main_window_refresh() {
     time_layer_refresh();
     weather_status_layer_refresh();
     forecast_layer_refresh();
@@ -149,8 +143,7 @@ void main_window_refresh()
     calendar_status_layer_refresh();
 }
 
-void main_window_destroy()
-{
+void main_window_destroy() {
     // Interface for destroying the main window (implicitly unloads contents)
     window_destroy(s_main_window);
 }

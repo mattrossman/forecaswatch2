@@ -1,6 +1,7 @@
 #include "battery_layer.h"
 #include "c/appendix/persist.h"
 #include "c/appendix/memory_log.h"
+#include "c/services/watch_services.h"
 
 #define BATTERY_NUB_W 2
 #define BATTERY_NUB_H 6
@@ -13,6 +14,7 @@
 static Layer *s_battery_layer;
 static GBitmap *s_battery_power_bitmap;
 static GColor s_battery_palette[2];
+static bool s_battery_subscribed;
 
 static void battery_state_handler(BatteryChargeState charge) {
     battery_layer_refresh();
@@ -62,7 +64,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
     int w = bounds.size.w;
     int h = bounds.size.h;
-    BatteryChargeState battery_state = battery_state_service_peek();
+    BatteryChargeState battery_state = watch_services_battery_state();
     int battery_level = battery_state.charge_percent;
     bool show_power_icon = battery_state.is_charging || battery_state.is_plugged;
 
@@ -109,7 +111,12 @@ void battery_layer_create(Layer* parent_layer, GRect frame) {
     MEMORY_HEAP_PROBE_SAMPLE("after_layer_create", &probe);
 
     layer_set_update_proc(s_battery_layer, battery_update_proc);
-    battery_state_service_subscribe(battery_state_handler);
+    if (!watch_services_battery_is_fixture()) {
+        battery_state_service_subscribe(battery_state_handler);
+        s_battery_subscribed = true;
+    } else {
+        s_battery_subscribed = false;
+    }
     MEMORY_HEAP_PROBE_SAMPLE("after_battery_subscribe", &probe);
     layer_add_child(parent_layer, s_battery_layer);
     MEMORY_HEAP_PROBE_SAMPLE("after_layer_add_child", &probe);
@@ -123,7 +130,10 @@ void battery_layer_refresh() {
 
 void battery_layer_destroy() {
     MEMORY_LOG_HEAP("battery_layer_destroy:before");
-    battery_state_service_unsubscribe();
+    if (s_battery_subscribed) {
+        battery_state_service_unsubscribe();
+        s_battery_subscribed = false;
+    }
     if (s_battery_power_bitmap) {
         gbitmap_destroy(s_battery_power_bitmap);
         s_battery_power_bitmap = NULL;

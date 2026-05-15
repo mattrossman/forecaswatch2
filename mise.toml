@@ -15,6 +15,10 @@ deno = "2.1.4"
 # https://mise.jdx.dev/dev-tools/backends/aqua.html
 "aqua:supabase/cli" = "2.84.2"
 
+# https://github.com/linebender/resvg
+# https://mise.jdx.dev/dev-tools/backends/aqua.html
+resvg = "0.47.0"
+
 [env]
 _.file = ".env"
 
@@ -53,12 +57,24 @@ description = "Build and install on emulator (default profile: dev, emulator: ba
 alias = "emu"
 run = "pebble wipe && scripts/install-emulator.sh"
 
+[tasks.kill-emulator]
+description = "Stop running emulator and phone simulator"
+alias = "kill"
+run = "pebble kill"
+
 [tasks.screenshot-phone]
 description = "Take a screenshot from phone"
-alias = "screenshot"
 run = "scripts/screenshot-phone.sh"
 
 [tasks.screenshot-emulator]
 description = "Take a screenshot from emulator (default: basalt)"
-alias = "screenshot-emu"
+alias = "screenshot"
 run = "scripts/screenshot-emulator.sh"
+
+[tasks.composite-screenshot]
+description = "Composite a screenshot PNG into an SVG Pebble frame"
+run = "screenshot/composite_svg.sh"
+
+[tasks.composite]
+description = "Composite all raw screenshots for a screenshot version"
+run = "scripts/composite-version.sh"

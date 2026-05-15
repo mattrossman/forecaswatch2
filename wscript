@@ -35,6 +35,7 @@ def build(ctx):
     fixture_name = os.environ.get('FIXTURE', '').strip()
     fixture_now = None
     fixture_clock_24h = None
+    fixture_battery = None
     if fixture_name:
         if not re.match(r'^[a-z0-9][a-z0-9-]*$', fixture_name):
             ctx.fatal('FIXTURE must be a fixture slug like "readme" or "rainy-night"')
@@ -70,6 +71,24 @@ def build(ctx):
             if time_format not in ('12h', '24h'):
                 ctx.fatal('Fixture watchSettings.timeFormat must be "12h" or "24h"')
             fixture_clock_24h = '1' if time_format == '24h' else '0'
+        battery_fixture = watch_fixture.get('battery')
+        if battery_fixture is not None:
+            if not isinstance(battery_fixture, dict):
+                ctx.fatal('Fixture watch.battery must be an object')
+            fixture_battery = {}
+            if 'percent' not in battery_fixture:
+                ctx.fatal('Fixture watch.battery.percent is required when watch.battery is defined')
+            try:
+                fixture_battery['percent'] = int(battery_fixture['percent'])
+            except (TypeError, ValueError):
+                ctx.fatal('Fixture watch.battery.percent must be an integer')
+            if not (0 <= fixture_battery['percent'] <= 100):
+                ctx.fatal('Fixture watch.battery.percent must be 0-100')
+            charging = battery_fixture.get('charging', False)
+            if isinstance(charging, bool):
+                fixture_battery['charging'] = '1' if charging else '0'
+            else:
+                ctx.fatal('Fixture watch.battery.charging must be true or false')
 
     build_worker = os.path.exists('worker_src')
     binaries = []
@@ -93,6 +112,11 @@ def build(ctx):
             ]
         if fixture_clock_24h is not None:
             ctx.env.CFLAGS += ['-DFCW2_FIXTURE_CLOCK_24H={}'.format(fixture_clock_24h)]
+        if fixture_battery is not None:
+            ctx.env.CFLAGS += [
+                '-DFCW2_FIXTURE_BATTERY_PERCENT={}'.format(fixture_battery['percent']),
+                '-DFCW2_FIXTURE_BATTERY_CHARGING={}'.format(fixture_battery['charging']),
+            ]
         ctx.set_group(ctx.env.PLATFORM_NAME)
         app_elf = '{}/pebble-app.elf'.format(ctx.env.BUILD_DIR)
         ctx.pbl_build(source=ctx.path.ant_glob('src/c/**/*.c'), target=app_elf, bin_type='app')

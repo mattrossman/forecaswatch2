@@ -10,11 +10,13 @@ build
 src/pkjs/dev-config.js
 src/pkjs/active-fixture.generated.js
 screenshot/**/*
-!screenshot/snowy-red.png
-!screenshot/steel-black.png
-!screenshot/composite_bw.sh
-!screenshot/composite_color.sh
 !screenshot/**/
+!screenshot/frames/*.svg
+!screenshot/v*/*.png
+!screenshot/v*/raw/*.png
+!screenshot/v*/composite/*.png
+screenshot/tmp/**
+screenshot/out/**
 !.agents
 node_modules
 package.json

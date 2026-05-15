@@ -27,6 +27,7 @@ The developer, RCY, is nowhere to be found in the Rebble era. I plan to continue
 * 3 week calendar
 * 24 hour weather forecast (updates every 30 minutes)
 * Bluetooth connection indicator
+* Vibrate on disconnect
 * Quiet time indicator
 * Night shading
 * Multiple weather providers (Weather Underground*, OpenWeatherMap)

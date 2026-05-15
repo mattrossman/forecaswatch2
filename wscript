@@ -31,6 +31,12 @@ def build(ctx):
         package = json.load(package_file)
 
     enable_memory_logging = os.environ.get('ENABLE_MEMORY_LOGGING', '').strip().lower() in ('1', 'true', 'yes', 'on')
+    mock_now_epoch = os.environ.get('MOCK_NOW_EPOCH', '').strip()
+    if mock_now_epoch:
+        try:
+            mock_now_epoch = str(int(mock_now_epoch))
+        except ValueError:
+            ctx.fatal('MOCK_NOW_EPOCH must be a Unix timestamp integer')
 
     build_worker = os.path.exists('worker_src')
     binaries = []
@@ -43,6 +49,8 @@ def build(ctx):
         ctx.env.LINKFLAGS += ['-Wl,--no-warn-rwx-segments']
         if enable_memory_logging:
             ctx.env.CFLAGS += ['-DFCW2_ENABLE_MEMORY_LOGGING=1']
+        if mock_now_epoch:
+            ctx.env.CFLAGS += ['-DFCW2_MOCK_NOW_EPOCH={}'.format(mock_now_epoch)]
         ctx.set_group(ctx.env.PLATFORM_NAME)
         app_elf = '{}/pebble-app.elf'.format(ctx.env.BUILD_DIR)
         ctx.pbl_build(source=ctx.path.ant_glob('src/c/**/*.c'), target=app_elf, bin_type='app')

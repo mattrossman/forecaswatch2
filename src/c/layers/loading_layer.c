@@ -1,13 +1,14 @@
 #include "loading_layer.h"
 #include "c/appendix/persist.h"
 #include "c/appendix/memory_log.h"
+#include "c/services/watch_services.h"
 
 static Layer *s_loading_layer;
 static TextLayer *s_loading_text_layer;
 
 bool loading_layer_has_valid_data() {
     const time_t forecast_start = persist_get_forecast_start();
-    const time_t now = time(NULL);
+    const time_t now = watch_services_now();
 
     return now - forecast_start <= 60 * 60 * 12;
 }

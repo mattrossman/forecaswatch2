@@ -113,6 +113,8 @@ If you use Supabase GitHub sync/branching, Supabase can auto-apply migrations an
 
 If you want the extra Pebble heap debug logs, set `ENABLE_MEMORY_LOGGING=1` in your `.env` before building or installing. This is independent of the dev/release package profile.
 
+For deterministic emulator screenshots, set `MOCK_NOW_EPOCH=<unix seconds>` in `.env` before building or installing. This freezes C-rendered time/date UI through the app's watch services boundary. Weather and city mocks are still configured through `src/pkjs/dev-config.js`.
+
 Release notification copy (optional “what’s new” toast on upgrade) lives in `release-notifications.json`, keyed by the exact `version` string from the template (e.g. `"1.26.0"`). `prepare-package` copies only the entry for the version being built into `package.json`; versions with no key ship without a notification.
 
 If you want to regenerate `package.json` without building:

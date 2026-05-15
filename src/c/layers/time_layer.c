@@ -1,6 +1,7 @@
 #include "time_layer.h"
 #include "c/appendix/config.h"
 #include "c/appendix/memory_log.h"
+#include "c/services/watch_services.h"
 
 // MT = Margin Top
 #define MT_TIME 14
@@ -49,7 +50,7 @@ static void text_layer_move_frame(TextLayer *text_layer, GRect frame) {
 
 void time_layer_tick() {
     // Get a tm structure
-    time_t temp = time(NULL);
+    time_t temp = watch_services_now();
     struct tm *tick_time = localtime(&temp);
 
     // Format the time into a buffer

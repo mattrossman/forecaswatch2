@@ -2,6 +2,7 @@
 #include "persist.h"
 #include "math.h"
 #include "memory_log.h"
+#include "c/services/watch_services.h"
 
 Config *g_config;
 
@@ -86,7 +87,7 @@ int config_axis_hour(int hour) {
 int config_n_today() {
     // Returns the index of the calendar box that holds today's date
 
-    time_t today = time(NULL);
+    time_t today = watch_services_now();
     struct tm *tm_today = localtime(&today);
     int wday = tm_today->tm_wday;
     // Offset if user wants to start the week on monday

@@ -17,7 +17,7 @@ case "$frame" in
   pebble-time-red)
     frame_svg="screenshot/frames/pebble-time-red.svg"
     screen_x="61.8"
-    screen_y="117.5"
+    screen_y="117"
     screen_w="144"
     screen_h="168"
     screen_rx="0"

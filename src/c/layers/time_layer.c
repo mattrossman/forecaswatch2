@@ -5,6 +5,8 @@
 // MT = Margin Top
 #define MT_TIME 14
 #define MT_AM_PM 7
+#define MT_TIME_LECO 2
+#define MT_AM_PM_LECO 2
 
 
 static TextLayer *s_container_layer;
@@ -71,10 +73,25 @@ void time_layer_tick() {
     int text_top = -MT_TIME + (bounds.size.h/2 - text_h/2);
     int text_left = bounds.size.w / 2 - content_w / 2;
 
+    // emery: nudge LECO time text upward slightly to keep optical centering.
+#ifdef PBL_PLATFORM_EMERY
+    if (g_config->time_font == TIME_FONT_LECO) {
+        text_top -= MT_TIME_LECO;
+    }
+#endif
+
     // Update layer positions and visibility
     text_layer_move_frame(s_time_layer, GRect(text_left, text_top, content_w, time_size.h));
-    if (g_config->show_am_pm)
-        text_layer_move_frame(s_am_pm_layer, GRect(time_size.w, MT_TIME - MT_AM_PM, 30, time_size.h));
+    if (g_config->show_am_pm) {
+        int am_pm_y = MT_TIME - MT_AM_PM;
+        // emery: nudge LECO AM/PM down slightly to align with larger time numerals.
+#ifdef PBL_PLATFORM_EMERY
+        if (g_config->time_font == TIME_FONT_LECO) {
+            am_pm_y += MT_AM_PM_LECO;
+        }
+#endif
+        text_layer_move_frame(s_am_pm_layer, GRect(time_size.w, am_pm_y, 30, time_size.h));
+    }
     layer_set_hidden(text_layer_get_layer(s_am_pm_layer), !g_config->show_am_pm);
 }
 

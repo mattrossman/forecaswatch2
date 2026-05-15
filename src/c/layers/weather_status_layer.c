@@ -6,11 +6,24 @@
 #define FONT_18_OFFSET 7
 #define FONT_14_OFFSET 3
 #define CITY_INIT_WIDTH 100
+#define MARGIN 2
+
+// emery: use larger text and arrow geometry
+#ifdef PBL_PLATFORM_EMERY
+#define CITY_FONT_KEY FONT_KEY_GOTHIC_18
+#define SUN_EVENT_FONT_KEY FONT_KEY_GOTHIC_18
+#define ARROW_H 10
+#define ARROW_HEAD_H 4
+#define ARROW_HEAD_W 3
+#define ARROW_W 8
+#else
+#define CITY_FONT_KEY FONT_KEY_GOTHIC_14
+#define SUN_EVENT_FONT_KEY FONT_KEY_GOTHIC_14
 #define ARROW_H 8
 #define ARROW_HEAD_H 3
 #define ARROW_HEAD_W 2
 #define ARROW_W 6
-#define MARGIN 2
+#endif
 
 static GRect frame_curr_temp;
 static GRect frame_sun_event;
@@ -48,9 +61,17 @@ static void city_layer_refresh() {
     GRect bounds = layer_get_bounds(s_weather_status_layer);
     GSize size = text_layer_get_content_size(s_city_layer);
     int x = frame_curr_temp.origin.x + frame_curr_temp.size.w + MARGIN * 2;
-    int y = -FONT_14_OFFSET;
+    int y;
+    int h;
+    // emery: align city text baseline with 18px font metrics instead of 14px metrics.
+#ifdef PBL_PLATFORM_EMERY
+    y = -FONT_18_OFFSET;
+    h = size.h + FONT_18_OFFSET;
+#else
+    y = -FONT_14_OFFSET;
+    h = size.h + FONT_14_OFFSET;
+#endif
     int w = bounds.size.w - frame_curr_temp.size.w - frame_sun_event.size.w - MARGIN * 4;
-    int h = size.h + FONT_14_OFFSET;
     text_layer_move_frame(s_city_layer, GRect(x, y, w, h));
 }
 
@@ -83,9 +104,16 @@ static void sun_event_layer_refresh() {
     // Dynamic resizing
     text_layer_move_frame(s_next_sun_event_layer, GRect(0, 0, 100, 100));  // Make it big so content doesn't get clipped
     GSize size = text_layer_get_content_size(s_next_sun_event_layer);
+    int y;
+    // emery: align sun-event text baseline with 18px font metrics instead of 14px metrics.
+#ifdef PBL_PLATFORM_EMERY
+    y = -FONT_18_OFFSET;
+#else
+    y = -FONT_14_OFFSET;
+#endif
     text_layer_move_frame(s_next_sun_event_layer,
-        GRect(bounds.size.w - MARGIN - ARROW_W - size.w, -FONT_14_OFFSET, size.w + ARROW_W, size.h));
-    frame_sun_event = GRect(bounds.size.w - MARGIN - ARROW_W - size.w, -FONT_14_OFFSET, size.w + ARROW_W + MARGIN, size.h);
+        GRect(bounds.size.w - MARGIN - ARROW_W - size.w, y, size.w + ARROW_W, size.h));
+    frame_sun_event = GRect(bounds.size.w - MARGIN - ARROW_W - size.w, y, size.w + ARROW_W + MARGIN, size.h);
 }
 
 static void weather_status_layer_init(GRect bounds) {
@@ -104,14 +132,14 @@ static void weather_status_layer_init(GRect bounds) {
     text_layer_set_background_color(s_city_layer, GColorClear);
     text_layer_set_text_alignment(s_city_layer, GTextAlignmentCenter);
     text_layer_set_text_color(s_city_layer, GColorWhite);
-    text_layer_set_font(s_city_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+    text_layer_set_font(s_city_layer, fonts_get_system_font(CITY_FONT_KEY));
 
     // Time of next sun event (sunrise/sunset)
     s_next_sun_event_layer = text_layer_create(GRect(w - MARGIN - 6 - 40, 4 - FONT_18_OFFSET, 40, 25));
     text_layer_set_background_color(s_next_sun_event_layer, GColorClear);
     text_layer_set_text_alignment(s_next_sun_event_layer, GTextAlignmentLeft);
     text_layer_set_text_color(s_next_sun_event_layer, GColorWhite);
-    text_layer_set_font(s_next_sun_event_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+    text_layer_set_font(s_next_sun_event_layer, fonts_get_system_font(SUN_EVENT_FONT_KEY));
 
     current_temp_layer_refresh();
     sun_event_layer_refresh();
@@ -132,7 +160,12 @@ static void weather_status_update_proc(Layer *layer, GContext *ctx) {
     } else {
         gpath_rotate_to(s_arrow_path, 0);
     }
+    // emery: place arrow lower so it is vertically centered in the taller status row.
+#ifdef PBL_PLATFORM_EMERY
+    gpath_move_to(s_arrow_path, GPoint(w - 4, bounds.size.h - (ARROW_H / 2) - 4));
+#else
     gpath_move_to(s_arrow_path, GPoint(w - 4, 6));
+#endif
     graphics_context_set_stroke_color(ctx, GColorWhite);
     gpath_draw_outline_open(ctx, s_arrow_path);
     graphics_context_set_fill_color(ctx, GColorWhite);

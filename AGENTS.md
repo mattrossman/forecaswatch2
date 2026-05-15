@@ -16,10 +16,11 @@ If you need runtime logs, `mise install-emulator --logs` runs it in an emulator 
 - Prefer drawing directly in an update proc over creating extra layer objects when a simple render path is enough.
 - If a UI element only exists to paint pixels, keep it as light as possible instead of modeling it as a full layer.
 
-## JavaScript Conventions
+## Code Conventions
 
 - For new JavaScript functions, add brief JSDoc (`@param`/`@returns`) annotations since this project does not use TypeScript.
 - Prefer `Boolean(value)` over `!!value` in new/edited code for readability.
+- When branching on `#ifdef PBL_PLATFORM_EMERY`, add a brief `emery:` comment explaining the Emery-specific behavior.
 
 ## Supabase migrations
 

@@ -3,22 +3,58 @@
 #include "c/appendix/config.h"
 #include "c/appendix/memory_log.h"
 
-#define MONTH_FONT_OFFSET 7
 #define BATTERY_W 29
 #define BATTERY_H 10
 #define PADDING 4
+#define MONTH_FONT_OFFSET 7
 #define ICON_SLOT_1 GRect(PADDING, 0, 10, 10)
 #define ICON_SLOT_2 GRect(PADDING * 2 + 10, 0, 10, 10)
+// emery: center icons in the taller status row.
+#ifdef PBL_PLATFORM_EMERY
+#define STATUS_ICON_Y(bounds_h, icon_h) (((bounds_h) - (icon_h)) / 2)
+#define BATTERY_Y(bounds_h) (((bounds_h) - BATTERY_H) / 2)
+#define MONTH_FONT_KEY FONT_KEY_GOTHIC_24
+#else
+#define STATUS_ICON_Y(bounds_h, icon_h) ((void)(bounds_h), (void)(icon_h), 0)
+#define BATTERY_Y(bounds_h) ((void)(bounds_h), 1)
+#define MONTH_FONT_KEY FONT_KEY_GOTHIC_18
+#endif
 
 static Layer *s_calendar_status_layer;
-static TextLayer *s_calendar_month_layer;
-static TextLayer *s_calendar_month_layer;
+static char s_calendar_month_text[10];
 static GBitmap *s_mute_bitmap;
 static GBitmap *s_bt_bitmap;
 static GBitmap *s_bt_disconnect_bitmap;
 static GColor s_bt_palette[2];
 static GColor s_bt_disconnect_palette[2];
 static GColor s_mute_palette[2];
+
+static GRect month_text_rect(GRect bounds, GFont font) {
+#ifdef PBL_PLATFORM_EMERY
+    // emery: vertically center month text using measured height to match taller status bar.
+    const GRect measure_box = GRect(0, 0, bounds.size.w, bounds.size.h);
+    const GSize text_size = graphics_text_layout_get_content_size(
+        s_calendar_month_text, font, measure_box, GTextOverflowModeFill, GTextAlignmentCenter);
+    const int text_y = ((bounds.size.h - text_size.h) / 2) - 5;
+    return GRect(0, text_y, bounds.size.w, text_size.h + 3);
+#else
+    (void)font;
+    return GRect(0, -MONTH_FONT_OFFSET, bounds.size.w, 25);
+#endif
+}
+
+static void draw_month_text(GContext *ctx, GRect bounds) {
+    const GFont month_font = fonts_get_system_font(MONTH_FONT_KEY);
+    graphics_context_set_text_color(ctx, GColorWhite);
+    graphics_draw_text(
+        ctx,
+        s_calendar_month_text,
+        month_font,
+        month_text_rect(bounds, month_font),
+        GTextOverflowModeFill,
+        GTextAlignmentCenter,
+        NULL);
+}
 
 static void draw_bitmap(GContext *ctx, GBitmap *bitmap, GRect frame) {
     graphics_context_set_compositing_mode(ctx, GCompOpSet);
@@ -74,6 +110,7 @@ static void maybe_unload_calendar_status_bitmaps(bool show_qt, bool connected) {
 }
 
 static void calendar_status_update_proc(Layer *layer, GContext *ctx) {
+    GRect bounds = layer_get_bounds(layer);
     bool show_qt = show_qt_icon();
     bool connected = connection_service_peek_pebble_app_connection();
     int icon_x = show_qt ? ICON_SLOT_2.origin.x : ICON_SLOT_1.origin.x;
@@ -84,16 +121,19 @@ static void calendar_status_update_proc(Layer *layer, GContext *ctx) {
 
     if (show_qt) {
         ensure_mute_bitmap_loaded();
-        draw_bitmap(ctx, s_mute_bitmap, ICON_SLOT_1);
+        draw_bitmap(ctx, s_mute_bitmap, GRect(ICON_SLOT_1.origin.x, STATUS_ICON_Y(bounds.size.h, ICON_SLOT_1.size.h),
+                                              ICON_SLOT_1.size.w, ICON_SLOT_1.size.h));
     }
 
     if (show_bt) {
         ensure_bt_bitmap_loaded();
-        draw_bitmap(ctx, s_bt_bitmap, GRect(icon_x, 0, 10, 10));
+        draw_bitmap(ctx, s_bt_bitmap, GRect(icon_x, STATUS_ICON_Y(bounds.size.h, 10), 10, 10));
     } else if (show_bt_disconnect) {
         ensure_bt_disconnect_bitmap_loaded();
-        draw_bitmap(ctx, s_bt_disconnect_bitmap, GRect(icon_x, 0, 10, 10));
+        draw_bitmap(ctx, s_bt_disconnect_bitmap, GRect(icon_x, STATUS_ICON_Y(bounds.size.h, 10), 10, 10));
     }
+
+    draw_month_text(ctx, bounds);
 }
 
 void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
@@ -105,14 +145,6 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     GRect bounds = layer_get_bounds(s_calendar_status_layer);
     int w = bounds.size.w;
 
-    // Set up month text layer
-    s_calendar_month_layer = text_layer_create(GRect(0, -MONTH_FONT_OFFSET, w, 25));
-    text_layer_set_background_color(s_calendar_month_layer, GColorClear);
-    text_layer_set_text_alignment(s_calendar_month_layer, GTextAlignmentCenter);
-    text_layer_set_text_color(s_calendar_month_layer, GColorWhite);
-    text_layer_set_font(s_calendar_month_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
-    MEMORY_HEAP_PROBE_SAMPLE("after_month_text_layer", &probe);
-
     // Set up bluetooth handler
     connection_service_subscribe((ConnectionHandlers) {
         .pebble_app_connection_handler = bluetooth_callback
@@ -120,13 +152,12 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     MEMORY_HEAP_PROBE_SAMPLE("after_connection_subscribe", &probe);
 
     calendar_status_layer_refresh();
-    layer_add_child(s_calendar_status_layer, text_layer_get_layer(s_calendar_month_layer));
-    MEMORY_HEAP_PROBE_SAMPLE("after_month_child_added", &probe);
 
     layer_set_update_proc(s_calendar_status_layer, calendar_status_update_proc);
     MEMORY_HEAP_PROBE_SAMPLE("after_update_proc_set", &probe);
 
-    battery_layer_create(s_calendar_status_layer, GRect(w - BATTERY_W - PADDING, 1, BATTERY_W, BATTERY_H));
+    battery_layer_create(s_calendar_status_layer,
+                         GRect(w - BATTERY_W - PADDING, BATTERY_Y(bounds.size.h), BATTERY_W, BATTERY_H));
     MEMORY_HEAP_PROBE_SAMPLE("after_battery_layer_create", &probe);
 
     layer_add_child(parent_layer, s_calendar_status_layer);
@@ -159,12 +190,9 @@ void status_icons_refresh() {
 }
 
 void calendar_status_layer_refresh() {
-    static char s_buffer_month[10];
     time_t now = time(NULL);
     struct tm *tm_now = localtime(&now);
-
-    strftime(s_buffer_month, sizeof(s_buffer_month), "%b %Y", tm_now);
-    text_layer_set_text(s_calendar_month_layer, s_buffer_month);
+    strftime(s_calendar_month_text, sizeof(s_calendar_month_text), "%b %Y", tm_now);
     status_icons_refresh();
 }
 

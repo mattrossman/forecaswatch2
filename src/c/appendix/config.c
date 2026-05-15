@@ -100,7 +100,12 @@ int config_n_today() {
 GFont config_time_font() {
     const char *font_keys[] = {
         [TIME_FONT_ROBOTO] = FONT_KEY_ROBOTO_BOLD_SUBSET_49,
+#ifdef PBL_PLATFORM_EMERY
+        // emery: use larger LECO font size
+        [TIME_FONT_LECO] = FONT_KEY_LECO_60_NUMBERS_AM_PM,
+#else
         [TIME_FONT_LECO] = FONT_KEY_LECO_42_NUMBERS,
+#endif
         [TIME_FONT_BITHAM] = FONT_KEY_BITHAM_42_MEDIUM_NUMBERS
     };
     int16_t font_index = g_config->time_font;

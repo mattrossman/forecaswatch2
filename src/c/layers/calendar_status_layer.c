@@ -8,6 +8,14 @@
 #define PADDING 4
 #define ICON_SLOT_1 GRect(PADDING, 0, 10, 10)
 #define ICON_SLOT_2 GRect(PADDING * 2 + 10, 0, 10, 10)
+// emery: center icons in the taller status row.
+#ifdef PBL_PLATFORM_EMERY
+#define STATUS_ICON_Y(bounds_h, icon_h) (((bounds_h) - (icon_h)) / 2)
+#define BATTERY_Y(bounds_h) (((bounds_h) - BATTERY_H) / 2)
+#else
+#define STATUS_ICON_Y(bounds_h, icon_h) ((void)(bounds_h), (void)(icon_h), 0)
+#define BATTERY_Y(bounds_h) ((void)(bounds_h), 1)
+#endif
 
 static Layer *s_calendar_status_layer;
 // emery: draw month text in update proc instead of maintaining a dedicated TextLayer.
@@ -112,16 +120,16 @@ static void calendar_status_update_proc(Layer *layer, GContext *ctx) {
 
     if (show_qt) {
         ensure_mute_bitmap_loaded();
-        draw_bitmap(ctx, s_mute_bitmap, GRect(ICON_SLOT_1.origin.x, (bounds.size.h - ICON_SLOT_1.size.h) / 2,
+        draw_bitmap(ctx, s_mute_bitmap, GRect(ICON_SLOT_1.origin.x, STATUS_ICON_Y(bounds.size.h, ICON_SLOT_1.size.h),
                                               ICON_SLOT_1.size.w, ICON_SLOT_1.size.h));
     }
 
     if (show_bt) {
         ensure_bt_bitmap_loaded();
-        draw_bitmap(ctx, s_bt_bitmap, GRect(icon_x, (bounds.size.h - 10) / 2, 10, 10));
+        draw_bitmap(ctx, s_bt_bitmap, GRect(icon_x, STATUS_ICON_Y(bounds.size.h, 10), 10, 10));
     } else if (show_bt_disconnect) {
         ensure_bt_disconnect_bitmap_loaded();
-        draw_bitmap(ctx, s_bt_disconnect_bitmap, GRect(icon_x, (bounds.size.h - 10) / 2, 10, 10));
+        draw_bitmap(ctx, s_bt_disconnect_bitmap, GRect(icon_x, STATUS_ICON_Y(bounds.size.h, 10), 10, 10));
     }
 }
 
@@ -162,7 +170,7 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     MEMORY_HEAP_PROBE_SAMPLE("after_update_proc_set", &probe);
 
     battery_layer_create(s_calendar_status_layer,
-                         GRect(w - BATTERY_W - PADDING, (bounds.size.h - BATTERY_H) / 2, BATTERY_W, BATTERY_H));
+                         GRect(w - BATTERY_W - PADDING, BATTERY_Y(bounds.size.h), BATTERY_W, BATTERY_H));
     MEMORY_HEAP_PROBE_SAMPLE("after_battery_layer_create", &probe);
 
     layer_add_child(parent_layer, s_calendar_status_layer);

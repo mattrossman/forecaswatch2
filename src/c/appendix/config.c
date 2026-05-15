@@ -98,16 +98,42 @@ int config_n_today() {
 }
 
 GFont config_time_font() {
-    const char *font_keys[] = {
-        [TIME_FONT_ROBOTO] = FONT_KEY_ROBOTO_BOLD_SUBSET_49,
-        [TIME_FONT_LECO] = FONT_KEY_LECO_42_NUMBERS,
-        [TIME_FONT_BITHAM] = FONT_KEY_BITHAM_42_MEDIUM_NUMBERS
-    };
+    const char *font_key = FONT_KEY_ROBOTO_BOLD_SUBSET_49;
     int16_t font_index = g_config->time_font;
-    const int16_t font_count = (int16_t)(sizeof(font_keys) / sizeof(font_keys[0]));
-    if (font_index < 0 || font_index >= font_count)
+
+    if (font_index < 0 || font_index > TIME_FONT_BITHAM) {
         font_index = TIME_FONT_ROBOTO;
-    return fonts_get_system_font(font_keys[font_index]);
+    }
+
+#ifdef PBL_PLATFORM_EMERY
+    switch (font_index) {
+        case TIME_FONT_LECO:
+            font_key = FONT_KEY_LECO_60_NUMBERS_AM_PM;
+            break;
+        case TIME_FONT_BITHAM:
+            font_key = FONT_KEY_BITHAM_42_MEDIUM_NUMBERS;
+            break;
+        case TIME_FONT_ROBOTO:
+        default:
+            font_key = FONT_KEY_ROBOTO_BOLD_SUBSET_49;
+            break;
+    }
+#else
+    switch (font_index) {
+        case TIME_FONT_LECO:
+            font_key = FONT_KEY_LECO_42_NUMBERS;
+            break;
+        case TIME_FONT_BITHAM:
+            font_key = FONT_KEY_BITHAM_42_MEDIUM_NUMBERS;
+            break;
+        case TIME_FONT_ROBOTO:
+        default:
+            font_key = FONT_KEY_ROBOTO_BOLD_SUBSET_49;
+            break;
+    }
+#endif
+
+    return fonts_get_system_font(font_key);
 }
 
 bool config_highlight_holidays() {

@@ -6,14 +6,39 @@
 #define NUM_WEEKS 3
 #define DAYS_PER_WEEK 7
 #define FONT_OFFSET 5
+#define EMERY_CALENDAR_TEXT_SHIFT_Y 5
+#define EMERY_CALENDAR_TEXT_SHIFT_X 1
+
+#ifdef PBL_PLATFORM_EMERY
+#define CALENDAR_FONT_KEY FONT_KEY_GOTHIC_24
+#define CALENDAR_FONT_KEY_BOLD FONT_KEY_GOTHIC_24_BOLD
+#else
+#define CALENDAR_FONT_KEY FONT_KEY_GOTHIC_18
+#define CALENDAR_FONT_KEY_BOLD FONT_KEY_GOTHIC_18_BOLD
+#endif
 
 static Layer *s_calendar_layer;
 
 static GRect calendar_cell_rect(GRect bounds, int i) {
     float box_w = (float) bounds.size.w / DAYS_PER_WEEK;
     float box_h = (float) bounds.size.h / NUM_WEEKS;
-    return GRect((i % DAYS_PER_WEEK) * box_w, (i / DAYS_PER_WEEK) * box_h - FONT_OFFSET,
-                 box_w, box_h + FONT_OFFSET);
+    return GRect((i % DAYS_PER_WEEK) * box_w, (i / DAYS_PER_WEEK) * box_h,
+                 box_w, box_h);
+}
+
+static GRect calendar_text_rect(GRect cell_rect, const char *text, GFont font, bool is_emery) {
+    if (!is_emery) {
+        return GRect(cell_rect.origin.x,
+                     cell_rect.origin.y - FONT_OFFSET,
+                     cell_rect.size.w,
+                     cell_rect.size.h + FONT_OFFSET);
+    }
+
+    const GRect measure_box = GRect(0, 0, cell_rect.size.w, cell_rect.size.h);
+    const GSize text_size = graphics_text_layout_get_content_size(
+        text, font, measure_box, GTextOverflowModeFill, GTextAlignmentCenter);
+    const int text_top = cell_rect.origin.y + (cell_rect.size.h - text_size.h) / 2 - EMERY_CALENDAR_TEXT_SHIFT_Y;
+    return GRect(cell_rect.origin.x - EMERY_CALENDAR_TEXT_SHIFT_X, text_top, cell_rect.size.w, text_size.h);
 }
 
 /* Copy struct tm out of localtime's static buffer — see localtime(3). */
@@ -100,6 +125,11 @@ static GColor today_color() {
 
 static void calendar_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
+#ifdef PBL_PLATFORM_EMERY
+    const bool is_emery = true;
+#else
+    const bool is_emery = false;
+#endif
     int w = bounds.size.w;
     int h = bounds.size.h;
     float box_w = (float) w / DAYS_PER_WEEK;
@@ -122,12 +152,14 @@ static void calendar_update_proc(Layer *layer, GContext *ctx) {
         GColor text_color = (i == i_today) ? gcolor_legible_over(today_color())
                                            : PBL_IF_COLOR_ELSE(date_color(&t), GColorWhite);
         char buffer[4];
+        GFont font = fonts_get_system_font(bold ? CALENDAR_FONT_KEY_BOLD : CALENDAR_FONT_KEY);
+        GRect cell_rect = calendar_cell_rect(bounds, i);
 
         graphics_context_set_text_color(ctx, text_color);
         graphics_draw_text(ctx,
             (snprintf(buffer, sizeof(buffer), "%d", t.tm_mday), buffer),
-            fonts_get_system_font(bold ? FONT_KEY_GOTHIC_18_BOLD : FONT_KEY_GOTHIC_18),
-            calendar_cell_rect(bounds, i), GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+            font,
+            calendar_text_rect(cell_rect, buffer, font, is_emery), GTextOverflowModeFill, GTextAlignmentCenter, NULL);
     }
 }
 

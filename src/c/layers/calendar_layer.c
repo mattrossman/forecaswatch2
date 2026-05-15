@@ -1,6 +1,7 @@
 #include "calendar_layer.h"
 #include "c/appendix/config.h"
 #include "c/appendix/memory_log.h"
+#include "c/services/watch_services.h"
 #include <time.h>
 
 #define NUM_WEEKS 3
@@ -65,11 +66,10 @@ static struct tm relative_tm(int days_from_today)
     /* Get a time structure for n days from today (only accurate to the day)
     Use this function to avoid edge cases from daylight savings time
     */
-    time_t timestamp = time(NULL);
-    struct tm *local_time = localtime(&timestamp);
+    struct tm base_time = watch_services_localtime();
     // Set arbitrary hour so there's no daylight savings rounding error:
-    local_time->tm_hour = 5;
-    timestamp = mktime(local_time) + days_from_today * SECONDS_PER_DAY;
+    base_time.tm_hour = 5;
+    time_t timestamp = mktime(&base_time) + days_from_today * SECONDS_PER_DAY;
     struct tm *result = localtime(&timestamp);
     struct tm out = *result;
     return out;

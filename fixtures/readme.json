@@ -1,0 +1,42 @@
+{
+  "watch": {
+    "now": {
+      "year": 2026,
+      "month": 5,
+      "day": 14,
+      "hour": 12,
+      "minute": 34,
+      "second": 0
+    }
+  },
+  "watchSettings": {
+    "timeFormat": "12h"
+  },
+  "claySettings": {
+    "axisTimeFormat": "12h",
+    "colorSaturday": "GColorFolly",
+    "colorSunday": "GColorFolly",
+    "colorUSFederal": "GColorFolly"
+  },
+  "weather": {
+    "city": "Chicago",
+    "currentTemp": 52,
+    "startHour": 12,
+    "temps": [52, 53, 54, 56, 57, 57, 56, 54, 52, 50, 48, 47, 46, 45, 45, 46, 47, 48, 49, 50, 50, 51, 51, 52],
+    "precipPct": [6, 6, 6, 6, 7, 8, 12, 18, 28, 40, 52, 62, 66, 60, 48, 34, 22, 14, 9, 7, 6, 5, 5, 5],
+    "sunEvents": [
+      {
+        "type": "sunset",
+        "dayOffset": 0,
+        "hour": 20,
+        "minute": 10
+      },
+      {
+        "type": "sunrise",
+        "dayOffset": 1,
+        "hour": 5,
+        "minute": 28
+      }
+    ]
+  }
+}

@@ -2,6 +2,7 @@
 #include "battery_layer.h"
 #include "c/appendix/config.h"
 #include "c/appendix/memory_log.h"
+#include "c/services/watch_services.h"
 
 #define BATTERY_W 29
 #define BATTERY_H 10
@@ -190,9 +191,8 @@ void status_icons_refresh() {
 }
 
 void calendar_status_layer_refresh() {
-    time_t now = time(NULL);
-    struct tm *tm_now = localtime(&now);
-    strftime(s_calendar_month_text, sizeof(s_calendar_month_text), "%b %Y", tm_now);
+    struct tm tm_now = watch_services_localtime();
+    strftime(s_calendar_month_text, sizeof(s_calendar_month_text), "%b %Y", &tm_now);
     status_icons_refresh();
 }
 

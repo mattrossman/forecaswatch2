@@ -26,6 +26,16 @@ static GRect calendar_cell_rect(GRect bounds, int i) {
                  box_w, box_h);
 }
 
+// Apply a tiny Emery-only horizontal tweak for two-digit dates that start with "1"
+// to ensure they stay visually centered within calendar boxes.
+static int emery_calendar_text_shift_x(const char *text) {
+    if (text[1] != '\0' && text[0] == '1') {
+        return EMERY_CALENDAR_TEXT_SHIFT_X;
+    }
+
+    return 0;
+}
+
 static GRect calendar_text_rect(GRect cell_rect, const char *text, GFont font, bool is_emery) {
     if (!is_emery) {
         return GRect(cell_rect.origin.x,
@@ -38,7 +48,7 @@ static GRect calendar_text_rect(GRect cell_rect, const char *text, GFont font, b
     const GSize text_size = graphics_text_layout_get_content_size(
         text, font, measure_box, GTextOverflowModeFill, GTextAlignmentCenter);
     const int text_top = cell_rect.origin.y + (cell_rect.size.h - text_size.h) / 2 - EMERY_CALENDAR_TEXT_SHIFT_Y;
-    return GRect(cell_rect.origin.x - EMERY_CALENDAR_TEXT_SHIFT_X, text_top, cell_rect.size.w, text_size.h);
+    return GRect(cell_rect.origin.x - emery_calendar_text_shift_x(text), text_top, cell_rect.size.w, text_size.h);
 }
 
 /* Copy struct tm out of localtime's static buffer — see localtime(3). */

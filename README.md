@@ -16,10 +16,9 @@ The developer, RCY, is nowhere to be found in the Rebble era. I plan to continue
 
 ## Screenshots
 
-<div>
-    <img src="screenshot/v1.14.0/color-composite.png" alt="Color screenshot" style="display:inline-block;vertical-align: middle;">
-    <img src="screenshot/v1.14.0/bw-composite.png" alt="Black and white screenshot" style="display:inline-block;vertical-align: middle;">
-</div>
+| Pebble Time | Pebble 2 Duo | Pebble Time 2 |
+| --- | --- | --- |
+| <img src="screenshot/v1.33.0/composite/pebble-time-red.png" alt="Pebble Time screenshot"> | <img src="screenshot/v1.33.0/composite/pebble2-duo-white.png" alt="Pebble 2 Duo screenshot"> | <img src="screenshot/v1.33.0/composite/pebble-time2-red.png" alt="Pebble Time 2 screenshot"> |
 
 ## Features
 

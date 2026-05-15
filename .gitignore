@@ -15,6 +15,10 @@ screenshot/**/*
 !screenshot/composite_bw.sh
 !screenshot/composite_color.sh
 !screenshot/**/
+!screenshot/frames/*.svg
+!screenshot/v*/*.png
+!screenshot/v*/raw/*.png
+!screenshot/v*/composite/*.png
 screenshot/tmp/**
 screenshot/out/**
 !.agents

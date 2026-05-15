@@ -172,6 +172,9 @@ PEBBLE_EMULATOR=aplite mise install-emulator
 # Legacy pass-through separator (still works)
 mise install-emulator -- --logs
 
+# Stop running emulator and phone simulator
+mise kill-emulator
+
 # Take a screenshot from emulator (default platform: basalt)
 mise screenshot-emulator
 
@@ -258,6 +261,8 @@ Set `FIXTURE=<name>` in `.env` to load deterministic app-state data from `fixtur
 Fixtures currently support:
 
 - `watch.now`: local date/time fields used for C-rendered time/date UI.
+- `watch.battery.percent`: battery level used for C-rendered battery UI, 0-100.
+- `watch.battery.charging`: optional battery charging/plugged state, `true` or `false`.
 - `watchSettings.timeFormat`: watch-level time display preference, `"12h"` or `"24h"`.
 - `claySettings`: Clay-compatible settings keyed by `messageKey`, such as `"axisTimeFormat": "12h"`. Color settings use Pebble SDK color constants like `"GColorFolly"` from the Rebble color definitions: https://developer.rebble.io/docs/c/Graphics/Graphics_Types/Color_Definitions/
 - `weather.city`: weather status city label.
@@ -275,25 +280,13 @@ FIXTURE=readme
 
 Fixture data is tracked in git inside `fixtures/`.
 
-### Emulator time overrides (applied automatically)
+### Fixture emulator installs
 
-`scripts/install-emulator.sh` reads these keys from `dev-config.js` after install:
-
-- `emuTimeFormat`: `12h` or `24h`
-- `emuTime`: `HH:MM:SS` or Unix seconds (e.g. `1772870400`)
-
-Then run:
+Fixture time and battery state are compiled into the app through `watch.now` and `watch.battery`; `scripts/install-emulator.sh` does not call Pebble's emulator setting controls.
 
 ```bash
 mise install-emulator --logs
 ```
-
-Reset behavior when keys are removed:
-
-- `emuTimeFormat` defaults to `24h`
-- `emuTime` fallback order is:
-  1. explicit `emuTime` in `dev-config.js`
-  2. current host time
 
 ## Upgrading pebble-tool
 

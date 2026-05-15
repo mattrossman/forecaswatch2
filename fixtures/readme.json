@@ -7,6 +7,9 @@
       "hour": 12,
       "minute": 34,
       "second": 0
+    },
+    "battery": {
+      "percent": 100
     }
   },
   "watchSettings": {

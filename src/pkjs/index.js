@@ -516,8 +516,6 @@ function clayTryDevConfig(devConfig) {
     var prop;
 
     var localOnlyDevConfigKeys = {
-        emuTime: true,
-        emuTimeFormat: true,
         clearPkjsStorageOnBoot: true,
         forceShowReleaseNotificationOnBoot: true,
     };

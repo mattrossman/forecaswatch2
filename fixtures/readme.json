@@ -10,7 +10,10 @@
     }
   },
   "settings": {
-    "axisTimeFormat": "12h"
+    "axisTimeFormat": "12h",
+    "colorSaturday": "GColorFolly",
+    "colorSunday": "GColorFolly",
+    "colorUSFederal": "GColorFolly"
   },
   "weather": {
     "city": "Chicago",

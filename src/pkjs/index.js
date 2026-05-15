@@ -9,6 +9,7 @@ var customClay = require('./clay/inject.js');
 var storageKeys = require('./storage-keys.js');
 var pkg = require('../../package.json');
 var activeFixture = require('./active-fixture.generated.js');
+var pebbleColors = require('./pebble-colors.js');
 
 /**
  * Full release-notification manifest (dev: force-show by version). Omitted from bundle if missing.
@@ -554,10 +555,55 @@ function clayTryFixtureSettings(fixture) {
     persistClay = getClaySettings();
     for (prop in settings) {
         if (Object.prototype.hasOwnProperty.call(settings, prop)) {
-            persistClay[prop] = settings[prop];
+            persistClay[prop] = normalizeFixtureSetting(prop, settings[prop]);
         }
     }
     localStorage.setItem('clay-settings', JSON.stringify(persistClay));
+}
+
+/**
+ * Normalize fixture settings into the same shape Clay stores locally.
+ *
+ * @param {string} key Clay setting key.
+ * @param {*} value Fixture setting value.
+ * @returns {*} Normalized setting value.
+ */
+function normalizeFixtureSetting(key, value) {
+    if (isColorSettingKey(key)) {
+        return normalizeFixtureColor(value);
+    }
+
+    return value;
+}
+
+/**
+ * Determine whether a Clay setting is a color value.
+ *
+ * @param {string} key Clay setting key.
+ * @returns {boolean} True for color settings.
+ */
+function isColorSettingKey(key) {
+    return key === 'colorTime' ||
+        key === 'colorToday' ||
+        key === 'colorSunday' ||
+        key === 'colorSaturday' ||
+        key === 'colorUSFederal';
+}
+
+/**
+ * Normalize fixture colors from SDK color constant names.
+ *
+ * @param {*} value Fixture color value.
+ * @returns {number} Clay-compatible RGB integer.
+ */
+function normalizeFixtureColor(value) {
+    if (typeof value === 'string') {
+        if (Object.prototype.hasOwnProperty.call(pebbleColors, value)) {
+            return pebbleColors[value];
+        }
+    }
+
+    return value;
 }
 
 function getClaySettings() {

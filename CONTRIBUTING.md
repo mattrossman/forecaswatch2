@@ -252,7 +252,7 @@ Set `FIXTURE=<name>` in `.env` to load deterministic app-state data from `fixtur
 Fixtures currently support:
 
 - `watch.now`: local date/time fields used for C-rendered time/date UI.
-- `settings`: Clay-compatible settings keyed by `messageKey`, such as `"axisTimeFormat": "12h"`.
+- `settings`: Clay-compatible settings keyed by `messageKey`, such as `"axisTimeFormat": "12h"`. Color settings use Pebble SDK color constants like `"GColorFolly"` from the Rebble color definitions: https://developer.rebble.io/docs/c/Graphics/Graphics_Types/Color_Definitions/
 - `weather.city`: weather status city label.
 - `weather.currentTemp`: current temperature in Fahrenheit.
 - `weather.startEpoch`: Unix seconds for the first forecast entry.

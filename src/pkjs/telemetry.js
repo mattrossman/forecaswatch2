@@ -18,7 +18,12 @@ function buildSettingsSnapshot(settings) {
         firstWeek: safe.firstWeek,
         showQt: !!safe.showQt,
         vibe: !!safe.vibe,
-        btIcons: safe.btIcons
+        btIcons: safe.btIcons,
+        colorTime: safe.colorTime,
+        colorToday: safe.colorToday,
+        colorSunday: safe.colorSunday,
+        colorSaturday: safe.colorSaturday,
+        colorUSFederal: safe.colorUSFederal
     };
 }
 

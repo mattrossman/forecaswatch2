@@ -35,6 +35,11 @@ const settingsSchema = z
     showQt: z.boolean().optional(),
     vibe: z.boolean().optional(),
     btIcons: z.string().optional(),
+    colorTime: z.number().optional(),
+    colorToday: z.number().optional(),
+    colorSunday: z.number().optional(),
+    colorSaturday: z.number().optional(),
+    colorUSFederal: z.number().optional(),
   })
   .strip();
 

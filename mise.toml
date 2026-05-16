@@ -13,7 +13,7 @@ deno = "2.1.4"
 
 # https://github.com/supabase/cli
 # https://mise.jdx.dev/dev-tools/backends/aqua.html
-"aqua:supabase/cli" = "2.84.2"
+"aqua:supabase/cli" = "2.98.2"
 
 # https://github.com/linebender/resvg
 # https://mise.jdx.dev/dev-tools/backends/aqua.html

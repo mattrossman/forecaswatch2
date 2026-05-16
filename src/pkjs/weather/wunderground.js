@@ -103,7 +103,7 @@ WundergroundProvider.prototype.withApiKey = function(callback, onFailure) {
 
                 apiKey = match[1];
                 localStorage.setItem('wundergroundApiKey', apiKey);
-                console.log('Fetched Weather Underground API key: ' + apiKey);
+                console.log('Fetched Weather Underground API key');
                 callback(apiKey);
             },
             function(error) {

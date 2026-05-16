@@ -7,7 +7,7 @@ var OpenWeatherMapProvider = function(apiKey) {
     this.id = 'openweathermap';
     this.apiKey = apiKey;
     this.weatherDataCache = null;
-    console.log('Constructed with ' + apiKey);
+    console.log('OpenWeatherMapProvider constructed');
 };
 
 OpenWeatherMapProvider.prototype = Object.create(WeatherProvider.prototype);

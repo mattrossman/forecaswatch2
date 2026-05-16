@@ -106,6 +106,8 @@ Pebble.addEventListener('webviewclosed', function(e) {
 // Listen for when the watchface is opened
 Pebble.addEventListener('ready',
     function (e) {
+        var migratedWeekendHolidayColors;
+
         app.devConfig = getDevConfig();
         maybeHandleDevStorageReset(app.devConfig);
         var hadExistingInstall = localStorage.getItem('clay-settings') !== null;
@@ -114,7 +116,7 @@ Pebble.addEventListener('ready',
             app.devConfig.forceShowReleaseNotificationOnBoot
         );
         clayTryDefaults();
-        clayTryWeekendHolidayColorMigration();
+        migratedWeekendHolidayColors = clayTryWeekendHolidayColorMigration();
         clayTryDevConfig(app.devConfig);
         clayTryFixtureSettings(activeFixture);
         console.log('PebbleKit JS ready!');
@@ -135,6 +137,9 @@ Pebble.addEventListener('ready',
                 sendFixtureWeather(activeFixture);
             });
             return;
+        }
+        if (migratedWeekendHolidayColors) {
+            sendClaySettings(markWeekendHolidayColorMigrationComplete);
         }
         if (app.pendingStartupFetch) {
             app.pendingStartupFetch = false;
@@ -326,10 +331,19 @@ function maybeShowReleaseNotification(hadExistingInstall, forceVersionSpec) {
  */
 function maybeHandleDevStorageReset(devConfig) {
     var shouldClear = !!(devConfig && devConfig.clearPkjsStorageOnBoot);
+    var shouldResetV134WeekendHolidayColorMigration = !!(
+        devConfig &&
+        devConfig.resetV134WeekendHolidayColorMigration
+    );
 
     if (shouldClear) {
         console.log('[dev] clearPkjsStorageOnBoot=true, clearing localStorage');
         localStorage.clear();
+    }
+
+    if (shouldResetV134WeekendHolidayColorMigration) {
+        console.log('[dev] resetV134WeekendHolidayColorMigration=true, clearing migration marker');
+        localStorage.removeItem(KEY_V1_34_0_WEEKEND_HOLIDAY_COLOR_MIGRATION);
     }
 }
 
@@ -506,7 +520,7 @@ function getDefaultClaySettings() {
  * Move existing installs from the old all-white weekend/holiday defaults to the
  * current highlighted default while preserving any customized color set.
  *
- * @returns {void}
+ * @returns {boolean} True when the migrated settings should be sent to the watch.
  */
 function clayTryWeekendHolidayColorMigration() {
     var persistClayString = localStorage.getItem('clay-settings');
@@ -516,7 +530,7 @@ function clayTryWeekendHolidayColorMigration() {
         persistClayString === null ||
         localStorage.getItem(KEY_V1_34_0_WEEKEND_HOLIDAY_COLOR_MIGRATION) !== null
     ) {
-        return;
+        return false;
     }
 
     try {
@@ -524,7 +538,7 @@ function clayTryWeekendHolidayColorMigration() {
     }
     catch (ex) {
         console.log('Malformed clay settings found, skipping weekend/holiday color migration');
-        return;
+        return false;
     }
 
     if (
@@ -537,8 +551,27 @@ function clayTryWeekendHolidayColorMigration() {
         persistClay.colorUSFederal = DEFAULT_COLOR_FOLLY;
         localStorage.setItem('clay-settings', JSON.stringify(persistClay));
         console.log('Migrated weekend/holiday color defaults to Folly');
+        return true;
     }
 
+    if (
+        persistClay.colorSunday === DEFAULT_COLOR_FOLLY &&
+        persistClay.colorSaturday === DEFAULT_COLOR_FOLLY &&
+        persistClay.colorUSFederal === DEFAULT_COLOR_FOLLY
+    ) {
+        return true;
+    }
+
+    markWeekendHolidayColorMigrationComplete();
+    return false;
+}
+
+/**
+ * Mark the v1.34.0 weekend/holiday color migration as complete.
+ *
+ * @returns {void}
+ */
+function markWeekendHolidayColorMigrationComplete() {
     localStorage.setItem(KEY_V1_34_0_WEEKEND_HOLIDAY_COLOR_MIGRATION, '1');
 }
 
@@ -562,6 +595,7 @@ function clayTryDevConfig(devConfig) {
     var localOnlyDevConfigKeys = {
         clearPkjsStorageOnBoot: true,
         forceShowReleaseNotificationOnBoot: true,
+        resetV134WeekendHolidayColorMigration: true,
     };
 
     persistClay = getClaySettings();

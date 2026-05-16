@@ -54,9 +54,9 @@ void persist_init() {
             .show_bt_disconnect = true,
             .vibe = false,
             .show_am_pm = false,
-            .color_saturday = GColorWhite,	
-            .color_sunday = GColorWhite,
-            .color_us_federal = GColorWhite,
+            .color_saturday = GColorFolly,
+            .color_sunday = GColorFolly,
+            .color_us_federal = GColorFolly,
             .color_time = GColorWhite,
             .day_night_shading = true
         };

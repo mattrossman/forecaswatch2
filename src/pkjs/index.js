@@ -45,6 +45,9 @@ var KEY_LAST_FETCH_SUCCESS = storageKeys.LAST_FETCH_SUCCESS_KEY;
 var KEY_LAST_FETCH_ATTEMPT = storageKeys.LAST_FETCH_ATTEMPT_KEY;
 var KEY_GEOCODE_CACHE = storageKeys.GEOCODE_CACHE_KEY;
 var KEY_GEOCODE_BACKOFF = storageKeys.GEOCODE_BACKOFF_KEY;
+var KEY_V1_34_0_WEEKEND_HOLIDAY_COLOR_MIGRATION = 'v1.34.0_weekend_holiday_color_migration';
+var DEFAULT_COLOR_WHITE = pebbleColors.GColorWhite;
+var DEFAULT_COLOR_FOLLY = pebbleColors.GColorFolly;
 
 app.fetchInProgress = false;
 app.pendingStartupFetch = false;
@@ -111,6 +114,7 @@ Pebble.addEventListener('ready',
             app.devConfig.forceShowReleaseNotificationOnBoot
         );
         clayTryDefaults();
+        clayTryWeekendHolidayColorMigration();
         clayTryDevConfig(app.devConfig);
         clayTryFixtureSettings(activeFixture);
         console.log('PebbleKit JS ready!');
@@ -376,7 +380,7 @@ function sendClaySettings(onSuccess, onFailure) {
         "CLAY_CELSIUS": app.settings.temperatureUnits === 'c',
         "CLAY_TIME_LEAD_ZERO": app.settings.timeLeadingZero,
         "CLAY_AXIS_12H": app.settings.axisTimeFormat === '12h',
-        "CLAY_COLOR_TODAY": app.settings.hasOwnProperty('colorToday') ? app.settings.colorToday : 16777215,
+        "CLAY_COLOR_TODAY": app.settings.hasOwnProperty('colorToday') ? app.settings.colorToday : DEFAULT_COLOR_WHITE,
         "CLAY_START_MON": app.settings.weekStartDay === 'mon',
         "CLAY_PREV_WEEK": app.settings.firstWeek === 'prev',
         "CLAY_TIME_FONT": ['roboto', 'leco', 'bitham'].indexOf(app.settings.timeFont),
@@ -385,10 +389,10 @@ function sendClaySettings(onSuccess, onFailure) {
         "CLAY_SHOW_BT_DISCONNECT": app.settings.btIcons === "disconnected" || app.settings.btIcons === "both",
         "CLAY_VIBE": app.settings.vibe,
         "CLAY_SHOW_AM_PM": app.settings.timeShowAmPm,
-        "CLAY_COLOR_SUNDAY": app.settings.hasOwnProperty('colorSunday') ? app.settings.colorSunday : 16777215,
-        "CLAY_COLOR_SATURDAY": app.settings.hasOwnProperty('colorSaturday') ? app.settings.colorSaturday : 16777215,
-        "CLAY_COLOR_US_FEDERAL": app.settings.hasOwnProperty('colorUSFederal') ? app.settings.colorUSFederal : 16777215,
-        "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : 16777215,
+        "CLAY_COLOR_SUNDAY": app.settings.hasOwnProperty('colorSunday') ? app.settings.colorSunday : DEFAULT_COLOR_FOLLY,
+        "CLAY_COLOR_SATURDAY": app.settings.hasOwnProperty('colorSaturday') ? app.settings.colorSaturday : DEFAULT_COLOR_FOLLY,
+        "CLAY_COLOR_US_FEDERAL": app.settings.hasOwnProperty('colorUSFederal') ? app.settings.colorUSFederal : DEFAULT_COLOR_FOLLY,
+        "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : DEFAULT_COLOR_WHITE,
         "CLAY_DAY_NIGHT_SHADING": app.settings.hasOwnProperty('dayNightShading') ? app.settings.dayNightShading : true,
     }
     Pebble.sendAppMessage(payload, function() {
@@ -484,18 +488,58 @@ function getDefaultClaySettings() {
         timeShowAmPm: false,
         axisTimeFormat: '24h',
         timeFont: 'roboto',
-        colorTime: 16777215,
+        colorTime: DEFAULT_COLOR_WHITE,
         weekStartDay: 'sun',
         firstWeek: 'prev',
         colorToday: 0,
-        colorSunday: 16777215,
-        colorSaturday: 16777215,
-        colorUSFederal: 16777215,
+        colorSunday: DEFAULT_COLOR_FOLLY,
+        colorSaturday: DEFAULT_COLOR_FOLLY,
+        colorUSFederal: DEFAULT_COLOR_FOLLY,
         showQt: true,
         vibe: false,
         btIcons: 'both',
         telemetryEnabled: true
     };
+}
+
+/**
+ * Move existing installs from the old all-white weekend/holiday defaults to the
+ * current highlighted default while preserving any customized color set.
+ *
+ * @returns {void}
+ */
+function clayTryWeekendHolidayColorMigration() {
+    var persistClayString = localStorage.getItem('clay-settings');
+    var persistClay;
+
+    if (
+        persistClayString === null ||
+        localStorage.getItem(KEY_V1_34_0_WEEKEND_HOLIDAY_COLOR_MIGRATION) !== null
+    ) {
+        return;
+    }
+
+    try {
+        persistClay = JSON.parse(persistClayString);
+    }
+    catch (ex) {
+        console.log('Malformed clay settings found, skipping weekend/holiday color migration');
+        return;
+    }
+
+    if (
+        persistClay.colorSunday === DEFAULT_COLOR_WHITE &&
+        persistClay.colorSaturday === DEFAULT_COLOR_WHITE &&
+        persistClay.colorUSFederal === DEFAULT_COLOR_WHITE
+    ) {
+        persistClay.colorSunday = DEFAULT_COLOR_FOLLY;
+        persistClay.colorSaturday = DEFAULT_COLOR_FOLLY;
+        persistClay.colorUSFederal = DEFAULT_COLOR_FOLLY;
+        localStorage.setItem('clay-settings', JSON.stringify(persistClay));
+        console.log('Migrated weekend/holiday color defaults to Folly');
+    }
+
+    localStorage.setItem(KEY_V1_34_0_WEEKEND_HOLIDAY_COLOR_MIGRATION, '1');
 }
 
 function getDevConfig() {

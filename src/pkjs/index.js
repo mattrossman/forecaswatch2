@@ -200,6 +200,24 @@ function compareSemver(a, b) {
 }
 
 /**
+ * Normalize a release notification entry into title/body or null.
+ *
+ * @param {*} releaseNotification Field from package.json.
+ * @returns {{title: string, body: string}|null} Payload or null when disabled/empty.
+ */
+function normalizeReleaseNotificationPayload(releaseNotification) {
+    if (!releaseNotification || typeof releaseNotification !== 'object' || Array.isArray(releaseNotification)) {
+        return null;
+    }
+    var title = releaseNotification.title ? String(releaseNotification.title).trim() : '';
+    var body = releaseNotification.body ? String(releaseNotification.body).trim() : '';
+    if (title === '' || body === '') {
+        return null;
+    }
+    return { title: title, body: body };
+}
+
+/**
  * Normalize bundled pkg.releaseNotification into title/body or null.
  *
  * @param {Object|undefined} releaseNotification Field from package.json.
@@ -212,12 +230,68 @@ function getBundledReleaseNotificationPayload(releaseNotification) {
     ) {
         return null;
     }
-    var title = releaseNotification.title ? String(releaseNotification.title).trim() : '';
-    var body = releaseNotification.body ? String(releaseNotification.body).trim() : '';
-    if (title === '' || body === '') {
+    return normalizeReleaseNotificationPayload(releaseNotification);
+}
+
+/**
+ * Read package.json releaseNotifications, with legacy releaseNotification fallback.
+ *
+ * @returns {Object} Version-keyed release notification payloads.
+ */
+function getBundledReleaseNotifications() {
+    var notifications = {};
+    var bundled = pkg.releaseNotifications;
+    var versionKey;
+    var payload;
+
+    if (bundled && typeof bundled === 'object' && !Array.isArray(bundled)) {
+        for (versionKey in bundled) {
+            if (Object.prototype.hasOwnProperty.call(bundled, versionKey)) {
+                payload = normalizeReleaseNotificationPayload(bundled[versionKey]);
+                if (payload !== null) {
+                    notifications[versionKey] = payload;
+                }
+            }
+        }
+    }
+
+    payload = getBundledReleaseNotificationPayload(pkg.releaseNotification);
+    if (payload !== null && typeof pkg.version === 'string') {
+        notifications[pkg.version] = payload;
+    }
+
+    return notifications;
+}
+
+/**
+ * Find the newest bundled release notification that has not been shown yet.
+ *
+ * @param {string} maxNotified Highest notification version already shown.
+ * @param {string} appVersion Running app version.
+ * @returns {{version: string, title: string, body: string}|null} Latest unseen payload, or null.
+ */
+function getLatestUnseenReleaseNotification(maxNotified, appVersion) {
+    var notifications = getBundledReleaseNotifications();
+    var versions = Object.keys(notifications).filter(function(versionKey) {
+        return (
+            compareSemver(versionKey, maxNotified) > 0 &&
+            compareSemver(versionKey, appVersion) <= 0
+        );
+    }).sort(compareSemver);
+    var latestVersion;
+    var payload;
+
+    if (versions.length === 0) {
         return null;
     }
-    return { title: title, body: body };
+
+    latestVersion = versions[versions.length - 1];
+    payload = notifications[latestVersion];
+    return {
+        version: latestVersion,
+        title: payload.title,
+        body: payload.body
+    };
 }
 
 /**
@@ -276,10 +350,10 @@ function maybeShowReleaseNotification(hadExistingInstall, forceVersionSpec) {
         );
     }
 
-    var bundledPayload = getBundledReleaseNotificationPayload(pkg.releaseNotification);
     var maxNotified = localStorage.getItem(KEY_MAX_NOTIFIED_VERSION) || '0.0.0';
+    var unseenNotification = getLatestUnseenReleaseNotification(maxNotified, appVersion);
     var isNewer = compareSemver(appVersion, maxNotified) > 0;
-    var shouldNotifyUpgrade = hadExistingInstall && isNewer && bundledPayload !== null;
+    var shouldNotifyUpgrade = hadExistingInstall && isNewer && unseenNotification !== null;
     var shouldNotifyForce = forcePayload !== null;
     var shouldNotify = shouldNotifyUpgrade || shouldNotifyForce;
     var title = '';
@@ -289,8 +363,8 @@ function maybeShowReleaseNotification(hadExistingInstall, forceVersionSpec) {
         body = forcePayload.body;
     }
     else if (shouldNotifyUpgrade) {
-        title = bundledPayload.title;
-        body = bundledPayload.body;
+        title = unseenNotification.title;
+        body = unseenNotification.body;
     }
 
     console.log(
@@ -302,7 +376,7 @@ function maybeShowReleaseNotification(hadExistingInstall, forceVersionSpec) {
         ' shouldNotify=' + shouldNotify +
         ' shouldNotifyUpgrade=' + shouldNotifyUpgrade +
         ' shouldNotifyForce=' + shouldNotifyForce +
-        ' bundledPayload=' + Boolean(bundledPayload)
+        ' unseenVersion=' + (unseenNotification ? unseenNotification.version : '(none)')
     );
 
     if (!shouldNotify) {
@@ -314,9 +388,13 @@ function maybeShowReleaseNotification(hadExistingInstall, forceVersionSpec) {
         Pebble.showSimpleNotificationOnPebble(title, body);
     }
 
-    if (isNewer) {
+    if (shouldNotifyUpgrade) {
+        localStorage.setItem(KEY_MAX_NOTIFIED_VERSION, unseenNotification.version);
+        console.log('[release-notification] set max_notified_version=' + unseenNotification.version);
+    }
+    else if (!hadExistingInstall && isNewer) {
         localStorage.setItem(KEY_MAX_NOTIFIED_VERSION, appVersion);
-        console.log('[release-notification] set max_notified_version=' + appVersion);
+        console.log('[release-notification] first install, set max_notified_version=' + appVersion);
     }
     else {
         console.log('[release-notification] keep max_notified_version=' + maxNotified);
@@ -324,21 +402,30 @@ function maybeShowReleaseNotification(hadExistingInstall, forceVersionSpec) {
 }
 
 /**
- * Optionally clear PKJS localStorage on boot when enabled in dev-config.js.
+ * Optionally edit PKJS localStorage on boot when enabled in dev-config.js.
  *
  * @param {Object} devConfig Developer configuration object.
  * @returns {void}
  */
 function maybeHandleDevStorageReset(devConfig) {
-    var shouldClear = !!(devConfig && devConfig.clearPkjsStorageOnBoot);
-    var shouldResetV134WeekendHolidayColorMigration = !!(
+    var shouldClear = Boolean(devConfig && devConfig.clearPkjsStorageOnBoot);
+    var shouldResetV134WeekendHolidayColorMigration = Boolean(
         devConfig &&
         devConfig.resetV134WeekendHolidayColorMigration
     );
+    var forcedMaxNotifiedVersion = devConfig &&
+        typeof devConfig.maxNotifiedVersion === 'string'
+        ? devConfig.maxNotifiedVersion.trim()
+        : '';
 
     if (shouldClear) {
         console.log('[dev] clearPkjsStorageOnBoot=true, clearing localStorage');
         localStorage.clear();
+    }
+
+    if (forcedMaxNotifiedVersion !== '') {
+        console.log('[dev] maxNotifiedVersion=' + forcedMaxNotifiedVersion + ', setting release notification marker');
+        localStorage.setItem(KEY_MAX_NOTIFIED_VERSION, forcedMaxNotifiedVersion);
     }
 
     if (shouldResetV134WeekendHolidayColorMigration) {
@@ -595,6 +682,7 @@ function clayTryDevConfig(devConfig) {
     var localOnlyDevConfigKeys = {
         clearPkjsStorageOnBoot: true,
         forceShowReleaseNotificationOnBoot: true,
+        maxNotifiedVersion: true,
         resetV134WeekendHolidayColorMigration: true,
     };
 

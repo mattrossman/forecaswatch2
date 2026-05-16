@@ -52,6 +52,7 @@ void persist_init() {
             .show_qt = true,
             .show_bt = true,
             .show_bt_disconnect = true,
+            .chime = 0,
             .vibe = false,
             .show_am_pm = false,
             .color_saturday = GColorWhite,	

@@ -682,6 +682,7 @@ function clayTryDevConfig(devConfig) {
     var localOnlyDevConfigKeys = {
         clearPkjsStorageOnBoot: true,
         forceShowReleaseNotificationOnBoot: true,
+        maxNotifiedVersion: true,
         resetV134WeekendHolidayColorMigration: true,
     };
 

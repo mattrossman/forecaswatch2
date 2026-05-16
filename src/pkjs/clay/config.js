@@ -126,7 +126,7 @@ module.exports = [
                 "type": "color",
                 "label": "Sunday color",
                 "messageKey": "colorSunday",
-                "defaultValue": "#FFFFFF",
+                "defaultValue": "#FF0055",
                 "sunlight": false,
                 "capabilities": ["COLOR"]
             },
@@ -134,7 +134,7 @@ module.exports = [
                 "type": "color",
                 "label": "Saturday color",
                 "messageKey": "colorSaturday",
-                "defaultValue": "#FFFFFF",
+                "defaultValue": "#FF0055",
                 "sunlight": false,
                 "capabilities": ["COLOR"]
             },
@@ -142,8 +142,8 @@ module.exports = [
                 "type": "color",
                 "label": "US federal holidays color",
                 "messageKey": "colorUSFederal",
-                "defaultValue": "#FFFFFF",
-                "description": "White (default) means disable",
+                "defaultValue": "#FF0055",
+                "description": "White means disable",
                 "sunlight": false,
                 "capabilities": ["COLOR"]
             },

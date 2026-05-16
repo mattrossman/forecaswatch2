@@ -24,9 +24,9 @@ static Config config_defaults(void) {
         .show_am_pm = false,
         .time_font = TIME_FONT_ROBOTO,
         .color_today = GColorBlack,
-        .color_saturday = GColorWhite,
-        .color_sunday = GColorWhite,
-        .color_us_federal = GColorWhite,
+        .color_saturday = GColorFolly,
+        .color_sunday = GColorFolly,
+        .color_us_federal = GColorFolly,
         .color_time = GColorWhite,
         .day_night_shading = true
     };

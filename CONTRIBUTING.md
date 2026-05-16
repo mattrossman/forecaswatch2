@@ -115,7 +115,7 @@ If you want the extra Pebble heap debug logs, set `ENABLE_MEMORY_LOGGING=1` in y
 
 For deterministic emulator UI, set `FIXTURE=<name>` in `.env` before building or installing. Fixture files live in `fixtures/<name>.json` and define the watch facts and weather payload used by local builds.
 
-Release notification copy (optional “what’s new” toast on upgrade) lives in `release-notifications.json`, keyed by the exact `version` string from the template (e.g. `"1.26.0"`). `prepare-package` copies only the entry for the version being built into `package.json`; versions with no key ship without a notification.
+Release notification copy (optional “what’s new” toast on upgrade) lives in `release-notifications.json`, keyed by the exact `version` string from the template (e.g. `"1.26.0"`); use `dev-config.js` `maxNotifiedVersion` to simulate skipped-version upgrades locally.
 
 If you want to regenerate `package.json` without building:
 

@@ -28,6 +28,42 @@ node -e "
 const fs = require('fs');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 delete pkg.releaseNotification;
+delete pkg.releaseNotifications;
+
+function parseSemver(v) {
+  const core = String(v || '0.0.0').replace(/^v/, '').split('-')[0].split('+')[0];
+  const parts = core.split('.');
+  return [
+    parseInt(parts[0], 10) || 0,
+    parseInt(parts[1], 10) || 0,
+    parseInt(parts[2], 10) || 0
+  ];
+}
+
+function compareSemver(a, b) {
+  const pa = parseSemver(a);
+  const pb = parseSemver(b);
+  if (pa[0] !== pb[0]) return pa[0] > pb[0] ? 1 : -1;
+  if (pa[1] !== pb[1]) return pa[1] > pb[1] ? 1 : -1;
+  if (pa[2] !== pb[2]) return pa[2] > pb[2] ? 1 : -1;
+  return 0;
+}
+
+function normalizeReleaseNotificationEntry(manifest, version) {
+  const entry = manifest[version];
+  if (entry === null || typeof entry !== 'object' || Array.isArray(entry)) {
+    throw new Error('release-notifications.json[' + JSON.stringify(version) + '] must be an object with title and body');
+  }
+  const title = typeof entry.title === 'string' ? entry.title.trim() : '';
+  const body = typeof entry.body === 'string' ? entry.body.trim() : '';
+  if (title.length === 0) {
+    throw new Error('release-notifications.json[' + JSON.stringify(version) + '].title must be a non-empty string');
+  }
+  if (body.length === 0) {
+    throw new Error('release-notifications.json[' + JSON.stringify(version) + '].body must be a non-empty string');
+  }
+  return { title, body };
+}
 
 const manifestPath = 'release-notifications.json';
 let manifest = {};
@@ -43,20 +79,19 @@ if (manifest === null || typeof manifest !== 'object' || Array.isArray(manifest)
 }
 
 const ver = typeof pkg.version === 'string' ? pkg.version : '';
-const entry = ver && Object.prototype.hasOwnProperty.call(manifest, ver) ? manifest[ver] : undefined;
-if (entry !== undefined) {
-  if (entry === null || typeof entry !== 'object' || Array.isArray(entry)) {
-    throw new Error('release-notifications.json[' + JSON.stringify(ver) + '] must be an object with title and body');
+const releaseNotifications = {};
+Object.keys(manifest).sort(compareSemver).forEach((version) => {
+  if (ver && compareSemver(version, ver) <= 0) {
+    releaseNotifications[version] = normalizeReleaseNotificationEntry(manifest, version);
   }
-  const title = typeof entry.title === 'string' ? entry.title.trim() : '';
-  const body = typeof entry.body === 'string' ? entry.body.trim() : '';
-  if (title.length === 0) {
-    throw new Error('release-notifications.json[' + JSON.stringify(ver) + '].title must be a non-empty string');
-  }
-  if (body.length === 0) {
-    throw new Error('release-notifications.json[' + JSON.stringify(ver) + '].body must be a non-empty string');
-  }
-  pkg.releaseNotification = { enabled: true, title, body };
+});
+
+if (Object.keys(releaseNotifications).length > 0) {
+  pkg.releaseNotifications = releaseNotifications;
+}
+
+if (ver && Object.prototype.hasOwnProperty.call(releaseNotifications, ver)) {
+  pkg.releaseNotification = Object.assign({ enabled: true }, releaseNotifications[ver]);
 }
 
 const telemetryEndpoint = typeof process.env.TELEMETRY_ENDPOINT === 'string' ? process.env.TELEMETRY_ENDPOINT.trim() : '';

@@ -16,6 +16,7 @@ fi
 scripts/ensure-pebble-sdk.sh
 mise run prepare-package -- "$profile"
 node scripts/prepare-fixture.js
+node scripts/prepare-dev-config-stamp.js
 pebble build "$@"
 
 if [[ "$profile" == "dev" ]]; then

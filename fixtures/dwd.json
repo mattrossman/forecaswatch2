@@ -1,0 +1,48 @@
+{
+  "watch": {
+    "now": {
+      "year": 2026,
+      "month": 5,
+      "day": 31,
+      "hour": 14,
+      "minute": 20,
+      "second": 0
+    },
+    "battery": {
+      "percent": 82
+    }
+  },
+  "watchSettings": {
+    "timeFormat": "24h"
+  },
+  "claySettings": {
+    "provider": "dwd",
+    "temperatureUnits": "c",
+    "axisTimeFormat": "24h",
+    "weekStartDay": "mon",
+    "colorSaturday": "GColorFolly",
+    "colorSunday": "GColorFolly",
+    "colorUSFederal": "GColorFolly"
+  },
+  "weather": {
+    "city": "Berlin",
+    "currentTemp": 66,
+    "startHour": 14,
+    "temps": [66, 67, 68, 68, 67, 65, 62, 59, 57, 55, 54, 53, 52, 52, 53, 55, 58, 61, 64, 66, 67, 68, 68, 67],
+    "precipPct": [10, 15, 20, 25, 30, 35, 40, 45, 40, 30, 20, 15, 10, 8, 8, 10, 15, 20, 25, 25, 20, 18, 15, 12],
+    "sunEvents": [
+      {
+        "type": "sunset",
+        "dayOffset": 0,
+        "hour": 21,
+        "minute": 28
+      },
+      {
+        "type": "sunrise",
+        "dayOffset": 1,
+        "hour": 4,
+        "minute": 47
+      }
+    ]
+  }
+}

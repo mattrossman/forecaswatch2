@@ -4,7 +4,7 @@ import { z } from "zod";
 const MAX_BODY_BYTES = 4096;
 const MAX_EVENTS_PER_HOUR = 60;
 
-const providerSchema = z.enum(["wunderground", "openweathermap", "mock"]);
+const providerSchema = z.enum(["wunderground", "openweathermap", "mock", "dwd"]);
 const locationModeSchema = z.enum(["gps", "manual_coordinates", "manual_address"]);
 
 const firmwareSchema = z.object({

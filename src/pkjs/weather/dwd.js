@@ -58,14 +58,14 @@ DwdProvider.prototype.withDwdForecast = function(lat, lon, callback, onFailure) 
         return;
     }
 
-    var window = forecastWindow();
+    var timeWindow = forecastWindow();
     // No units parameter: Brightsky's default returns °C for temperature.
     // Passing units=si would return Kelvin (verified via live probe).
     var url = BRIGHTSKY_BASE + '/weather'
         + '?lat=' + lat
         + '&lon=' + lon
-        + '&date=' + encodeURIComponent(window.start)
-        + '&last_date=' + encodeURIComponent(window.end)
+        + '&date=' + encodeURIComponent(timeWindow.start)
+        + '&last_date=' + encodeURIComponent(timeWindow.end)
         + '&max_dist=' + MAX_DIST_METERS;
 
     console.log('Requesting ' + url);
@@ -97,7 +97,7 @@ DwdProvider.prototype.withDwdForecast = function(lat, lon, callback, onFailure) 
 };
 
 /**
- * Fetch the Brightsky current observation.
+ * Fetch the Brightsky current observation. Unlike withDwdForecast, this does not cache — current observations are time-sensitive and the forecast cache already deduplicates the expensive hourly call on non-force fetches.
  *
  * @param {number} lat Latitude.
  * @param {number} lon Longitude.

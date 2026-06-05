@@ -194,7 +194,7 @@ module.exports = [
                         "value": "openweathermap"
                     },
                     {
-                        "label": "Deutscher Wetterdienst",
+                        "label": "Deutscher Wetterdienst (Brightsky)",
                         "value": "dwd"
                     }
                 ]

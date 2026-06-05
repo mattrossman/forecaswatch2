@@ -34,9 +34,8 @@ function forecastWindow() {
 
 var DwdProvider = function() {
     this._super.call(this);
-    this.name = 'Deutscher Wetterdienst';
+    this.name = 'Brightsky (Deutscher Wetterdienst)';
     this.id = 'dwd';
-    this.weatherDataCache = null;
 };
 
 DwdProvider.prototype = Object.create(WeatherProvider.prototype);
@@ -44,7 +43,7 @@ DwdProvider.prototype.constructor = DwdProvider;
 DwdProvider.prototype._super = WeatherProvider;
 
 /**
- * Fetch and cache the Brightsky hourly forecast.
+ * Fetch the Brightsky hourly forecast.
  *
  * @param {number} lat Latitude.
  * @param {number} lon Longitude.
@@ -53,11 +52,6 @@ DwdProvider.prototype._super = WeatherProvider;
  * @returns {void}
  */
 DwdProvider.prototype.withDwdForecast = function(lat, lon, callback, onFailure) {
-    if (this.weatherDataCache !== null) {
-        callback(this.weatherDataCache);
-        return;
-    }
-
     var timeWindow = forecastWindow();
     // No units parameter: Brightsky's default returns °C for temperature.
     // Passing units=si would return Kelvin (verified via live probe).
@@ -86,7 +80,6 @@ DwdProvider.prototype.withDwdForecast = function(lat, lon, callback, onFailure) 
                 onFailure({ stage: 'provider_data', code: 'dwd_forecast_missing_fields' });
                 return;
             }
-            this.weatherDataCache = body.weather;
             callback(body.weather);
         }).bind(this),
         function(error) {
@@ -97,7 +90,7 @@ DwdProvider.prototype.withDwdForecast = function(lat, lon, callback, onFailure) 
 };
 
 /**
- * Fetch the Brightsky current observation. Unlike withDwdForecast, this does not cache — current observations are time-sensitive and the forecast cache already deduplicates the expensive hourly call on non-force fetches.
+ * Fetch the Brightsky current observation.
  *
  * @param {number} lat Latitude.
  * @param {number} lon Longitude.
@@ -145,12 +138,9 @@ DwdProvider.prototype.withDwdCurrent = function(lat, lon, callback, onFailure) {
 
 // ============== IMPORTANT OVERRIDE ================
 DwdProvider.prototype.withProviderData = function(lat, lon, force, onSuccess, onFailure) {
-    // onSuccess expects that this.hasValidData() will be true
-    console.log('This is the overridden implementation of withProviderData for DWD');
-
-    if (force) {
-        this.weatherDataCache = null;
-    }
+    // onSuccess expects that this.hasValidData() will be true.
+    // The 30-minute cross-fetch cache lives in index.js (needRefresh); force is
+    // unused here because DWD has no intra-fetch dedup target.
 
     this.withDwdForecast(lat, lon, (function(hourly) {
         var nonNullTemps;
@@ -176,6 +166,9 @@ DwdProvider.prototype.withProviderData = function(lat, lon, force, onSuccess, on
             this.precipTrend = hourly.map(function(entry) {
                 var probability = entry.precipitation_probability;
                 return (typeof probability === 'number' ? probability : 0) / 100;
+            });
+            this.rainTrend = hourly.map(function(entry) {
+                return typeof entry.precipitation === 'number' ? entry.precipitation : 0;
             });
             this.startTime = Math.floor(Date.parse(hourly[0].timestamp) / 1000);
             this.currentTemp = currentTempF;

@@ -208,8 +208,12 @@ static int16_t graph_x_for_time(time_t timestamp, time_t graph_start, time_t gra
         return graph_right;
     }
 
-    const int64_t elapsed = (int64_t)timestamp - graph_start;
-    const int64_t total = (int64_t)graph_end - graph_start;
+    // The forecast window is bounded (<= (MAX_FORECAST_ENTRIES-1) * FORECAST_STEP_SECONDS,
+    // ~82800s) and elapsed <= total, so elapsed * size.w stays well within int32. Narrowing
+    // from int64 here drops __udivmoddi4/__divdi3 from the binary; the int32 divide is a
+    // single hardware instruction on the Cortex-M3.
+    const int32_t elapsed = (int32_t)(timestamp - graph_start);
+    const int32_t total = (int32_t)(graph_end - graph_start);
     return graph_left + (int16_t)((elapsed * graph_plot_rect.size.w) / total);
 }
 

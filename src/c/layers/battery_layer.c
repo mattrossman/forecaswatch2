@@ -80,7 +80,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
         battery_w - (BATTERY_STROKE + FILL_PADDING) * 2, h - (BATTERY_STROKE + FILL_PADDING) * 2);
     GRect color_area = GRect(
         color_bounds.origin.x, color_bounds.origin.y,
-        color_bounds.size.w * (float) (battery_level + 10) / (100.0 + 10), color_bounds.size.h);
+        color_bounds.size.w * (battery_level + 10) / 110, color_bounds.size.h);
 #ifdef PBL_COLOR
     graphics_context_set_fill_color(ctx, get_battery_color(battery_level));
 #else

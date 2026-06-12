@@ -22,9 +22,10 @@
 static Layer *s_calendar_layer;
 
 static GRect calendar_cell_rect(GRect bounds, int i) {
-    float box_w = (float) bounds.size.w / DAYS_PER_WEEK;
-    float box_h = (float) bounds.size.h / NUM_WEEKS;
-    return GRect((i % DAYS_PER_WEEK) * box_w, (i / DAYS_PER_WEEK) * box_h,
+    const int box_w = bounds.size.w / DAYS_PER_WEEK;
+    const int box_h = bounds.size.h / NUM_WEEKS;
+    return GRect((i % DAYS_PER_WEEK) * bounds.size.w / DAYS_PER_WEEK,
+                 (i / DAYS_PER_WEEK) * bounds.size.h / NUM_WEEKS,
                  box_w, box_h);
 }
 
@@ -145,15 +146,15 @@ static void calendar_update_proc(Layer *layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(layer);
     int w = bounds.size.w;
     int h = bounds.size.h;
-    float box_w = (float) w / DAYS_PER_WEEK;
-    float box_h = (float) h / NUM_WEEKS;
+    const int box_w = w / DAYS_PER_WEEK;
+    const int box_h = h / NUM_WEEKS;
 
     // Calculate which box holds today's date
     const int i_today = config_n_today();
 
     graphics_context_set_fill_color(ctx, today_color());
     graphics_fill_rect(ctx,
-        GRect((i_today % DAYS_PER_WEEK) * box_w, (i_today / DAYS_PER_WEEK) * box_h,
+        GRect((i_today % DAYS_PER_WEEK) * w / DAYS_PER_WEEK, (i_today / DAYS_PER_WEEK) * h / NUM_WEEKS,
         box_w, box_h), 1, GCornersAll);
 
     for (int i = 0; i < NUM_WEEKS * DAYS_PER_WEEK; ++i) {

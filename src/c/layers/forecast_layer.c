@@ -208,8 +208,12 @@ static int16_t graph_x_for_time(time_t timestamp, time_t graph_start, time_t gra
         return graph_right;
     }
 
-    const int64_t elapsed = (int64_t)timestamp - graph_start;
-    const int64_t total = (int64_t)graph_end - graph_start;
+    // The forecast window is bounded (<= (MAX_FORECAST_ENTRIES-1) * FORECAST_STEP_SECONDS,
+    // ~82800s) and elapsed <= total, so elapsed * size.w stays well within int32. Narrowing
+    // from int64 here drops __udivmoddi4/__divdi3 from the binary; the int32 divide is a
+    // single hardware instruction on the Cortex-M3.
+    const int32_t elapsed = (int32_t)(timestamp - graph_start);
+    const int32_t total = (int32_t)(graph_end - graph_start);
     return graph_left + (int16_t)((elapsed * graph_plot_rect.size.w) / total);
 }
 
@@ -497,8 +501,11 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     const int temp_plot_h = h - MARGIN_TEMP_H * 2 - BOTTOM_AXIS_H;
     const int range_safe = range > 0 ? range : 1;
 
-    // Draw a bounding box for each data entry (the -1 is since we don't want a gap on either side)
-    float entry_w = (float)graph_bounds.size.w / (num_entries - 1);
+    // Draw a bounding box for each data entry (the -1 is since we don't want a gap on either side).
+    // Pixels per entry is the exact rational graph_w/span; entry positions use integer
+    // multiply-before-divide so the soft-float library stays out of the binary.
+    const int graph_w = graph_bounds.size.w;
+    const int span = num_entries - 1;
     if (render_spec.draw_night_overlay)
     {
         night_segments = compute_night_segments(forecast_start, forecast_end);
@@ -510,14 +517,14 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     graphics_context_set_stroke_color(ctx, GColorLightGray);
 
     // Round this division up by adding (divisor - 1) to the dividend.
-    const int entries_per_label = ((float)HOUR_LABEL_MIN_SPACING + (entry_w - 1)) / entry_w;
+    const int entries_per_label = ((HOUR_LABEL_MIN_SPACING - 1) * span + graph_w) / graph_w;
     for (int i = 0; i < num_entries; ++i)
     {
-        int entry_x = graph_bounds.origin.x + i * entry_w;
+        int entry_x = graph_bounds.origin.x + i * graph_w / span;
 
         // Save a point for the precipitation probability
         int precip = precips[i];
-        int precip_h = (float)precip / 100.0 * (h - BOTTOM_AXIS_H);
+        int precip_h = precip * (h - BOTTOM_AXIS_H) / 100;
         s_points_precip[i] = GPoint(entry_x, h - BOTTOM_AXIS_H - precip_h);
 
         // Save a point for the temperature reading
@@ -545,7 +552,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
 #ifndef PBL_PLATFORM_EMERY
     for (int label_i = 0; label_i < num_entries; label_i += entries_per_label)
     {
-        const int label_x = graph_bounds.origin.x + (int)(label_i * entry_w);
+        const int label_x = graph_bounds.origin.x + label_i * graph_w / span;
         char buf[4];
 
         snprintf(buf, sizeof(buf), "%d", config_axis_hour(forecast_start_local->tm_hour + label_i));
@@ -562,7 +569,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
         const int midpoint_i = label_i + entries_per_label / 2;
         if (midpoint_i > label_i && midpoint_i < next_label_i && midpoint_i < num_entries)
         {
-            const int tick_x = graph_bounds.origin.x + (int)(midpoint_i * entry_w);
+            const int tick_x = graph_bounds.origin.x + midpoint_i * graph_w / span;
             graphics_draw_line(ctx,
                                GPoint(tick_x, h - BOTTOM_AXIS_H - 0),
                                GPoint(tick_x, h - BOTTOM_AXIS_H + 4));
@@ -572,7 +579,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
 #else
     for (int label_i = 0; label_i < num_entries; label_i += entries_per_label)
     {
-        const int label_x = graph_bounds.origin.x + (int)(label_i * entry_w);
+        const int label_x = graph_bounds.origin.x + label_i * graph_w / span;
         char buf[4];
 
         snprintf(buf, sizeof(buf), "%d", config_axis_hour(forecast_start_local->tm_hour + label_i));

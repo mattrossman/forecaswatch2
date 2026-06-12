@@ -15,6 +15,7 @@ If you need runtime logs, `mise install-emulator --logs` runs it in an emulator 
 - Lazy-load bitmaps and destroy them when they are not needed to keep startup and steady-state heap usage low.
 - Prefer drawing directly in an update proc over creating extra layer objects when a simple render path is enough.
 - If a UI element only exists to paint pixels, keep it as light as possible instead of modeling it as a full layer.
+- Avoid floating-point math and 64-bit division in watch-side C, prefer integer multiply-before-divide so linked software math helper code doesn't consume heap. See #163.
 
 ## Code Conventions
 

@@ -75,3 +75,23 @@ backend = "pipx:pebble-tool"
 [[tools.resvg]]
 version = "0.47.0"
 backend = "aqua:linebender/resvg"
+
+[tools.resvg."platforms.linux-x64"]
+checksum = "sha256:5c84dcbcd032fe7e8d96e616fd6807a2f9df6561d2e6582b37e91e63c6cb4fe7"
+url = "https://github.com/linebender/resvg/releases/download/v0.47.0/resvg-linux-x86_64.tar.gz"
+
+[tools.resvg."platforms.linux-x64-musl"]
+checksum = "sha256:5c84dcbcd032fe7e8d96e616fd6807a2f9df6561d2e6582b37e91e63c6cb4fe7"
+url = "https://github.com/linebender/resvg/releases/download/v0.47.0/resvg-linux-x86_64.tar.gz"
+
+[tools.resvg."platforms.macos-arm64"]
+checksum = "sha256:3f6d9ffb72ea347f964770b38a71b2f181209190e77278bbb9f179c0d05a0eaa"
+url = "https://github.com/linebender/resvg/releases/download/v0.47.0/resvg-macos-x86_64.zip"
+
+[tools.resvg."platforms.macos-x64"]
+checksum = "sha256:3f6d9ffb72ea347f964770b38a71b2f181209190e77278bbb9f179c0d05a0eaa"
+url = "https://github.com/linebender/resvg/releases/download/v0.47.0/resvg-macos-x86_64.zip"
+
+[tools.resvg."platforms.windows-x64"]
+checksum = "sha256:5684e59ceaa53ce720b49efb441b0918ae99d04e8ce3f6f753664524592d67f1"
+url = "https://github.com/linebender/resvg/releases/download/v0.47.0/resvg-win64.zip"

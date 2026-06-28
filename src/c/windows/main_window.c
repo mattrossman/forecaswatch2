@@ -88,6 +88,11 @@ static void main_window_load(Window *window) {
     MEMORY_LOG_HEAP("after_window_load");
 }
 
+static void main_window_appear(Window *window) {
+    main_window_refresh();
+    loading_layer_refresh();
+}
+
 static void main_window_unload(Window *window) {
     MEMORY_LOG_HEAP("before_window_unload");
     time_layer_destroy();
@@ -121,6 +126,7 @@ void main_window_create() {
     // Set handlers to manage the elements inside the Window
     window_set_window_handlers(s_main_window, (WindowHandlers) {
         .load = main_window_load,
+        .appear = main_window_appear,
         .unload = main_window_unload
     });
 
@@ -138,6 +144,7 @@ void main_window_refresh() {
     forecast_layer_refresh();
     calendar_layer_refresh();
     calendar_status_layer_refresh();
+    loading_layer_refresh();
 }
 
 void main_window_destroy() {

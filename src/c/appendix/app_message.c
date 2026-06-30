@@ -38,6 +38,9 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *clay_color_us_federal_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_US_FEDERAL);
     Tuple *clay_color_time_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_TIME);
     Tuple *clay_day_night_shading_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_DAY_NIGHT_SHADING);
+    Tuple *clay_show_month_year_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_SHOW_MONTH_YEAR);
+    Tuple *clay_show_heart_rate_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_SHOW_HEART_RATE);
+    Tuple *clay_show_steps_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_SHOW_STEPS);
 
     if(temp_trend_tuple && temp_trend_tuple && forecast_start_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
         // Weather data received
@@ -74,7 +77,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     else if (clay_celsius_tuple && clay_time_lead_zero_tuple && clay_axis_12h_tuple && clay_start_mon_tuple && clay_prev_week_tuple
         && clay_color_today_tuple && clay_time_font_tuple && clay_vibe_tuple && clay_show_qt_tuple && clay_show_bt_tuple
         && clay_show_bt_disconnect_tuple && clay_show_am_pm_tuple && clay_color_saturday_tuple && clay_color_sunday_tuple
-        && clay_color_us_federal_tuple && clay_color_time_tuple && clay_day_night_shading_tuple) {
+        && clay_color_us_federal_tuple && clay_color_time_tuple && clay_day_night_shading_tuple
+        && clay_show_month_year_tuple && clay_show_heart_rate_tuple && clay_show_steps_tuple) {
         // Clay config data received
         bool clay_celsius = (bool) (clay_celsius_tuple->value->int16);
         bool time_lead_zero = (bool) (clay_time_lead_zero_tuple->value->int16);
@@ -87,6 +91,9 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         bool show_bt_disconnect = (bool) (clay_show_bt_disconnect_tuple->value->int16);
         bool show_am_pm = (bool) (clay_show_am_pm_tuple->value->int16);
         bool day_night_shading = (bool) (clay_day_night_shading_tuple->value->int16);
+        bool show_month_year = (bool) (clay_show_month_year_tuple->value->int16);
+        bool show_heart_rate = (bool) (clay_show_heart_rate_tuple->value->int16);
+        bool show_steps = (bool) (clay_show_steps_tuple->value->int16);
         int16_t time_font = clay_time_font_tuple->value->int16;
         GColor color_today = GColorFromHEX(clay_color_today_tuple->value->int32);
         GColor color_saturday = GColorFromHEX(clay_color_saturday_tuple->value->int32);
@@ -110,7 +117,10 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
             .color_sunday = color_sunday,
             .color_us_federal = color_us_federal,
             .color_time = color_time,
-            .day_night_shading = day_night_shading
+            .day_night_shading = day_night_shading,
+            .show_month_year = show_month_year,
+            .show_heart_rate = show_heart_rate,
+            .show_steps = show_steps
         };
         persist_set_config(config);
         main_window_refresh();

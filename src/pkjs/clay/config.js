@@ -28,6 +28,18 @@ module.exports = [
                 "messageKey": "timeShowAmPm",
             },
             {
+                "type": "toggle",
+                "label": "Show heart rate",
+                "messageKey": "showHeartRate",
+                "defaultValue": false
+            },
+            {
+                "type": "toggle",
+                "label": "Show steps",
+                "messageKey": "showSteps",
+                "defaultValue": false
+            },
+            {
                 "type": "select",
                 "label": "Axis time format",
                 "messageKey": "axisTimeFormat",
@@ -80,6 +92,12 @@ module.exports = [
             {
                 "type": "heading",
                 "defaultValue": "Calendar",
+            },
+            {
+                "type": "toggle",
+                "label": "Show month/year header",
+                "messageKey": "showMonthYear",
+                "defaultValue": true
             },
             {
                 "type": "select",

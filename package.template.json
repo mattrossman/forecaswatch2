@@ -61,7 +61,8 @@
     },
     "capabilities": [
       "location",
-      "configurable"
+      "configurable",
+      "health"
     ],
     "messageKeys": [
       "TEMP_TREND_INT16",
@@ -88,7 +89,10 @@
       "CLAY_COLOR_SUNDAY",
       "CLAY_COLOR_US_FEDERAL",
       "CLAY_COLOR_TIME",
-      "CLAY_DAY_NIGHT_SHADING"
+      "CLAY_DAY_NIGHT_SHADING",
+      "CLAY_SHOW_MONTH_YEAR",
+      "CLAY_SHOW_HEART_RATE",
+      "CLAY_SHOW_STEPS"
     ]
   }
 }

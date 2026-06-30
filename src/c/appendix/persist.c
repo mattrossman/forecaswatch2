@@ -58,7 +58,10 @@ void persist_init() {
             .color_sunday = GColorFolly,
             .color_us_federal = GColorFolly,
             .color_time = GColorWhite,
-            .day_night_shading = true
+            .day_night_shading = true,
+            .show_month_year = true,
+            .show_heart_rate = false,
+            .show_steps = false
         };
         persist_set_config(config);
     }

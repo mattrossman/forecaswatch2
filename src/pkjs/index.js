@@ -136,10 +136,8 @@ Pebble.addEventListener('ready',
             }, function() {
                 sendFixtureWeather(activeFixture);
             });
-            return;
-        }
-        if (migratedWeekendHolidayColors) {
-            sendClaySettings(markWeekendHolidayColorMigrationComplete);
+        } else {
+            sendClaySettings(migratedWeekendHolidayColors ? markWeekendHolidayColorMigrationComplete : undefined);
         }
         if (app.pendingStartupFetch) {
             app.pendingStartupFetch = false;
@@ -495,6 +493,9 @@ function sendClaySettings(onSuccess, onFailure) {
         "CLAY_COLOR_US_FEDERAL": app.settings.hasOwnProperty('colorUSFederal') ? app.settings.colorUSFederal : DEFAULT_COLOR_FOLLY,
         "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : DEFAULT_COLOR_WHITE,
         "CLAY_DAY_NIGHT_SHADING": app.settings.hasOwnProperty('dayNightShading') ? app.settings.dayNightShading : true,
+        "CLAY_SHOW_MONTH_YEAR": app.settings.hasOwnProperty('showMonthYear') ? app.settings.showMonthYear : true,
+        "CLAY_SHOW_HEART_RATE": app.settings.hasOwnProperty('showHeartRate') ? app.settings.showHeartRate : false,
+        "CLAY_SHOW_STEPS": app.settings.hasOwnProperty('showSteps') ? app.settings.showSteps : false,
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));
@@ -592,6 +593,9 @@ function getDefaultClaySettings() {
         colorTime: DEFAULT_COLOR_WHITE,
         weekStartDay: 'sun',
         firstWeek: 'prev',
+        showMonthYear: true,
+        showHeartRate: false,
+        showSteps: false,
         colorToday: 0,
         colorSunday: DEFAULT_COLOR_FOLLY,
         colorSaturday: DEFAULT_COLOR_FOLLY,

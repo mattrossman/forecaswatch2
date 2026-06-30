@@ -134,7 +134,9 @@ static void calendar_status_update_proc(Layer *layer, GContext *ctx) {
         draw_bitmap(ctx, s_bt_disconnect_bitmap, GRect(icon_x, STATUS_ICON_Y(bounds.size.h, 10), 10, 10));
     }
 
-    draw_month_text(ctx, bounds);
+    if (g_config->show_month_year) {
+        draw_month_text(ctx, bounds);
+    }
 }
 
 void calendar_status_layer_create(Layer* parent_layer, GRect frame) {

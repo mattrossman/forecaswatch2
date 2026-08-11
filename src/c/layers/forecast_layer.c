@@ -27,10 +27,7 @@
 #define NIGHT_HATCH_SPACING PBL_IF_COLOR_ELSE(6, 7)
 #define NIGHT_HATCH_COLOR GColorDarkGray
 #define PRECIP_FILL_COLOR PBL_IF_COLOR_ELSE(GColorCobaltBlue, GColorLightGray)
-#define PRECIP_AMOUNT_FILL_COLOR PBL_IF_COLOR_ELSE(GColorIslamicGreen, GColorBlack)
-#define PRECIP_AMOUNT_STROKE_COLOR PBL_IF_COLOR_ELSE(GColorMintGreen, GColorWhite)
-#define UV_INDEX_FILL_COLOR PBL_IF_COLOR_ELSE(GColorPurple, GColorBlack)
-#define UV_INDEX_STROKE_COLOR PBL_IF_COLOR_ELSE(GColorVividViolet, GColorWhite)
+#define UV_INDEX_STROKE_COLOR PBL_IF_COLOR_ELSE(GColorLavenderIndigo, GColorWhite)
 #define NIGHT_PRECIP_FILL_COLOR PBL_IF_COLOR_ELSE(GColorDukeBlue, GColorLightGray)
 #define NIGHT_HATCH_COLOR_PRECIP PBL_IF_COLOR_ELSE(GColorBlue, GColorWhite)
 #define NIGHT_BOUNDARY_COLOR PBL_IF_COLOR_ELSE(GColorDarkGray, GColorLightGray)
@@ -61,6 +58,13 @@ typedef struct
 {
     bool draw_night_overlay;
     bool draw_precip_amount_bars;
+    bool draw_uv_index;
+    int16_t uv_index_shape;
+    int16_t uv_index_coloring;
+    GColor uv_index_fill_color;
+    GColor uv_index_outline_color;
+    GColor precip_amount_fill_color;
+    GColor precip_amount_outline_color;
     GColor axis_color;
 } RenderSpec;
 
@@ -88,6 +92,13 @@ static RenderSpec make_render_spec()
     RenderSpec spec = {
         .draw_night_overlay = g_config->day_night_shading,
         .draw_precip_amount_bars = g_config->precip_amount_bars,
+        .draw_uv_index = g_config->show_uv_index,
+        .uv_index_shape = g_config->uv_index_shape,
+        .uv_index_coloring = g_config->uv_index_coloring,
+        .uv_index_fill_color = g_config->uv_index_fill_color,
+        .uv_index_outline_color = g_config->uv_index_outline_color,
+        .precip_amount_fill_color = PBL_IF_COLOR_ELSE(g_config->precip_amount_coloring == 0 ? GColorIslamicGreen : g_config->precip_amount_fill_color, GColorBlack),
+        .precip_amount_outline_color = PBL_IF_COLOR_ELSE(g_config->precip_amount_coloring == 0 ? GColorMintGreen : g_config->precip_amount_outline_color, GColorWhite),
         .axis_color = PBL_IF_COLOR_ELSE(GColorOrange, GColorWhite)};
 
     if (spec.draw_night_overlay)
@@ -96,6 +107,25 @@ static RenderSpec make_render_spec()
     }
 
     return spec;
+}
+
+static GColor uv_index_fill_color(int uv_level, int16_t coloring, GColor custom_color)
+{
+#ifdef PBL_COLOR
+    if (coloring == 2)
+    {
+        return custom_color;
+    }
+    if (coloring == 0)
+    {
+        return GColorIndigo;
+    }
+    if (uv_level <= 2) return GColorIndigo;
+    if (uv_level <= 7) return GColorChromeYellow;
+    return GColorRed;
+#else
+    return GColorBlack;
+#endif
 }
 
 static ForecastLayout compute_layout(GRect bounds)
@@ -633,12 +663,63 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     gpath_draw_outline_open(ctx, &s_path_precip_top);
     MEMORY_HEAP_PROBE_SAMPLE("after_precip_top_draw", &redraw_probe);
 
-    // Draw absolute precipitation intensity bars above the probability area and outline.
+    // Draw UV index readings above the probability area.
+    if (render_spec.draw_uv_index && num_entries > 0)
+    {
+        const int uv_plot_h = graph_plot_rect.size.h;
+        const int uv_bottom = graph_plot_rect.origin.y + uv_plot_h - 1;
+        graphics_context_set_stroke_color(ctx, render_spec.uv_index_coloring == 2
+                                                  ? render_spec.uv_index_outline_color
+                                                  : UV_INDEX_STROKE_COLOR);
+        graphics_context_set_stroke_width(ctx, 1);
+        for (int i = 0; i < num_entries; ++i)
+        {
+            const int uv_level = uv_indices[i] > 11 ? 11 : uv_indices[i];
+            if (uv_level == 0)
+            {
+                continue;
+            }
+            const int uv_y = uv_bottom - (uv_level * (uv_plot_h - 1)) / 11;
+            const int uv_x = graph_bounds.origin.x + i * graph_w / span;
+            const GColor uv_fill_color = uv_index_fill_color(uv_level,
+                                                             render_spec.uv_index_coloring,
+                                                             render_spec.uv_index_fill_color);
+            graphics_context_set_fill_color(ctx, uv_fill_color);
+            graphics_context_set_stroke_color(ctx, uv_fill_color);
+            if (render_spec.uv_index_shape == 0)
+            {
+                graphics_fill_circle(ctx, GPoint(uv_x, uv_y), 2);
+                graphics_context_set_stroke_color(ctx, render_spec.uv_index_coloring == 2
+                                                          ? render_spec.uv_index_outline_color
+                                                          : UV_INDEX_STROKE_COLOR);
+                graphics_draw_circle(ctx, GPoint(uv_x, uv_y), 2);
+            }
+            else
+            {
+                for (int dy = -2; dy <= 2; ++dy)
+                {
+                    const int half_width = 2 - abs(dy);
+                    graphics_draw_line(ctx,
+                                       GPoint(uv_x - half_width, uv_y + dy),
+                                       GPoint(uv_x + half_width, uv_y + dy));
+                }
+                graphics_context_set_stroke_color(ctx, render_spec.uv_index_coloring == 2
+                                                          ? render_spec.uv_index_outline_color
+                                                          : UV_INDEX_STROKE_COLOR);
+                graphics_draw_line(ctx, GPoint(uv_x, uv_y - 2), GPoint(uv_x + 2, uv_y));
+                graphics_draw_line(ctx, GPoint(uv_x + 2, uv_y), GPoint(uv_x, uv_y + 2));
+                graphics_draw_line(ctx, GPoint(uv_x, uv_y + 2), GPoint(uv_x - 2, uv_y));
+                graphics_draw_line(ctx, GPoint(uv_x - 2, uv_y), GPoint(uv_x, uv_y - 2));
+            }
+        }
+    }
+
+    // Draw absolute precipitation intensity bars above the UV dots.
     if (render_spec.draw_precip_amount_bars && num_entries > 0)
     {
         const int amount_plot_h = graph_plot_rect.size.h;
-        graphics_context_set_fill_color(ctx, PRECIP_AMOUNT_FILL_COLOR);
-        graphics_context_set_stroke_color(ctx, PRECIP_AMOUNT_STROKE_COLOR);
+        graphics_context_set_fill_color(ctx, render_spec.precip_amount_fill_color);
+        graphics_context_set_stroke_color(ctx, render_spec.precip_amount_outline_color);
         graphics_context_set_stroke_width(ctx, 1);
         const int bar_slot_w = graph_w / num_entries;
         // emery: use the slimmer bars only on the wider display; smaller screens need the extra pixel.
@@ -663,24 +744,6 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
                 graphics_draw_line(ctx, GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y),
                                    GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y + bar.size.h - 1));
             }
-        }
-    }
-
-    // Draw standard UV index readings as purple dots above the precipitation bars.
-    if (num_entries > 0)
-    {
-        const int uv_plot_h = graph_plot_rect.size.h;
-        const int uv_bottom = graph_plot_rect.origin.y + uv_plot_h - 1;
-        graphics_context_set_fill_color(ctx, UV_INDEX_FILL_COLOR);
-        graphics_context_set_stroke_color(ctx, UV_INDEX_STROKE_COLOR);
-        graphics_context_set_stroke_width(ctx, 1);
-        for (int i = 0; i < num_entries; ++i)
-        {
-            const int uv_level = uv_indices[i] > 11 ? 11 : uv_indices[i];
-            const int uv_y = uv_bottom - (uv_level * (uv_plot_h - 1)) / 11;
-            const int uv_x = graph_bounds.origin.x + i * graph_w / span;
-            graphics_fill_circle(ctx, GPoint(uv_x, uv_y), 2);
-            graphics_draw_circle(ctx, GPoint(uv_x, uv_y), 2);
         }
     }
 

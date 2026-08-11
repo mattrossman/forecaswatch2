@@ -828,6 +828,8 @@ function getFixtureWeatherPayload(fixture) {
     provider.precipTrend = Array.isArray(weather.precipPct) ? weather.precipPct.map(function(probabilityPercent) {
         return probabilityPercent / 100.0;
     }) : [];
+    provider.precipAmountTrend = Array.isArray(weather.precipAmount) ? weather.precipAmount.slice(0) :
+        provider.tempTrend.map(function() { return 0; });
     provider.sunEvents = sunEvents;
 
     if (provider.numEntries <= 0 || sunEvents.length < 2 || !provider.hasValidData()) {

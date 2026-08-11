@@ -29,6 +29,8 @@
 #define PRECIP_FILL_COLOR PBL_IF_COLOR_ELSE(GColorCobaltBlue, GColorLightGray)
 #define PRECIP_AMOUNT_FILL_COLOR PBL_IF_COLOR_ELSE(GColorIslamicGreen, GColorBlack)
 #define PRECIP_AMOUNT_STROKE_COLOR PBL_IF_COLOR_ELSE(GColorMintGreen, GColorWhite)
+#define UV_INDEX_FILL_COLOR PBL_IF_COLOR_ELSE(GColorPurple, GColorBlack)
+#define UV_INDEX_STROKE_COLOR PBL_IF_COLOR_ELSE(GColorVividViolet, GColorWhite)
 #define NIGHT_PRECIP_FILL_COLOR PBL_IF_COLOR_ELSE(GColorDukeBlue, GColorLightGray)
 #define NIGHT_HATCH_COLOR_PRECIP PBL_IF_COLOR_ELSE(GColorBlue, GColorWhite)
 #define NIGHT_BOUNDARY_COLOR PBL_IF_COLOR_ELSE(GColorDarkGray, GColorLightGray)
@@ -495,9 +497,11 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     int16_t temps[num_entries];
     uint8_t precips[num_entries];
     uint8_t precip_amounts[num_entries];
+    uint8_t uv_indices[num_entries];
     persist_get_temp_trend(temps, num_entries);
     persist_get_precip_trend(precips, num_entries);
     persist_get_precip_amount_trend(precip_amounts, num_entries);
+    persist_get_uv_index_trend(uv_indices, num_entries);
 
     // Allocate point arrays for plots
     // Calculate the temperature range
@@ -659,6 +663,24 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
                 graphics_draw_line(ctx, GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y),
                                    GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y + bar.size.h - 1));
             }
+        }
+    }
+
+    // Draw standard UV index readings as purple dots above the precipitation bars.
+    if (num_entries > 0)
+    {
+        const int uv_plot_h = graph_plot_rect.size.h;
+        const int uv_bottom = graph_plot_rect.origin.y + uv_plot_h - 1;
+        graphics_context_set_fill_color(ctx, UV_INDEX_FILL_COLOR);
+        graphics_context_set_stroke_color(ctx, UV_INDEX_STROKE_COLOR);
+        graphics_context_set_stroke_width(ctx, 1);
+        for (int i = 0; i < num_entries; ++i)
+        {
+            const int uv_level = uv_indices[i] > 11 ? 11 : uv_indices[i];
+            const int uv_y = uv_bottom - (uv_level * (uv_plot_h - 1)) / 11;
+            const int uv_x = graph_bounds.origin.x + i * graph_w / span;
+            graphics_fill_circle(ctx, GPoint(uv_x, uv_y), 2);
+            graphics_draw_circle(ctx, GPoint(uv_x, uv_y), 2);
         }
     }
 

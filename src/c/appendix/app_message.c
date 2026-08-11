@@ -15,6 +15,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *temp_trend_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_TREND_INT16);
     Tuple *precip_trend_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_TREND_UINT8);
     Tuple *precip_amount_trend_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_AMOUNT_TREND_UINT8);
+    Tuple *uv_index_trend_tuple = dict_find(iterator, MESSAGE_KEY_UV_INDEX_TREND_UINT8);
     Tuple *forecast_start_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_START);
     Tuple *num_entries_tuple = dict_find(iterator, MESSAGE_KEY_NUM_ENTRIES);
     Tuple *current_temp_tuple = dict_find(iterator, MESSAGE_KEY_CURRENT_TEMP);
@@ -41,7 +42,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *clay_day_night_shading_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_DAY_NIGHT_SHADING);
     Tuple *clay_precip_amount_bars_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_PRECIP_AMOUNT_BARS);
 
-    if(temp_trend_tuple && precip_trend_tuple && precip_amount_trend_tuple && forecast_start_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
+    if(temp_trend_tuple && precip_trend_tuple && precip_amount_trend_tuple && uv_index_trend_tuple && forecast_start_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
         // Weather data received
         APP_LOG(APP_LOG_LEVEL_INFO, "All tuples received!");
         persist_set_forecast_start((time_t)forecast_start_tuple->value->int32);
@@ -58,6 +59,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         uint8_t *precip_data = (uint8_t*) precip_trend_tuple->value->data;
         persist_set_precip_trend(precip_data, num_entries);
         persist_set_precip_amount_trend((uint8_t*) precip_amount_trend_tuple->value->data, num_entries);
+        persist_set_uv_index_trend((uint8_t*) uv_index_trend_tuple->value->data, num_entries);
         persist_set_city((char*)city_tuple->value->cstring);
         int lo, hi;
         min_max(temp_data, num_entries, &lo, &hi);

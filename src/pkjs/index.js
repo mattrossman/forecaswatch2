@@ -832,6 +832,8 @@ function getFixtureWeatherPayload(fixture) {
     }) : [];
     provider.precipAmountTrend = Array.isArray(weather.precipAmount) ? weather.precipAmount.slice(0) :
         provider.tempTrend.map(function() { return 0; });
+    provider.uvIndexTrend = Array.isArray(weather.uvIndex) ? weather.uvIndex.slice(0) :
+        provider.tempTrend.map(function() { return 0; });
     provider.sunEvents = sunEvents;
 
     if (provider.numEntries <= 0 || sunEvents.length < 2 || !provider.hasValidData()) {

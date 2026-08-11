@@ -143,6 +143,9 @@ WundergroundProvider.prototype.withProviderData = function(lat, lon, force, onSu
                 this.precipAmountTrend = forecast.map(function(entry) {
                     return entry.qpf || 0;
                 });
+                this.uvIndexTrend = forecast.map(function(entry) {
+                    return entry.uv_index || 0;
+                });
                 this.startTime = forecast[0].fcst_valid;
                 this.currentTemp = currentTemp;
                 onSuccess();

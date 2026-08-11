@@ -106,6 +106,9 @@ OpenWeatherMapProvider.prototype.withProviderData = function(lat, lon, force, on
             // OpenWeatherMap exposes this field only in mm/h: https://openweathermap.org/api/one-call-3#current
             return entry.rain && entry.rain['1h'] ? entry.rain['1h'] / 25.4 : 0;
         });
+        this.uvIndexTrend = weatherData.hourly.map(function(entry) {
+            return typeof entry.uvi === 'number' ? entry.uvi : 0;
+        });
         this.startTime = weatherData.hourly[0].dt;
         this.currentTemp = weatherData.current.temp;
         onSuccess();

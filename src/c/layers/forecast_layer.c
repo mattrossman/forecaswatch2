@@ -58,6 +58,7 @@ typedef struct
 typedef struct
 {
     bool draw_night_overlay;
+    bool draw_precip_amount_bars;
     GColor axis_color;
 } RenderSpec;
 
@@ -84,6 +85,7 @@ static RenderSpec make_render_spec()
 {
     RenderSpec spec = {
         .draw_night_overlay = g_config->day_night_shading,
+        .draw_precip_amount_bars = g_config->precip_amount_bars,
         .axis_color = PBL_IF_COLOR_ELSE(GColorOrange, GColorWhite)};
 
     if (spec.draw_night_overlay)
@@ -628,7 +630,7 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     MEMORY_HEAP_PROBE_SAMPLE("after_precip_top_draw", &redraw_probe);
 
     // Draw absolute precipitation intensity bars above the probability area and outline.
-    if (num_entries > 0)
+    if (render_spec.draw_precip_amount_bars && num_entries > 0)
     {
         const int amount_plot_h = graph_plot_rect.size.h;
         graphics_context_set_fill_color(ctx, PRECIP_AMOUNT_FILL_COLOR);

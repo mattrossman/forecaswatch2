@@ -180,6 +180,12 @@ module.exports = [
                 "description": "Show hatch shading between sunset and sunrise to distinguish day and night on the forecast graph."
             },
             {
+                "type": "toggle",
+                "label": "Precipitation amount bars",
+                "messageKey": "precipAmountBars",
+                "defaultValue": true
+            },
+            {
                 "type": "radiogroup",
                 "label": "Provider",
                 "messageKey": "provider",

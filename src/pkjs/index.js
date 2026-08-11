@@ -495,6 +495,7 @@ function sendClaySettings(onSuccess, onFailure) {
         "CLAY_COLOR_US_FEDERAL": app.settings.hasOwnProperty('colorUSFederal') ? app.settings.colorUSFederal : DEFAULT_COLOR_FOLLY,
         "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : DEFAULT_COLOR_WHITE,
         "CLAY_DAY_NIGHT_SHADING": app.settings.hasOwnProperty('dayNightShading') ? app.settings.dayNightShading : true,
+        "CLAY_PRECIP_AMOUNT_BARS": app.settings.hasOwnProperty('precipAmountBars') ? app.settings.precipAmountBars : true,
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));
@@ -585,6 +586,7 @@ function getDefaultClaySettings() {
         location: '',
         temperatureUnits: 'f',
         dayNightShading: true,
+        precipAmountBars: true,
         timeLeadingZero: false,
         timeShowAmPm: false,
         axisTimeFormat: '24h',

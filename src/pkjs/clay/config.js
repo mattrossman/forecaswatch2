@@ -219,12 +219,13 @@ module.exports = [
             },
             {
                 "type": "select",
-                "label": "UV index shape",
+                "label": "UV index display",
                 "messageKey": "uvIndexShape",
                 "defaultValue": "diamond",
                 "options": [
                     {"label": "Diamond", "value": "diamond"},
-                    {"label": "Circle", "value": "circle"}
+                    {"label": "Circle", "value": "circle"},
+                    {"label": "High UV window", "value": "summary"}
                 ]
             },
             {

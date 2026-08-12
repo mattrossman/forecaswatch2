@@ -672,7 +672,59 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
                                                   ? render_spec.uv_index_outline_color
                                                   : UV_INDEX_STROKE_COLOR);
         graphics_context_set_stroke_width(ctx, 1);
-        for (int i = 0; i < num_entries; ++i)
+        if (render_spec.uv_index_shape == 2)
+        {
+            for (int i = 0; i < num_entries; ++i)
+            {
+                if (uv_indices[i] < 6 || (i > 0 && uv_indices[i - 1] >= 6))
+                {
+                    continue;
+                }
+                int end_i = i;
+                int max_uv = uv_indices[i];
+                while (end_i + 1 < num_entries && uv_indices[end_i + 1] >= 6)
+                {
+                    ++end_i;
+                    if (uv_indices[end_i] > max_uv) max_uv = uv_indices[end_i];
+                }
+                const int x0 = graph_bounds.origin.x + i * graph_w / span;
+                const int x1 = graph_bounds.origin.x + end_i * graph_w / span;
+                const int bracket_y = graph_plot_rect.origin.y + 14;
+                const GColor summary_color = uv_index_fill_color(max_uv > 11 ? 11 : max_uv,
+                                                                  render_spec.uv_index_coloring,
+                                                                  render_spec.uv_index_fill_color);
+                const GColor summary_inner_color = PBL_IF_COLOR_ELSE(GColorLavenderIndigo, GColorBlack);
+                graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorIndigo, GColorWhite));
+                graphics_context_set_stroke_width(ctx, 3);
+                graphics_draw_line(ctx, GPoint(x0, bracket_y), GPoint(x1, bracket_y));
+                graphics_draw_line(ctx, GPoint(x0, bracket_y), GPoint(x0, bracket_y - 4));
+                graphics_draw_line(ctx, GPoint(x1, bracket_y), GPoint(x1, bracket_y - 4));
+                graphics_context_set_stroke_color(ctx, summary_inner_color);
+                graphics_context_set_stroke_width(ctx, 1);
+                graphics_draw_line(ctx, GPoint(x0, bracket_y), GPoint(x1, bracket_y));
+                graphics_draw_line(ctx, GPoint(x0, bracket_y), GPoint(x0, bracket_y - 4));
+                graphics_draw_line(ctx, GPoint(x1, bracket_y), GPoint(x1, bracket_y - 4));
+                char max_label[4];
+                snprintf(max_label, sizeof(max_label), "%d", max_uv > 11 ? 11 : max_uv);
+                const GRect label_rect = GRect((x0 + x1) / 2 - 10, graph_plot_rect.origin.y - 2, 20, 16);
+                graphics_context_set_text_color(ctx, PBL_IF_COLOR_ELSE(GColorIndigo, GColorWhite));
+                for (int dx = -1; dx <= 1; ++dx)
+                {
+                    for (int dy = -1; dy <= 1; ++dy)
+                    {
+                        graphics_draw_text(ctx, max_label, fonts_get_system_font(FONT_KEY_GOTHIC_14),
+                                           GRect(label_rect.origin.x + dx, label_rect.origin.y + dy,
+                                                 label_rect.size.w, label_rect.size.h),
+                                           GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+                    }
+                }
+                graphics_context_set_text_color(ctx, summary_inner_color);
+                graphics_draw_text(ctx, max_label, fonts_get_system_font(FONT_KEY_GOTHIC_14), label_rect,
+                                   GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+                i = end_i;
+            }
+        }
+        else for (int i = 0; i < num_entries; ++i)
         {
             const int uv_level = uv_indices[i] > 11 ? 11 : uv_indices[i];
             if (uv_level == 0)
@@ -755,6 +807,60 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     graphics_context_set_stroke_width(ctx, 3); // Only odd stroke width values supported
     gpath_draw_outline_open(ctx, &s_path_temp);
     MEMORY_HEAP_PROBE_SAMPLE("after_temp_path_draw", &redraw_probe);
+
+    // Redraw the summary after the temperature line so its label remains readable.
+    if (render_spec.draw_uv_index && render_spec.uv_index_shape == 2)
+    {
+        for (int i = 0; i < num_entries; ++i)
+        {
+            if (uv_indices[i] < 6 || (i > 0 && uv_indices[i - 1] >= 6))
+            {
+                continue;
+            }
+            int end_i = i;
+            int max_uv = uv_indices[i];
+            while (end_i + 1 < num_entries && uv_indices[end_i + 1] >= 6)
+            {
+                ++end_i;
+                if (uv_indices[end_i] > max_uv) max_uv = uv_indices[end_i];
+            }
+            const int x0 = graph_bounds.origin.x + i * graph_w / span;
+            const int x1 = graph_bounds.origin.x + end_i * graph_w / span;
+            const int bracket_y = graph_plot_rect.origin.y + 14;
+            const GColor summary_color = uv_index_fill_color(max_uv > 11 ? 11 : max_uv,
+                                                              render_spec.uv_index_coloring,
+                                                              render_spec.uv_index_fill_color);
+            const GColor summary_inner_color = PBL_IF_COLOR_ELSE(GColorLavenderIndigo, GColorBlack);
+            graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorIndigo, GColorWhite));
+            graphics_context_set_stroke_width(ctx, 3);
+            graphics_draw_line(ctx, GPoint(x0, bracket_y), GPoint(x1, bracket_y));
+            graphics_draw_line(ctx, GPoint(x0, bracket_y), GPoint(x0, bracket_y - 4));
+            graphics_draw_line(ctx, GPoint(x1, bracket_y), GPoint(x1, bracket_y - 4));
+            graphics_context_set_stroke_color(ctx, summary_inner_color);
+            graphics_context_set_stroke_width(ctx, 1);
+            graphics_draw_line(ctx, GPoint(x0, bracket_y), GPoint(x1, bracket_y));
+            graphics_draw_line(ctx, GPoint(x0, bracket_y), GPoint(x0, bracket_y - 4));
+            graphics_draw_line(ctx, GPoint(x1, bracket_y), GPoint(x1, bracket_y - 4));
+            char max_label[4];
+            snprintf(max_label, sizeof(max_label), "%d", max_uv > 11 ? 11 : max_uv);
+            const GRect label_rect = GRect((x0 + x1) / 2 - 10, graph_plot_rect.origin.y - 2, 20, 16);
+            graphics_context_set_text_color(ctx, PBL_IF_COLOR_ELSE(GColorIndigo, GColorWhite));
+            for (int dx = -1; dx <= 1; ++dx)
+            {
+                for (int dy = -1; dy <= 1; ++dy)
+                {
+                    graphics_draw_text(ctx, max_label, fonts_get_system_font(FONT_KEY_GOTHIC_14),
+                                       GRect(label_rect.origin.x + dx, label_rect.origin.y + dy,
+                                             label_rect.size.w, label_rect.size.h),
+                                       GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+                }
+            }
+            graphics_context_set_text_color(ctx, summary_inner_color);
+            graphics_draw_text(ctx, max_label, fonts_get_system_font(FONT_KEY_GOTHIC_14), label_rect,
+                               GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+            i = end_i;
+        }
+    }
 
     // Draw a line for the bottom axis
     graphics_context_set_stroke_color(ctx, render_spec.axis_color);

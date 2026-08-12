@@ -69,7 +69,7 @@ void persist_init() {
             .day_night_shading = true,
             .precip_amount_bars = true,
             .show_uv_index = true,
-            .uv_index_shape = 1,
+            .uv_index_shape = 2,
             .uv_index_coloring = 1,
             .uv_index_fill_color = GColorIndigo,
             .uv_index_outline_color = GColorLavenderIndigo,

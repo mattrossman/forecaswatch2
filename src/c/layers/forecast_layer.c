@@ -142,6 +142,65 @@ static GColor uv_summary_color(int uv_level, int16_t coloring, GColor custom_col
 #endif
 }
 
+static void draw_uv_trend_summary(GContext *ctx, GRect graph_bounds, GRect graph_plot_rect,
+                                  const uint8_t *uv_indices, int num_entries, int graph_w,
+                                  int span, const RenderSpec *render_spec)
+{
+    const int uv_plot_h = graph_plot_rect.size.h;
+    const int uv_bottom = graph_plot_rect.origin.y + uv_plot_h - 1;
+    int max_uv = 0;
+    int max_i = 0;
+    for (int i = 0; i < num_entries; ++i)
+    {
+        if (uv_indices[i] > max_uv)
+        {
+            max_uv = uv_indices[i];
+            max_i = i;
+        }
+    }
+
+    graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorIndigo, GColorWhite));
+    graphics_context_set_stroke_width(ctx, 1);
+    for (int i = 0; i < num_entries; ++i)
+    {
+        const int x = graph_bounds.origin.x + i * graph_w / num_entries;
+        const int level = uv_indices[i] > 11 ? 11 : uv_indices[i];
+        const int y = uv_bottom - (level * (uv_plot_h - 1)) / 11;
+        // The trend-line experiment always uses UV severity colors, independent of the debug color mode.
+        graphics_context_set_stroke_color(ctx, uv_summary_color(level, 1, render_spec->uv_index_fill_color));
+        graphics_draw_line(ctx, GPoint(x, uv_bottom), GPoint(x, y));
+        if (i > 0)
+        {
+            const int previous_level = uv_indices[i - 1] > 11 ? 11 : uv_indices[i - 1];
+            const int previous_x = graph_bounds.origin.x + (i - 1) * graph_w / num_entries;
+            const int previous_y = uv_bottom - (previous_level * (uv_plot_h - 1)) / 11;
+            graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorIndigo, GColorBlack));
+            graphics_draw_line(ctx, GPoint(previous_x, previous_y), GPoint(x, y));
+        }
+    }
+
+    char max_label[4];
+    snprintf(max_label, sizeof(max_label), "%d", max_uv > 11 ? 11 : max_uv);
+    const int max_x = graph_bounds.origin.x + max_i * graph_w / num_entries;
+    const int max_y = uv_bottom - ((max_uv > 11 ? 11 : max_uv) * (uv_plot_h - 1)) / 11;
+    const GRect label_rect = GRect(max_x - 10, max_y - 16, 20, 16);
+    const GColor label_color = PBL_IF_COLOR_ELSE(GColorWhite, GColorBlack);
+    graphics_context_set_text_color(ctx, PBL_IF_COLOR_ELSE(GColorIndigo, GColorWhite));
+    for (int dx = -1; dx <= 1; ++dx)
+    {
+        for (int dy = -1; dy <= 1; ++dy)
+        {
+            graphics_draw_text(ctx, max_label, fonts_get_system_font(FONT_KEY_GOTHIC_14),
+                               GRect(label_rect.origin.x + dx, label_rect.origin.y + dy,
+                                     label_rect.size.w, label_rect.size.h),
+                               GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+        }
+    }
+    graphics_context_set_text_color(ctx, label_color);
+    graphics_draw_text(ctx, max_label, fonts_get_system_font(FONT_KEY_GOTHIC_14), label_rect,
+                       GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+}
+
 static ForecastLayout compute_layout(GRect bounds)
 {
     ForecastLayout layout;
@@ -688,6 +747,11 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
         graphics_context_set_stroke_width(ctx, 1);
         if (render_spec.uv_index_shape == 2)
         {
+            draw_uv_trend_summary(ctx, graph_bounds, graph_plot_rect, uv_indices, num_entries, graph_w, span,
+                                  &render_spec);
+        }
+        else if (render_spec.uv_index_shape == 99)
+        {
             for (int i = 0; i < num_entries; ++i)
             {
                 if (uv_indices[i] < 3 || (i > 0 && uv_indices[i - 1] >= 3))
@@ -842,6 +906,11 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
 
     // Redraw the summary after the temperature line so its label remains readable.
     if (render_spec.draw_uv_index && render_spec.uv_index_shape == 2)
+    {
+        draw_uv_trend_summary(ctx, graph_bounds, graph_plot_rect, uv_indices, num_entries, graph_w, span,
+                              &render_spec);
+    }
+    else if (render_spec.draw_uv_index && render_spec.uv_index_shape == 99)
     {
         for (int i = 0; i < num_entries; ++i)
         {

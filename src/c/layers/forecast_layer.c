@@ -149,13 +149,19 @@ static void draw_uv_trend_summary(GContext *ctx, GRect graph_bounds, GRect graph
     const int uv_plot_h = graph_plot_rect.size.h;
     const int uv_bottom = graph_plot_rect.origin.y + uv_plot_h - 1;
     int max_uv = 0;
-    int max_i = 0;
+    int max_start = 0;
+    int max_end = 0;
     for (int i = 0; i < num_entries; ++i)
     {
         if (uv_indices[i] > max_uv)
         {
             max_uv = uv_indices[i];
-            max_i = i;
+            max_start = i;
+            max_end = i;
+        }
+        else if (uv_indices[i] == max_uv && max_uv > 0 && i == max_end + 1)
+        {
+            max_end = i;
         }
     }
 
@@ -163,7 +169,7 @@ static void draw_uv_trend_summary(GContext *ctx, GRect graph_bounds, GRect graph
     graphics_context_set_stroke_width(ctx, 1);
     for (int i = 0; i < num_entries; ++i)
     {
-        const int x = graph_bounds.origin.x + i * graph_w / num_entries;
+        const int x = graph_bounds.origin.x + i * graph_w / span;
         const int level = uv_indices[i] > 11 ? 11 : uv_indices[i];
         const int y = uv_bottom - (level * (uv_plot_h - 1)) / 11;
         // The trend-line experiment always uses UV severity colors, independent of the debug color mode.
@@ -172,7 +178,7 @@ static void draw_uv_trend_summary(GContext *ctx, GRect graph_bounds, GRect graph
         if (i > 0)
         {
             const int previous_level = uv_indices[i - 1] > 11 ? 11 : uv_indices[i - 1];
-            const int previous_x = graph_bounds.origin.x + (i - 1) * graph_w / num_entries;
+            const int previous_x = graph_bounds.origin.x + (i - 1) * graph_w / span;
             const int previous_y = uv_bottom - (previous_level * (uv_plot_h - 1)) / 11;
             graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorIndigo, GColorBlack));
             graphics_draw_line(ctx, GPoint(previous_x, previous_y), GPoint(x, y));
@@ -181,9 +187,12 @@ static void draw_uv_trend_summary(GContext *ctx, GRect graph_bounds, GRect graph
 
     char max_label[4];
     snprintf(max_label, sizeof(max_label), "%d", max_uv > 11 ? 11 : max_uv);
-    const int max_x = graph_bounds.origin.x + max_i * graph_w / num_entries;
+    const int max_start_x = graph_bounds.origin.x + max_start * graph_w / span;
+    const int max_end_x = graph_bounds.origin.x + max_end * graph_w / span;
+    const int max_x = (max_start_x + max_end_x) / 2;
     const int max_y = uv_bottom - ((max_uv > 11 ? 11 : max_uv) * (uv_plot_h - 1)) / 11;
-    const GRect label_rect = GRect(max_x - 10, max_y - 16, 20, 16);
+    const int label_y = max_uv >= 9 ? max_y + 2 : max_y - 16;
+    const GRect label_rect = GRect(max_x - 10, label_y, 20, 16);
     const GColor label_color = PBL_IF_COLOR_ELSE(GColorWhite, GColorBlack);
     graphics_context_set_text_color(ctx, PBL_IF_COLOR_ELSE(GColorIndigo, GColorWhite));
     for (int dx = -1; dx <= 1; ++dx)
@@ -881,7 +890,13 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
             const int bar_h = (precip_amounts[i] * amount_plot_h) / 10;
             if (bar_h > 0)
             {
-                const int bar_x = graph_bounds.origin.x + i * bar_slot_w + (bar_slot_w - bar_w) / 2;
+                const int reading_x = graph_bounds.origin.x + i * graph_w / span;
+                int bar_x = reading_x - bar_w / 2;
+                if (bar_x < graph_bounds.origin.x) bar_x = graph_bounds.origin.x;
+                if (bar_x + bar_w > graph_bounds.origin.x + graph_w)
+                {
+                    bar_x = graph_bounds.origin.x + graph_w - bar_w;
+                }
                 const GRect bar = GRect(bar_x, graph_plot_rect.origin.y + amount_plot_h - bar_h,
                                         bar_w, bar_h);
                 graphics_fill_rect(ctx, bar, 0, GCornerNone);

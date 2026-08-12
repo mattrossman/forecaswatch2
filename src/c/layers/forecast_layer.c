@@ -128,6 +128,20 @@ static GColor uv_index_fill_color(int uv_level, int16_t coloring, GColor custom_
 #endif
 }
 
+static GColor uv_summary_color(int uv_level, int16_t coloring, GColor custom_color)
+{
+#ifdef PBL_COLOR
+    if (coloring == 2) return custom_color;
+    if (coloring == 0) return GColorLavenderIndigo;
+    if (uv_level <= 5) return GColorYellow;
+    if (uv_level <= 7) return GColorOrange;
+    if (uv_level <= 10) return GColorRed;
+    return GColorVividViolet;
+#else
+    return GColorBlack;
+#endif
+}
+
 static ForecastLayout compute_layout(GRect bounds)
 {
     ForecastLayout layout;
@@ -676,37 +690,55 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
         {
             for (int i = 0; i < num_entries; ++i)
             {
-                if (uv_indices[i] < 6 || (i > 0 && uv_indices[i - 1] >= 6))
+                if (uv_indices[i] < 3 || (i > 0 && uv_indices[i - 1] >= 3))
                 {
                     continue;
                 }
                 int end_i = i;
                 int max_uv = uv_indices[i];
-                while (end_i + 1 < num_entries && uv_indices[end_i + 1] >= 6)
+                int max_i = i;
+                while (end_i + 1 < num_entries && uv_indices[end_i + 1] >= 3)
                 {
                     ++end_i;
-                    if (uv_indices[end_i] > max_uv) max_uv = uv_indices[end_i];
+                    if (uv_indices[end_i] > max_uv)
+                    {
+                        max_uv = uv_indices[end_i];
+                        max_i = end_i;
+                    }
                 }
                 const int x0 = graph_bounds.origin.x + i * graph_w / span;
                 const int x1 = graph_bounds.origin.x + end_i * graph_w / span;
-                const int bracket_y = graph_plot_rect.origin.y + 14;
                 const GColor summary_color = uv_index_fill_color(max_uv > 11 ? 11 : max_uv,
                                                                   render_spec.uv_index_coloring,
                                                                   render_spec.uv_index_fill_color);
-                const GColor summary_inner_color = PBL_IF_COLOR_ELSE(GColorLavenderIndigo, GColorBlack);
+                const GColor summary_inner_color = uv_summary_color(max_uv > 11 ? 11 : max_uv,
+                                                                    render_spec.uv_index_coloring,
+                                                                    render_spec.uv_index_fill_color);
                 graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorIndigo, GColorWhite));
                 graphics_context_set_stroke_width(ctx, 3);
-                graphics_draw_line(ctx, GPoint(x0, bracket_y), GPoint(x1, bracket_y));
-                graphics_draw_line(ctx, GPoint(x0, bracket_y), GPoint(x0, bracket_y - 4));
-                graphics_draw_line(ctx, GPoint(x1, bracket_y), GPoint(x1, bracket_y - 4));
-                graphics_context_set_stroke_color(ctx, summary_inner_color);
+                for (int j = i; j < end_i; ++j)
+                {
+                    const int x_a = graph_bounds.origin.x + j * graph_w / span;
+                    const int x_b = graph_bounds.origin.x + (j + 1) * graph_w / span;
+                    const int y_a = uv_bottom - (uv_indices[j] * (uv_plot_h - 1)) / 11;
+                    const int y_b = uv_bottom - (uv_indices[j + 1] * (uv_plot_h - 1)) / 11;
+                    graphics_draw_line(ctx, GPoint(x_a, y_a), GPoint(x_b, y_b));
+                }
                 graphics_context_set_stroke_width(ctx, 1);
-                graphics_draw_line(ctx, GPoint(x0, bracket_y), GPoint(x1, bracket_y));
-                graphics_draw_line(ctx, GPoint(x0, bracket_y), GPoint(x0, bracket_y - 4));
-                graphics_draw_line(ctx, GPoint(x1, bracket_y), GPoint(x1, bracket_y - 4));
+                graphics_context_set_stroke_color(ctx, summary_inner_color);
+                for (int j = i; j < end_i; ++j)
+                {
+                    const int x_a = graph_bounds.origin.x + j * graph_w / span;
+                    const int x_b = graph_bounds.origin.x + (j + 1) * graph_w / span;
+                    const int y_a = uv_bottom - (uv_indices[j] * (uv_plot_h - 1)) / 11;
+                    const int y_b = uv_bottom - (uv_indices[j + 1] * (uv_plot_h - 1)) / 11;
+                    graphics_draw_line(ctx, GPoint(x_a, y_a), GPoint(x_b, y_b));
+                }
                 char max_label[4];
                 snprintf(max_label, sizeof(max_label), "%d", max_uv > 11 ? 11 : max_uv);
-                const GRect label_rect = GRect((x0 + x1) / 2 - 10, graph_plot_rect.origin.y - 2, 20, 16);
+                const int max_x = graph_bounds.origin.x + max_i * graph_w / span;
+                const int max_y = uv_bottom - (max_uv * (uv_plot_h - 1)) / 11;
+                const GRect label_rect = GRect(max_x - 10, max_y - 16, 20, 16);
                 graphics_context_set_text_color(ctx, PBL_IF_COLOR_ELSE(GColorIndigo, GColorWhite));
                 for (int dx = -1; dx <= 1; ++dx)
                 {
@@ -813,37 +845,55 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     {
         for (int i = 0; i < num_entries; ++i)
         {
-            if (uv_indices[i] < 6 || (i > 0 && uv_indices[i - 1] >= 6))
+            if (uv_indices[i] < 3 || (i > 0 && uv_indices[i - 1] >= 3))
             {
                 continue;
             }
             int end_i = i;
             int max_uv = uv_indices[i];
-            while (end_i + 1 < num_entries && uv_indices[end_i + 1] >= 6)
+            int max_i = i;
+            while (end_i + 1 < num_entries && uv_indices[end_i + 1] >= 3)
             {
                 ++end_i;
-                if (uv_indices[end_i] > max_uv) max_uv = uv_indices[end_i];
+                if (uv_indices[end_i] > max_uv)
+                {
+                    max_uv = uv_indices[end_i];
+                    max_i = end_i;
+                }
             }
-            const int x0 = graph_bounds.origin.x + i * graph_w / span;
-            const int x1 = graph_bounds.origin.x + end_i * graph_w / span;
-            const int bracket_y = graph_plot_rect.origin.y + 14;
+            const int uv_plot_h = graph_plot_rect.size.h;
+            const int uv_bottom = graph_plot_rect.origin.y + uv_plot_h - 1;
             const GColor summary_color = uv_index_fill_color(max_uv > 11 ? 11 : max_uv,
                                                               render_spec.uv_index_coloring,
                                                               render_spec.uv_index_fill_color);
-            const GColor summary_inner_color = PBL_IF_COLOR_ELSE(GColorLavenderIndigo, GColorBlack);
+            const GColor summary_inner_color = uv_summary_color(max_uv > 11 ? 11 : max_uv,
+                                                                render_spec.uv_index_coloring,
+                                                                render_spec.uv_index_fill_color);
             graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorIndigo, GColorWhite));
             graphics_context_set_stroke_width(ctx, 3);
-            graphics_draw_line(ctx, GPoint(x0, bracket_y), GPoint(x1, bracket_y));
-            graphics_draw_line(ctx, GPoint(x0, bracket_y), GPoint(x0, bracket_y - 4));
-            graphics_draw_line(ctx, GPoint(x1, bracket_y), GPoint(x1, bracket_y - 4));
-            graphics_context_set_stroke_color(ctx, summary_inner_color);
+            for (int j = i; j < end_i; ++j)
+            {
+                const int x_a = graph_bounds.origin.x + j * graph_w / span;
+                const int x_b = graph_bounds.origin.x + (j + 1) * graph_w / span;
+                const int y_a = uv_bottom - (uv_indices[j] * (uv_plot_h - 1)) / 11;
+                const int y_b = uv_bottom - (uv_indices[j + 1] * (uv_plot_h - 1)) / 11;
+                graphics_draw_line(ctx, GPoint(x_a, y_a), GPoint(x_b, y_b));
+            }
             graphics_context_set_stroke_width(ctx, 1);
-            graphics_draw_line(ctx, GPoint(x0, bracket_y), GPoint(x1, bracket_y));
-            graphics_draw_line(ctx, GPoint(x0, bracket_y), GPoint(x0, bracket_y - 4));
-            graphics_draw_line(ctx, GPoint(x1, bracket_y), GPoint(x1, bracket_y - 4));
+            graphics_context_set_stroke_color(ctx, summary_inner_color);
+            for (int j = i; j < end_i; ++j)
+            {
+                const int x_a = graph_bounds.origin.x + j * graph_w / span;
+                const int x_b = graph_bounds.origin.x + (j + 1) * graph_w / span;
+                const int y_a = uv_bottom - (uv_indices[j] * (uv_plot_h - 1)) / 11;
+                const int y_b = uv_bottom - (uv_indices[j + 1] * (uv_plot_h - 1)) / 11;
+                graphics_draw_line(ctx, GPoint(x_a, y_a), GPoint(x_b, y_b));
+            }
             char max_label[4];
             snprintf(max_label, sizeof(max_label), "%d", max_uv > 11 ? 11 : max_uv);
-            const GRect label_rect = GRect((x0 + x1) / 2 - 10, graph_plot_rect.origin.y - 2, 20, 16);
+            const int max_x = graph_bounds.origin.x + max_i * graph_w / span;
+            const int max_y = uv_bottom - (max_uv * (uv_plot_h - 1)) / 11;
+            const GRect label_rect = GRect(max_x - 10, max_y - 16, 20, 16);
             graphics_context_set_text_color(ctx, PBL_IF_COLOR_ELSE(GColorIndigo, GColorWhite));
             for (int dx = -1; dx <= 1; ++dx)
             {

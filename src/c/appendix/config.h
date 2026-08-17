@@ -26,6 +26,8 @@ typedef struct {
     GColor color_us_federal;
     GColor color_time;
     bool day_night_shading;
+    bool light_mode;
+    bool weather_status_condition;
 } Config;
 
 extern Config *g_config;
@@ -45,6 +47,16 @@ int config_axis_hour(int hour);
 int config_n_today();
 
 GFont config_time_font();
+
+GColor config_background_color();
+
+GColor config_foreground_color();
+
+GColor config_secondary_color();
+
+GColor config_muted_color();
+
+GColor config_time_color();
 
 bool config_highlight_holidays();
 

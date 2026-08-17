@@ -70,6 +70,7 @@
       "NUM_ENTRIES",
       "CURRENT_TEMP",
       "CITY",
+      "CONDITION",
       "SUN_EVENTS",
       "WATCH_HAS_FORECAST_DATA",
       "CLAY_CELSIUS",
@@ -88,7 +89,9 @@
       "CLAY_COLOR_SUNDAY",
       "CLAY_COLOR_US_FEDERAL",
       "CLAY_COLOR_TIME",
-      "CLAY_DAY_NIGHT_SHADING"
+      "CLAY_DAY_NIGHT_SHADING",
+      "CLAY_LIGHT_MODE",
+      "CLAY_WEATHER_STATUS_CONDITION"
     ]
   }
 }

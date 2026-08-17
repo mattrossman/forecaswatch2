@@ -3,7 +3,7 @@
 
 enum key {
     TEMP_LO, TEMP_HI, TEMP_TREND, PRECIP_TREND, FORECAST_START, CITY, SUN_EVENT_START_TYPE, SUN_EVENT_TIMES, NUM_ENTRIES,
-    CURRENT_TEMP, BATTERY_LEVEL, CONFIG
+    CURRENT_TEMP, BATTERY_LEVEL, CONFIG, CONDITION
 }; // Deprecated: BATTERY_LEVEL
 
 void persist_init() {
@@ -33,6 +33,9 @@ void persist_init() {
     if (!persist_exists(CITY)) {
         persist_write_string(CITY, "Koji");
     }
+    if (!persist_exists(CONDITION)) {
+        persist_write_string(CONDITION, "Unknown");
+    }
     if (!persist_exists(SUN_EVENT_START_TYPE)) {
         persist_write_int(SUN_EVENT_START_TYPE, 0);
     }
@@ -58,7 +61,9 @@ void persist_init() {
             .color_sunday = GColorFolly,
             .color_us_federal = GColorFolly,
             .color_time = GColorWhite,
-            .day_night_shading = true
+            .day_night_shading = true,
+            .light_mode = false,
+            .weather_status_condition = true
         };
         persist_set_config(config);
     }
@@ -94,6 +99,10 @@ int persist_get_current_temp() {
 
 int persist_get_city(char *buffer, const size_t buffer_size) {
     return persist_read_string(CITY, buffer, buffer_size);
+}
+
+int persist_get_condition(char *buffer, const size_t buffer_size) {
+    return persist_read_string(CONDITION, buffer, buffer_size);
 }
 
 int persist_get_sun_event_start_type() {
@@ -138,6 +147,10 @@ void persist_set_current_temp(int val) {
 
 void persist_set_city(char *val) {
     persist_write_string(CITY, val);
+}
+
+void persist_set_condition(char *val) {
+    persist_write_string(CONDITION, val);
 }
 
 void persist_set_sun_event_start_type(int val) {

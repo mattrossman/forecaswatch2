@@ -607,6 +607,9 @@ WeatherProvider.prototype.getPayload = function() {
         NUM_ENTRIES: this.numEntries,
         CURRENT_TEMP: Math.round(this.currentTemp),
         CITY: this.cityName,
+        CONDITION: typeof this.condition === 'string' && this.condition.trim() !== ''
+            ? this.condition.trim().slice(0, 31)
+            : 'Unknown',
         // The first byte determines whether the list of events starts on a sunrise (0) or sunset (1)
         SUN_EVENTS: [this.sunEvents[0].type === 'sunrise' ? 0 : 1].concat(sunEventsByteArray)
     };

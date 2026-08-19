@@ -266,6 +266,7 @@ Fixtures currently support:
 - `watchSettings.timeFormat`: watch-level time display preference, `"12h"` or `"24h"`.
 - `claySettings`: Clay-compatible settings keyed by `messageKey`, such as `"axisTimeFormat": "12h"`. Color settings use Pebble SDK color constants like `"GColorFolly"` from the Rebble color definitions: https://developer.rebble.io/docs/c/Graphics/Graphics_Types/Color_Definitions/
 - `weather.city`: weather status city label.
+- `weather.condition`: current weather condition displayed in the weather status row.
 - `weather.currentTemp`: current temperature in Fahrenheit.
 - `weather.startHour`: local hour for the first forecast entry; fixture prep converts it to the runtime forecast timestamp.
 - `weather.temps`: hourly Fahrenheit forecast values.

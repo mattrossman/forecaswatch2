@@ -28,7 +28,9 @@ static Config config_defaults(void) {
         .color_sunday = GColorFolly,
         .color_us_federal = GColorFolly,
         .color_time = GColorWhite,
-        .day_night_shading = true
+        .day_night_shading = true,
+        .light_mode = false,
+        .weather_status_condition = true
     };
 }
 
@@ -113,6 +115,34 @@ GFont config_time_font() {
     if (font_index < 0 || font_index >= font_count)
         font_index = TIME_FONT_ROBOTO;
     return fonts_get_system_font(font_keys[font_index]);
+}
+
+GColor config_background_color() {
+    return g_config->light_mode ? GColorWhite : GColorBlack;
+}
+
+GColor config_foreground_color() {
+    return g_config->light_mode ? GColorBlack : GColorWhite;
+}
+
+GColor config_secondary_color() {
+    return PBL_IF_COLOR_ELSE(g_config->light_mode ? GColorDarkGray : GColorLightGray,
+                             config_foreground_color());
+}
+
+GColor config_muted_color() {
+    return PBL_IF_COLOR_ELSE(g_config->light_mode ? GColorLightGray : GColorDarkGray,
+                             config_foreground_color());
+}
+
+GColor config_time_color() {
+#ifdef PBL_COLOR
+    return gcolor_equal(g_config->color_time, config_background_color())
+        ? config_foreground_color()
+        : g_config->color_time;
+#else
+    return config_foreground_color();
+#endif
 }
 
 bool config_highlight_holidays() {

@@ -9,14 +9,14 @@
       "second": 0
     },
     "battery": {
-      "percent": 100
+      "percent": 82
     }
   },
   "watchSettings": {
     "timeFormat": "12h"
   },
   "claySettings": {
-    "appearance": "dark",
+    "appearance": "light",
     "weatherStatusText": "condition",
     "axisTimeFormat": "12h",
     "colorSaturday": "GColorFolly",

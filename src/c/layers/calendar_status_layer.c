@@ -4,20 +4,19 @@
 #include "c/appendix/memory_log.h"
 #include "c/services/watch_services.h"
 
-#define BATTERY_W 29
-#define BATTERY_H 10
 #define PADDING 4
 #define MONTH_FONT_OFFSET 7
 #define ICON_SLOT_1 GRect(PADDING, 0, 10, 10)
 #define ICON_SLOT_2 GRect(PADDING * 2 + 10, 0, 10, 10)
 // emery: center icons in the taller status row.
 #ifdef PBL_PLATFORM_EMERY
+// emery: reserve extra width for the numeric battery percentage.
+#define BATTERY_W 46
 #define STATUS_ICON_Y(bounds_h, icon_h) (((bounds_h) - (icon_h)) / 2)
-#define BATTERY_Y(bounds_h) (((bounds_h) - BATTERY_H) / 2)
 #define MONTH_FONT_KEY FONT_KEY_GOTHIC_24
 #else
+#define BATTERY_W 29
 #define STATUS_ICON_Y(bounds_h, icon_h) ((void)(bounds_h), (void)(icon_h), 0)
-#define BATTERY_Y(bounds_h) ((void)(bounds_h), 1)
 #define MONTH_FONT_KEY FONT_KEY_GOTHIC_18
 #endif
 
@@ -29,6 +28,9 @@ static GBitmap *s_bt_disconnect_bitmap;
 static GColor s_bt_palette[2];
 static GColor s_bt_disconnect_palette[2];
 static GColor s_mute_palette[2];
+static bool s_bt_palette_initialized;
+static bool s_bt_disconnect_palette_initialized;
+static bool s_mute_palette_initialized;
 
 static GRect month_text_rect(GRect bounds, GFont font) {
 #ifdef PBL_PLATFORM_EMERY
@@ -46,7 +48,7 @@ static GRect month_text_rect(GRect bounds, GFont font) {
 
 static void draw_month_text(GContext *ctx, GRect bounds) {
     const GFont month_font = fonts_get_system_font(MONTH_FONT_KEY);
-    graphics_context_set_text_color(ctx, GColorWhite);
+    graphics_context_set_text_color(ctx, config_foreground_color());
     graphics_draw_text(
         ctx,
         s_calendar_month_text,
@@ -64,29 +66,44 @@ static void draw_bitmap(GContext *ctx, GBitmap *bitmap, GRect frame) {
 }
 
 static void ensure_mute_bitmap_loaded(void) {
+    GColor icon_color = config_foreground_color();
     if (!s_mute_bitmap) {
         s_mute_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_MUTE);
-        s_mute_palette[0] = GColorWhite;
+        s_mute_palette_initialized = false;
+    }
+    if (!s_mute_palette_initialized || !gcolor_equal(s_mute_palette[0], icon_color)) {
+        s_mute_palette[0] = icon_color;
         s_mute_palette[1] = GColorClear;
         gbitmap_set_palette(s_mute_bitmap, s_mute_palette, false);
+        s_mute_palette_initialized = true;
     }
 }
 
 static void ensure_bt_bitmap_loaded(void) {
+    GColor icon_color = PBL_IF_COLOR_ELSE(GColorPictonBlue, config_foreground_color());
     if (!s_bt_bitmap) {
         s_bt_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BT_CONNECT);
-        s_bt_palette[0] = PBL_IF_COLOR_ELSE(GColorPictonBlue, GColorWhite);
+        s_bt_palette_initialized = false;
+    }
+    if (!s_bt_palette_initialized || !gcolor_equal(s_bt_palette[0], icon_color)) {
+        s_bt_palette[0] = icon_color;
         s_bt_palette[1] = GColorClear;
         gbitmap_set_palette(s_bt_bitmap, s_bt_palette, false);
+        s_bt_palette_initialized = true;
     }
 }
 
 static void ensure_bt_disconnect_bitmap_loaded(void) {
+    GColor icon_color = PBL_IF_COLOR_ELSE(GColorRed, config_foreground_color());
     if (!s_bt_disconnect_bitmap) {
         s_bt_disconnect_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BT_DISCONNECT);
-        s_bt_disconnect_palette[0] = PBL_IF_COLOR_ELSE(GColorRed, GColorWhite);
+        s_bt_disconnect_palette_initialized = false;
+    }
+    if (!s_bt_disconnect_palette_initialized || !gcolor_equal(s_bt_disconnect_palette[0], icon_color)) {
+        s_bt_disconnect_palette[0] = icon_color;
         s_bt_disconnect_palette[1] = GColorClear;
         gbitmap_set_palette(s_bt_disconnect_bitmap, s_bt_disconnect_palette, false);
+        s_bt_disconnect_palette_initialized = true;
     }
 }
 
@@ -97,20 +114,24 @@ static void maybe_unload_calendar_status_bitmaps(bool show_qt, bool connected) {
     if (!show_qt && s_mute_bitmap) {
         gbitmap_destroy(s_mute_bitmap);
         s_mute_bitmap = NULL;
+        s_mute_palette_initialized = false;
     }
 
     if (!show_bt && s_bt_bitmap) {
         gbitmap_destroy(s_bt_bitmap);
         s_bt_bitmap = NULL;
+        s_bt_palette_initialized = false;
     }
 
     if (!show_bt_disconnect && s_bt_disconnect_bitmap) {
         gbitmap_destroy(s_bt_disconnect_bitmap);
         s_bt_disconnect_bitmap = NULL;
+        s_bt_disconnect_palette_initialized = false;
     }
 }
 
 static void calendar_status_update_proc(Layer *layer, GContext *ctx) {
+    MEMORY_LOG_HEAP("calendar_status_update:enter");
     GRect bounds = layer_get_bounds(layer);
     bool show_qt = show_qt_icon();
     bool connected = connection_service_peek_pebble_app_connection();
@@ -135,6 +156,7 @@ static void calendar_status_update_proc(Layer *layer, GContext *ctx) {
     }
 
     draw_month_text(ctx, bounds);
+    MEMORY_LOG_HEAP("calendar_status_update:exit");
 }
 
 void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
@@ -158,7 +180,7 @@ void calendar_status_layer_create(Layer* parent_layer, GRect frame) {
     MEMORY_HEAP_PROBE_SAMPLE("after_update_proc_set", &probe);
 
     battery_layer_create(s_calendar_status_layer,
-                         GRect(w - BATTERY_W - PADDING, BATTERY_Y(bounds.size.h), BATTERY_W, BATTERY_H));
+                         GRect(w - BATTERY_W - PADDING, 0, BATTERY_W, bounds.size.h));
     MEMORY_HEAP_PROBE_SAMPLE("after_battery_layer_create", &probe);
 
     layer_add_child(parent_layer, s_calendar_status_layer);
@@ -194,6 +216,7 @@ void calendar_status_layer_refresh() {
     struct tm tm_now = watch_services_localtime();
     strftime(s_calendar_month_text, sizeof(s_calendar_month_text), "%b %Y", &tm_now);
     status_icons_refresh();
+    battery_layer_refresh();
 }
 
 void calendar_status_layer_destroy() {
@@ -202,14 +225,17 @@ void calendar_status_layer_destroy() {
     if (s_mute_bitmap) {
         gbitmap_destroy(s_mute_bitmap);
         s_mute_bitmap = NULL;
+        s_mute_palette_initialized = false;
     }
     if (s_bt_bitmap) {
         gbitmap_destroy(s_bt_bitmap);
         s_bt_bitmap = NULL;
+        s_bt_palette_initialized = false;
     }
     if (s_bt_disconnect_bitmap) {
         gbitmap_destroy(s_bt_disconnect_bitmap);
         s_bt_disconnect_bitmap = NULL;
+        s_bt_disconnect_palette_initialized = false;
     }
     layer_destroy(s_calendar_status_layer);
     MEMORY_LOG_HEAP("calendar_status_layer_destroy:after");

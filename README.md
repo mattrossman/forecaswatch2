@@ -21,7 +21,7 @@ Open source revival of the beloved ForecasWatch watchface. This includes support
 ## Features
 
 * Current time
-* Battery indicator
+* Battery indicator (with numeric percentage on Pebble Time 2)
 * 3 week calendar
 * 24 hour weather forecast (updates every 30 minutes)
 * Bluetooth connection indicator
@@ -32,11 +32,12 @@ Open source revival of the beloved ForecasWatch watchface. This includes support
 * Current temperature
 * Temperature forecast (red line)
 * Precipitation probability forecast (blue area)
-* City where forecast was fetched
+* Current weather condition or forecast location
 * Next sunrise or sunset time
 * GPS or manual location entry
 * Fahrenheit and Celsius temperatures
 * Customize time font and color
+* Light and dark appearance
 * Customize colors for Sundays, Saturdays, and US federal holidays
 * Offline configuration page
 

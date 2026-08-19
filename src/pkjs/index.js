@@ -495,6 +495,8 @@ function sendClaySettings(onSuccess, onFailure) {
         "CLAY_COLOR_US_FEDERAL": app.settings.hasOwnProperty('colorUSFederal') ? app.settings.colorUSFederal : DEFAULT_COLOR_FOLLY,
         "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : DEFAULT_COLOR_WHITE,
         "CLAY_DAY_NIGHT_SHADING": app.settings.hasOwnProperty('dayNightShading') ? app.settings.dayNightShading : true,
+        "CLAY_LIGHT_MODE": app.settings.appearance === 'light',
+        "CLAY_WEATHER_STATUS_CONDITION": app.settings.weatherStatusText === 'condition',
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));
@@ -584,6 +586,8 @@ function getDefaultClaySettings() {
         fetch: false,
         location: '',
         temperatureUnits: 'f',
+        appearance: 'dark',
+        weatherStatusText: 'condition',
         dayNightShading: true,
         timeLeadingZero: false,
         timeShowAmPm: false,
@@ -822,6 +826,7 @@ function getFixtureWeatherPayload(fixture) {
     provider.id = 'fixture';
     provider.numEntries = Array.isArray(weather.temps) ? weather.temps.length : 0;
     provider.cityName = weather.city || 'Fixture City';
+    provider.condition = weather.condition || 'Unknown';
     provider.currentTemp = weather.currentTemp;
     provider.startTime = weather.startEpoch;
     provider.tempTrend = Array.isArray(weather.temps) ? weather.temps.slice(0) : [];

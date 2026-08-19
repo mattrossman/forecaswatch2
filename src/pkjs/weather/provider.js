@@ -561,9 +561,9 @@ WeatherProvider.prototype.fetch = function(onSuccess, onFailure, force) {
 
 WeatherProvider.prototype.hasValidData = function() {
     // all fields are set
-    if (this.hasOwnProperty('tempTrend') && this.hasOwnProperty('precipTrend') && this.hasOwnProperty('startTime') && this.hasOwnProperty('currentTemp')) {
+    if (this.hasOwnProperty('tempTrend') && this.hasOwnProperty('precipTrend') && this.hasOwnProperty('precipAmountTrend') && this.hasOwnProperty('uvIndexTrend') && this.hasOwnProperty('startTime') && this.hasOwnProperty('currentTemp')) {
         // trends are filled with enough data
-        if (this.tempTrend.length >= this.numEntries && this.precipTrend.length >= this.numEntries) {
+        if (this.tempTrend.length >= this.numEntries && this.precipTrend.length >= this.numEntries && this.precipAmountTrend.length >= this.numEntries && this.uvIndexTrend.length >= this.numEntries) {
             console.log('Data from ' + this.name + ' is good, ready to fetch.');
             return true;
         }
@@ -594,6 +594,8 @@ WeatherProvider.prototype.getPayload = function() {
     var precips = this.precipTrend.slice(0, this.numEntries).map(function(probability) {
         return Math.round(probability * 100);
     });
+    var precipAmounts = this.precipAmountTrend.slice(0, this.numEntries).map(precipAmountLevel);
+    var uvIndices = this.uvIndexTrend.slice(0, this.numEntries).map(uvIndexLevel);
     var tempsIntView = new Int16Array(temps);
     var tempsByteArray = Array.prototype.slice.call(new Uint8Array(tempsIntView.buffer));
     var sunEventsIntView = new Int32Array(this.sunEvents.map(function(sunEvent) {
@@ -603,6 +605,8 @@ WeatherProvider.prototype.getPayload = function() {
     var payload = {
         TEMP_TREND_INT16: tempsByteArray,
         PRECIP_TREND_UINT8: precips, // Holds values within [0,100]
+        PRECIP_AMOUNT_TREND_UINT8: precipAmounts, // Absolute precipitation intensity levels within [0,10]
+        UV_INDEX_TREND_UINT8: uvIndices, // Standard UV index levels clamped to [0,11]
         FORECAST_START: this.startTime,
         NUM_ENTRIES: this.numEntries,
         CURRENT_TEMP: Math.round(this.currentTemp),
@@ -612,6 +616,59 @@ WeatherProvider.prototype.getPayload = function() {
     };
     return payload;
 };
+
+/**
+ * Convert hourly precipitation amount in inches to a fixed ten-level intensity.
+ *
+ * @param {number} amount Hourly precipitation amount in inches.
+ * @returns {number} Absolute precipitation intensity level within [0,10].
+ */
+function precipAmountLevel(amount) {
+    if (amount <= 0) {
+        return 0;
+    }
+    if (amount <= 0.02) {
+        return 1;
+    }
+    if (amount <= 0.05) {
+        return 2;
+    }
+    if (amount <= 0.09) {
+        return 3;
+    }
+    if (amount <= 0.10) {
+        return 4;
+    }
+    if (amount <= 0.15) {
+        return 5;
+    }
+    if (amount <= 0.22) {
+        return 6;
+    }
+    if (amount <= 0.30) {
+        return 7;
+    }
+    if (amount <= 0.50) {
+        return 8;
+    }
+    if (amount <= 0.75) {
+        return 9;
+    }
+    return 10;
+}
+
+/**
+ * Round and clamp a UV index to the standard 0-11+ display range.
+ *
+ * @param {number} value Hourly UV index value.
+ * @returns {number} UV index level within [0,11].
+ */
+function uvIndexLevel(value) {
+    if (typeof value !== 'number' || !isFinite(value) || value <= 0) {
+        return 0;
+    }
+    return Math.min(11, Math.round(value));
+}
 
 WeatherProvider.request = request;
 

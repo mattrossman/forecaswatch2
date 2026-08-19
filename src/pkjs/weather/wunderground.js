@@ -1,6 +1,8 @@
 var WeatherProvider = require('./provider.js');
 var request = WeatherProvider.request;
 
+// API docs: https://developer.weather.com/docs/api-aggregation
+
 var WundergroundProvider = function() {
     this._super.call(this);
     this.name = 'Weather Underground';
@@ -13,7 +15,7 @@ WundergroundProvider.prototype._super = WeatherProvider;
 
 WundergroundProvider.prototype.withWundergroundForecast = function(lat, lon, apiKey, callback, onFailure) {
     // callback(wundergroundResponse)
-    var url = 'https://api.weather.com/v1/geocode/' + lat + '/' + lon + '/forecast/hourly/48hour.json?apiKey=' + apiKey + '&language=en-US';
+    var url = 'https://api.weather.com/v1/geocode/' + lat + '/' + lon + '/forecast/hourly/48hour.json?apiKey=' + apiKey + '&language=en-US&units=e';
 
     console.log('Requesting ' + url);
 
@@ -84,6 +86,7 @@ WundergroundProvider.prototype.clearApiKey = function() {
 
 WundergroundProvider.prototype.withApiKey = function(callback, onFailure) {
     // callback(apiKey)
+    // test with `await fetch('https://wunderground.com').then(x=>x.text()).then(x=>x.match(/observations\/current\?apiKey=([a-z0-9]*)/)[1])`
 
     var apiKey = localStorage.getItem('wundergroundApiKey');
     var url = 'https://www.wunderground.com/';
@@ -136,6 +139,12 @@ WundergroundProvider.prototype.withProviderData = function(lat, lon, force, onSu
                 });
                 this.precipTrend = forecast.map(function(entry) {
                     return entry.pop / 100.0;
+                });
+                this.precipAmountTrend = forecast.map(function(entry) {
+                    return entry.qpf || 0;
+                });
+                this.uvIndexTrend = forecast.map(function(entry) {
+                    return entry.uv_index || 0;
                 });
                 this.startTime = forecast[0].fcst_valid;
                 this.currentTemp = currentTemp;

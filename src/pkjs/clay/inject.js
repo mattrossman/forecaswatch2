@@ -39,6 +39,15 @@ module.exports = function (minified) {
         var attemptTime;
         var attemptText;
         var shouldShowLastAttempt;
+        var clayUvColoring;
+        var clayUvShape;
+        var clayUvFillColor;
+        var clayUvOutlineColor;
+        var clayShowUvIndex;
+        var clayPrecipAmountBars;
+        var clayPrecipAmountFillColor;
+        var clayPrecipAmountOutlineColor;
+        var clayPrecipAmountColoring;
 
         clayFetch = clayConfig.getItemByMessageKey('fetch');
         clayFetch.set(false);
@@ -47,9 +56,58 @@ module.exports = function (minified) {
         clayOwmApiKey = clayConfig.getItemByMessageKey('owmApiKey');
         clayProvider = clayConfig.getItemByMessageKey('provider');
         clayLocation = clayConfig.getItemByMessageKey('location');
+        clayUvColoring = clayConfig.getItemByMessageKey('uvIndexColoring');
+        clayUvShape = clayConfig.getItemByMessageKey('uvIndexShape');
+        clayUvFillColor = clayConfig.getItemByMessageKey('uvIndexFillColor');
+        clayUvOutlineColor = clayConfig.getItemByMessageKey('uvIndexOutlineColor');
+        clayShowUvIndex = clayConfig.getItemByMessageKey('showUvIndex');
+        clayPrecipAmountBars = clayConfig.getItemByMessageKey('precipAmountBars');
+        clayPrecipAmountFillColor = clayConfig.getItemByMessageKey('precipAmountFillColor');
+        clayPrecipAmountOutlineColor = clayConfig.getItemByMessageKey('precipAmountOutlineColor');
+        clayPrecipAmountColoring = clayConfig.getItemByMessageKey('precipAmountColoring');
         initProvider = clayProvider.get();
         initOwmApiKey = clayOwmApiKey.get();
         initLocation = clayLocation.get();
+
+        function updateUvOptions() {
+            var showUv = clayShowUvIndex.get();
+            var showCustomColors = showUv && clayUvColoring.get() === 'custom';
+            if (showUv) {
+                clayUvColoring.show();
+                clayUvShape.show();
+            }
+            else {
+                clayUvColoring.hide();
+                clayUvShape.hide();
+            }
+            if (showCustomColors) {
+                clayUvFillColor.show();
+                clayUvOutlineColor.show();
+            }
+            else {
+                clayUvFillColor.hide();
+                clayUvOutlineColor.hide();
+            }
+        }
+
+        updateUvOptions();
+        clayShowUvIndex.on('change', updateUvOptions);
+        clayUvColoring.on('change', updateUvOptions);
+
+        function updatePrecipAmountOptions() {
+            if (clayPrecipAmountBars.get() && clayPrecipAmountColoring.get() === 'custom') {
+                clayPrecipAmountFillColor.show();
+                clayPrecipAmountOutlineColor.show();
+            }
+            else {
+                clayPrecipAmountFillColor.hide();
+                clayPrecipAmountOutlineColor.hide();
+            }
+        }
+
+        updatePrecipAmountOptions();
+        clayPrecipAmountBars.on('change', updatePrecipAmountOptions);
+        clayPrecipAmountColoring.on('change', updatePrecipAmountOptions);
 
         // Configure default provide section layout
         if (initProvider !== 'openweathermap') {

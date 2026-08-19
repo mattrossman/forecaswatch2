@@ -1,6 +1,8 @@
 var WeatherProvider = require('./provider.js');
 var request = WeatherProvider.request;
 
+// API docs: https://docs.openweathermap.org/data/3.0/one-call-3
+
 var OpenWeatherMapProvider = function(apiKey) {
     this._super.call(this);
     this.name = 'OpenWeatherMap';
@@ -99,6 +101,13 @@ OpenWeatherMapProvider.prototype.withProviderData = function(lat, lon, force, on
         });
         this.precipTrend = weatherData.hourly.map(function(entry) {
             return entry.pop;
+        });
+        this.precipAmountTrend = weatherData.hourly.map(function(entry) {
+            // OpenWeatherMap exposes this field only in mm/h: https://openweathermap.org/api/one-call-3#current
+            return entry.rain && entry.rain['1h'] ? entry.rain['1h'] / 25.4 : 0;
+        });
+        this.uvIndexTrend = weatherData.hourly.map(function(entry) {
+            return typeof entry.uvi === 'number' ? entry.uvi : 0;
         });
         this.startTime = weatherData.hourly[0].dt;
         this.currentTemp = weatherData.current.temp;

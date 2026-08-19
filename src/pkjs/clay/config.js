@@ -180,6 +180,82 @@ module.exports = [
                 "description": "Show hatch shading between sunset and sunrise to distinguish day and night on the forecast graph."
             },
             {
+                "type": "toggle",
+                "label": "Precipitation amount bars",
+                "messageKey": "precipAmountBars",
+                "defaultValue": true
+            },
+            {
+                "type": "color",
+                "label": "Precipitation bar fill",
+                "messageKey": "precipAmountFillColor",
+                "defaultValue": "#00AA00",
+                "sunlight": false,
+                "capabilities": ["COLOR"]
+            },
+            {
+                "type": "select",
+                "label": "Precipitation bar coloring",
+                "messageKey": "precipAmountColoring",
+                "defaultValue": "default",
+                "options": [
+                    {"label": "Default green", "value": "default"},
+                    {"label": "Custom", "value": "custom"}
+                ]
+            },
+            {
+                "type": "color",
+                "label": "Precipitation bar outline",
+                "messageKey": "precipAmountOutlineColor",
+                "defaultValue": "#AAFFAA",
+                "sunlight": false,
+                "capabilities": ["COLOR"]
+            },
+            {
+                "type": "toggle",
+                "label": "Show UV index",
+                "messageKey": "showUvIndex",
+                "defaultValue": true
+            },
+            {
+                "type": "select",
+                "label": "UV index display",
+                "messageKey": "uvIndexShape",
+                "defaultValue": "diamond",
+                "options": [
+                    {"label": "Diamond", "value": "diamond"},
+                    {"label": "Circle", "value": "circle"},
+                    {"label": "High UV window", "value": "summary"}
+                ]
+            },
+            {
+                "type": "select",
+                "label": "UV index coloring",
+                "messageKey": "uvIndexColoring",
+                "defaultValue": "gradient",
+                "options": [
+                    {"label": "Purple", "value": "purple"},
+                    {"label": "UV category gradient", "value": "gradient"},
+                    {"label": "Custom", "value": "custom"}
+                ]
+            },
+            {
+                "type": "color",
+                "label": "UV index fill",
+                "messageKey": "uvIndexFillColor",
+                "defaultValue": "#5500AA",
+                "sunlight": false,
+                "capabilities": ["COLOR"]
+            },
+            {
+                "type": "color",
+                "label": "UV index outline",
+                "messageKey": "uvIndexOutlineColor",
+                "defaultValue": "#AA55FF",
+                "sunlight": false,
+                "capabilities": ["COLOR"]
+            },
+            {
                 "type": "radiogroup",
                 "label": "Provider",
                 "messageKey": "provider",

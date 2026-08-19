@@ -28,7 +28,16 @@ static Config config_defaults(void) {
         .color_sunday = GColorFolly,
         .color_us_federal = GColorFolly,
         .color_time = GColorWhite,
-        .day_night_shading = true
+        .day_night_shading = true,
+        .precip_amount_bars = true,
+        .show_uv_index = true,
+        .uv_index_shape = 2,
+        .uv_index_coloring = 1,
+        .uv_index_fill_color = GColorIndigo,
+        .uv_index_outline_color = GColorLavenderIndigo,
+        .precip_amount_fill_color = GColorIslamicGreen,
+        .precip_amount_outline_color = GColorMintGreen,
+        .precip_amount_coloring = 0
     };
 }
 

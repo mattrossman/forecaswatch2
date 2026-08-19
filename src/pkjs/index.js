@@ -495,6 +495,15 @@ function sendClaySettings(onSuccess, onFailure) {
         "CLAY_COLOR_US_FEDERAL": app.settings.hasOwnProperty('colorUSFederal') ? app.settings.colorUSFederal : DEFAULT_COLOR_FOLLY,
         "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : DEFAULT_COLOR_WHITE,
         "CLAY_DAY_NIGHT_SHADING": app.settings.hasOwnProperty('dayNightShading') ? app.settings.dayNightShading : true,
+        "CLAY_PRECIP_AMOUNT_BARS": app.settings.hasOwnProperty('precipAmountBars') ? app.settings.precipAmountBars : true,
+        "CLAY_SHOW_UV_INDEX": app.settings.hasOwnProperty('showUvIndex') ? app.settings.showUvIndex : true,
+        "CLAY_UV_INDEX_SHAPE": app.settings.uvIndexShape === 'circle' ? 0 : app.settings.uvIndexShape === 'summary' ? 2 : 1,
+        "CLAY_UV_INDEX_COLORING": app.settings.uvIndexColoring === 'purple' ? 0 : app.settings.uvIndexColoring === 'custom' ? 2 : 1,
+        "CLAY_UV_INDEX_FILL_COLOR": app.settings.hasOwnProperty('uvIndexFillColor') ? app.settings.uvIndexFillColor : 0x5500AA,
+        "CLAY_UV_INDEX_OUTLINE_COLOR": app.settings.hasOwnProperty('uvIndexOutlineColor') ? app.settings.uvIndexOutlineColor : 0xAA55FF,
+        "CLAY_PRECIP_AMOUNT_FILL_COLOR": app.settings.hasOwnProperty('precipAmountFillColor') ? app.settings.precipAmountFillColor : 0x00AA00,
+        "CLAY_PRECIP_AMOUNT_OUTLINE_COLOR": app.settings.hasOwnProperty('precipAmountOutlineColor') ? app.settings.precipAmountOutlineColor : 0xAAFFAA,
+        "CLAY_PRECIP_AMOUNT_COLORING": app.settings.precipAmountColoring === 'custom' ? 1 : 0,
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));
@@ -585,6 +594,15 @@ function getDefaultClaySettings() {
         location: '',
         temperatureUnits: 'f',
         dayNightShading: true,
+        precipAmountBars: true,
+        showUvIndex: true,
+        uvIndexShape: 'summary',
+        uvIndexColoring: 'gradient',
+        uvIndexFillColor: 0x5500AA,
+        uvIndexOutlineColor: 0xAA55FF,
+        precipAmountFillColor: 0x00AA00,
+        precipAmountOutlineColor: 0xAAFFAA,
+        precipAmountColoring: 'default',
         timeLeadingZero: false,
         timeShowAmPm: false,
         axisTimeFormat: '24h',
@@ -828,6 +846,10 @@ function getFixtureWeatherPayload(fixture) {
     provider.precipTrend = Array.isArray(weather.precipPct) ? weather.precipPct.map(function(probabilityPercent) {
         return probabilityPercent / 100.0;
     }) : [];
+    provider.precipAmountTrend = Array.isArray(weather.precipAmount) ? weather.precipAmount.slice(0) :
+        provider.tempTrend.map(function() { return 0; });
+    provider.uvIndexTrend = Array.isArray(weather.uvIndex) ? weather.uvIndex.slice(0) :
+        provider.tempTrend.map(function() { return 0; });
     provider.sunEvents = sunEvents;
 
     if (provider.numEntries <= 0 || sunEvents.length < 2 || !provider.hasValidData()) {

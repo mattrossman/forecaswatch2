@@ -14,6 +14,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     // Weather data
     Tuple *temp_trend_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_TREND_INT16);
     Tuple *precip_trend_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_TREND_UINT8);
+    Tuple *precip_amount_trend_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_AMOUNT_TREND_UINT8);
+    Tuple *uv_index_trend_tuple = dict_find(iterator, MESSAGE_KEY_UV_INDEX_TREND_UINT8);
     Tuple *forecast_start_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_START);
     Tuple *num_entries_tuple = dict_find(iterator, MESSAGE_KEY_NUM_ENTRIES);
     Tuple *current_temp_tuple = dict_find(iterator, MESSAGE_KEY_CURRENT_TEMP);
@@ -38,8 +40,17 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *clay_color_us_federal_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_US_FEDERAL);
     Tuple *clay_color_time_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_TIME);
     Tuple *clay_day_night_shading_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_DAY_NIGHT_SHADING);
+    Tuple *clay_precip_amount_bars_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_PRECIP_AMOUNT_BARS);
+    Tuple *clay_show_uv_index_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_SHOW_UV_INDEX);
+    Tuple *clay_uv_index_shape_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_UV_INDEX_SHAPE);
+    Tuple *clay_uv_index_coloring_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_UV_INDEX_COLORING);
+    Tuple *clay_uv_index_fill_color_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_UV_INDEX_FILL_COLOR);
+    Tuple *clay_uv_index_outline_color_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_UV_INDEX_OUTLINE_COLOR);
+    Tuple *clay_precip_amount_fill_color_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_PRECIP_AMOUNT_FILL_COLOR);
+    Tuple *clay_precip_amount_outline_color_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_PRECIP_AMOUNT_OUTLINE_COLOR);
+    Tuple *clay_precip_amount_coloring_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_PRECIP_AMOUNT_COLORING);
 
-    if(temp_trend_tuple && temp_trend_tuple && forecast_start_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
+    if(temp_trend_tuple && precip_trend_tuple && precip_amount_trend_tuple && uv_index_trend_tuple && forecast_start_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
         // Weather data received
         APP_LOG(APP_LOG_LEVEL_INFO, "All tuples received!");
         persist_set_forecast_start((time_t)forecast_start_tuple->value->int32);
@@ -55,6 +66,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         persist_set_temp_trend(temp_data, num_entries);
         uint8_t *precip_data = (uint8_t*) precip_trend_tuple->value->data;
         persist_set_precip_trend(precip_data, num_entries);
+        persist_set_precip_amount_trend((uint8_t*) precip_amount_trend_tuple->value->data, num_entries);
+        persist_set_uv_index_trend((uint8_t*) uv_index_trend_tuple->value->data, num_entries);
         persist_set_city((char*)city_tuple->value->cstring);
         int lo, hi;
         min_max(temp_data, num_entries, &lo, &hi);
@@ -74,7 +87,10 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     else if (clay_celsius_tuple && clay_time_lead_zero_tuple && clay_axis_12h_tuple && clay_start_mon_tuple && clay_prev_week_tuple
         && clay_color_today_tuple && clay_time_font_tuple && clay_vibe_tuple && clay_show_qt_tuple && clay_show_bt_tuple
         && clay_show_bt_disconnect_tuple && clay_show_am_pm_tuple && clay_color_saturday_tuple && clay_color_sunday_tuple
-        && clay_color_us_federal_tuple && clay_color_time_tuple && clay_day_night_shading_tuple) {
+        && clay_color_us_federal_tuple && clay_color_time_tuple && clay_day_night_shading_tuple && clay_precip_amount_bars_tuple
+        && clay_show_uv_index_tuple && clay_uv_index_shape_tuple && clay_uv_index_coloring_tuple
+        && clay_uv_index_fill_color_tuple && clay_uv_index_outline_color_tuple
+        && clay_precip_amount_fill_color_tuple && clay_precip_amount_outline_color_tuple && clay_precip_amount_coloring_tuple) {
         // Clay config data received
         bool clay_celsius = (bool) (clay_celsius_tuple->value->int16);
         bool time_lead_zero = (bool) (clay_time_lead_zero_tuple->value->int16);
@@ -87,6 +103,15 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         bool show_bt_disconnect = (bool) (clay_show_bt_disconnect_tuple->value->int16);
         bool show_am_pm = (bool) (clay_show_am_pm_tuple->value->int16);
         bool day_night_shading = (bool) (clay_day_night_shading_tuple->value->int16);
+        bool precip_amount_bars = (bool) (clay_precip_amount_bars_tuple->value->int16);
+        bool show_uv_index = (bool) (clay_show_uv_index_tuple->value->int16);
+        int16_t uv_index_shape = clay_uv_index_shape_tuple->value->int16;
+        int16_t uv_index_coloring = clay_uv_index_coloring_tuple->value->int16;
+        GColor uv_index_fill_color = GColorFromHEX(clay_uv_index_fill_color_tuple->value->int32);
+        GColor uv_index_outline_color = GColorFromHEX(clay_uv_index_outline_color_tuple->value->int32);
+        GColor precip_amount_fill_color = GColorFromHEX(clay_precip_amount_fill_color_tuple->value->int32);
+        GColor precip_amount_outline_color = GColorFromHEX(clay_precip_amount_outline_color_tuple->value->int32);
+        int16_t precip_amount_coloring = clay_precip_amount_coloring_tuple->value->int16;
         int16_t time_font = clay_time_font_tuple->value->int16;
         GColor color_today = GColorFromHEX(clay_color_today_tuple->value->int32);
         GColor color_saturday = GColorFromHEX(clay_color_saturday_tuple->value->int32);
@@ -110,7 +135,16 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
             .color_sunday = color_sunday,
             .color_us_federal = color_us_federal,
             .color_time = color_time,
-            .day_night_shading = day_night_shading
+            .day_night_shading = day_night_shading,
+            .precip_amount_bars = precip_amount_bars,
+            .show_uv_index = show_uv_index,
+            .uv_index_shape = uv_index_shape,
+            .uv_index_coloring = uv_index_coloring,
+            .uv_index_fill_color = uv_index_fill_color,
+            .uv_index_outline_color = uv_index_outline_color,
+            .precip_amount_fill_color = precip_amount_fill_color,
+            .precip_amount_outline_color = precip_amount_outline_color,
+            .precip_amount_coloring = precip_amount_coloring
         };
         persist_set_config(config);
         main_window_refresh();

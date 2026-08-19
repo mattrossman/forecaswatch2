@@ -26,6 +26,15 @@ typedef struct {
     GColor color_us_federal;
     GColor color_time;
     bool day_night_shading;
+    bool precip_amount_bars;
+    bool show_uv_index;
+    int16_t uv_index_shape;
+    int16_t uv_index_coloring;
+    GColor uv_index_fill_color;
+    GColor uv_index_outline_color;
+    GColor precip_amount_fill_color;
+    GColor precip_amount_outline_color;
+    int16_t precip_amount_coloring;
 } Config;
 
 extern Config *g_config;

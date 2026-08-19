@@ -192,7 +192,14 @@ static void draw_uv_trend_summary(GContext *ctx, GRect graph_bounds, GRect graph
     const int max_x = (max_start_x + max_end_x) / 2;
     const int max_y = uv_bottom - ((max_uv > 11 ? 11 : max_uv) * (uv_plot_h - 1)) / 11;
     const int label_y = max_uv >= 9 ? max_y + 2 : max_y - 16;
-    const GRect label_rect = GRect(max_x - 10, label_y, 20, 16);
+    const int label_w = 20;
+    int label_x = max_x - label_w / 2;
+    if (label_x < graph_bounds.origin.x) label_x = graph_bounds.origin.x;
+    if (label_x + label_w > graph_bounds.origin.x + graph_bounds.size.w)
+    {
+        label_x = graph_bounds.origin.x + graph_bounds.size.w - label_w;
+    }
+    const GRect label_rect = GRect(label_x, label_y, label_w, 16);
     const GColor label_color = PBL_IF_COLOR_ELSE(GColorWhite, GColorBlack);
     graphics_context_set_text_color(ctx, PBL_IF_COLOR_ELSE(GColorIndigo, GColorWhite));
     for (int dx = -1; dx <= 1; ++dx)

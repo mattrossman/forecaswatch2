@@ -11,7 +11,7 @@
 // emery: center icons in the taller status row.
 #ifdef PBL_PLATFORM_EMERY
 // emery: reserve extra width for the numeric battery percentage.
-#define BATTERY_W 42
+#define BATTERY_W 46
 #define STATUS_ICON_Y(bounds_h, icon_h) (((bounds_h) - (icon_h)) / 2)
 #define MONTH_FONT_KEY FONT_KEY_GOTHIC_24
 #else

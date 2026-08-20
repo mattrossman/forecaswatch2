@@ -648,7 +648,13 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
             const int bar_h = (precip_amounts[i] * amount_plot_h) / 10;
             if (bar_h > 0)
             {
-                const int bar_x = graph_bounds.origin.x + i * bar_slot_w + (bar_slot_w - bar_w) / 2;
+                const int reading_x = graph_bounds.origin.x + i * graph_w / span;
+                int bar_x = reading_x - bar_w / 2;
+                if (bar_x < graph_bounds.origin.x) bar_x = graph_bounds.origin.x;
+                if (bar_x + bar_w > graph_bounds.origin.x + graph_w)
+                {
+                    bar_x = graph_bounds.origin.x + graph_w - bar_w;
+                }
                 const GRect bar = GRect(bar_x, graph_plot_rect.origin.y + amount_plot_h - bar_h,
                                         bar_w, bar_h);
                 graphics_fill_rect(ctx, bar, 0, GCornerNone);

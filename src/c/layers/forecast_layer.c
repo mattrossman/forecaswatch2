@@ -3,6 +3,7 @@
 #include "c/appendix/math.h"
 #include "c/appendix/config.h"
 #include "c/appendix/memory_log.h"
+#include <string.h>
 
 #define LEFT_AXIS_LABEL_STRIP_MIN_W 15
 #define LEFT_AXIS_LABEL_TO_GRAPH_GAP 2
@@ -499,9 +500,15 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     int16_t temps[num_entries];
     uint8_t precips[num_entries];
     uint8_t precip_amounts[num_entries];
+    memset(precip_amounts, 0, sizeof(precip_amounts));
     persist_get_temp_trend(temps, num_entries);
     persist_get_precip_trend(precips, num_entries);
-    persist_get_precip_amount_trend(precip_amounts, num_entries);
+    const int precip_amount_bytes = persist_get_precip_amount_trend(precip_amounts, num_entries);
+    if (precip_amount_bytes != num_entries)
+    {
+        // Missing or truncated legacy data must render as no amount bars.
+        memset(precip_amounts, 0, sizeof(precip_amounts));
+    }
 
     // Allocate point arrays for plots
     // Calculate the temperature range

@@ -1,4 +1,8 @@
 {
+  "1.35.0": {
+    "title": "New in v1.35.0!",
+    "body": "The weather graph now shows precipitation amount bars, so you can see how much rain is expected in addition to the chance of rain.\n\nPrecipitation amount is enabled by default and can be turned off in the Weather section of the watchface settings."
+  },
   "1.33.0": {
     "title": "New in v1.33.0!",
     "body": "Pebble Time 2 is now natively supported.\n\nEnjoy your favorite watchface, optimized for the larger display."

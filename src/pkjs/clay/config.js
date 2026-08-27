@@ -181,9 +181,10 @@ module.exports = [
             },
             {
                 "type": "toggle",
-                "label": "Precipitation amount bars",
+                "label": "Precipitation amount",
                 "messageKey": "precipAmountBars",
-                "defaultValue": true
+                "defaultValue": true,
+                "description": "Show bars for the hourly precipitation amount. Shorter bars indicate lighter rain. Full-height bars indicate heavy rain above 0.75 in (19 mm) per hour."
             },
             {
                 "type": "radiogroup",

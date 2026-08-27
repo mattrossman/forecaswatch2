@@ -15,6 +15,8 @@ Flow:
 )
 - [Pebble Developer Dashboard (RePebble)](https://developer.repebble.com/dashboard)
 
+Use the [existing changelog](https://apps.repebble.com/forecaswatch-2_5dcdca6ac393f50cf6dbc264/changelog) as a reference when writing release notes.
+
 ## Screenshots
 
 Device frames and banner templates were originally obtained from [Appstore Assets](https://developer.rebble.io/guides/appstore-publishing/appstore-assets/) in Pebble docs.

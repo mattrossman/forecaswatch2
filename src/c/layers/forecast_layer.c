@@ -27,6 +27,8 @@
 #define NIGHT_HATCH_SPACING PBL_IF_COLOR_ELSE(6, 7)
 #define NIGHT_HATCH_COLOR GColorDarkGray
 #define PRECIP_FILL_COLOR PBL_IF_COLOR_ELSE(GColorCobaltBlue, GColorLightGray)
+#define PRECIP_AMOUNT_FILL_COLOR PBL_IF_COLOR_ELSE(GColorIslamicGreen, GColorBlack)
+#define PRECIP_AMOUNT_STROKE_COLOR PBL_IF_COLOR_ELSE(GColorMintGreen, GColorWhite)
 #define NIGHT_PRECIP_FILL_COLOR PBL_IF_COLOR_ELSE(GColorDukeBlue, GColorLightGray)
 #define NIGHT_HATCH_COLOR_PRECIP PBL_IF_COLOR_ELSE(GColorBlue, GColorWhite)
 #define NIGHT_BOUNDARY_COLOR PBL_IF_COLOR_ELSE(GColorDarkGray, GColorLightGray)
@@ -56,6 +58,7 @@ typedef struct
 typedef struct
 {
     bool draw_night_overlay;
+    bool draw_precip_amount_bars;
     GColor axis_color;
 } RenderSpec;
 
@@ -82,6 +85,7 @@ static RenderSpec make_render_spec()
 {
     RenderSpec spec = {
         .draw_night_overlay = g_config->day_night_shading,
+        .draw_precip_amount_bars = g_config->precip_amount_bars,
         .axis_color = PBL_IF_COLOR_ELSE(GColorOrange, GColorWhite)};
 
     if (spec.draw_night_overlay)
@@ -367,16 +371,14 @@ static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, t
             continue;
         }
 
-        if (is_color)
+        // Replace the base night hatch before drawing the precipitation-specific hatch.
+        graphics_context_set_fill_color(ctx, NIGHT_PRECIP_FILL_COLOR);
+        for (int16_t x = x0; x < x1; ++x)
         {
-            graphics_context_set_stroke_color(ctx, NIGHT_PRECIP_FILL_COLOR);
-            for (int16_t x = x0; x < x1; ++x)
+            const int16_t precip_y = clamped_precip_top_y_for_x(graph_plot_rect, points_precip, num_entries, x);
+            if (precip_y <= y_bottom_inclusive)
             {
-                const int16_t precip_y = clamped_precip_top_y_for_x(graph_plot_rect, points_precip, num_entries, x);
-                if (precip_y <= y_bottom_inclusive)
-                {
-                    graphics_draw_line(ctx, GPoint(x, precip_y), GPoint(x, y_bottom_inclusive));
-                }
+                graphics_fill_rect(ctx, GRect(x, precip_y, 1, y_bottom_inclusive - precip_y + 1), 0, GCornerNone);
             }
         }
 
@@ -388,6 +390,12 @@ static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, t
             for (int16_t y = hatch_y; y < y_bottom_exclusive; y += hatch_spacing)
             {
                 graphics_draw_pixel(ctx, GPoint(x, y));
+                if (!is_color && y + 1 < y_bottom_exclusive)
+                {
+                    // B&W gray is dithered, so a 1px diagonal can disappear.
+                    // Add pixel below to ensure at least one is visible.
+                    graphics_draw_pixel(ctx, GPoint(x, y + 1));
+                }
             }
         }
     }
@@ -426,8 +434,8 @@ static void draw_night_boundaries(GContext *ctx, GRect graph_plot_rect, time_t g
 }
 
 static void draw_night_boundaries_over_precip(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end,
-                                               const NightSegments *night_segments,
-                                               const GPoint *points_precip, int num_entries)
+                                              const NightSegments *night_segments,
+                                              const GPoint *points_precip, int num_entries)
 {
     if (!night_segments || night_segments->count == 0)
     {
@@ -490,8 +498,10 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     struct tm *forecast_start_local = localtime(&forecast_start);
     int16_t temps[num_entries];
     uint8_t precips[num_entries];
+    uint8_t precip_amounts[num_entries];
     persist_get_temp_trend(temps, num_entries);
     persist_get_precip_trend(precips, num_entries);
+    persist_get_precip_amount_trend(precip_amounts, num_entries);
 
     // Allocate point arrays for plots
     // Calculate the temperature range
@@ -622,6 +632,46 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     graphics_context_set_stroke_width(ctx, 1);
     gpath_draw_outline_open(ctx, &s_path_precip_top);
     MEMORY_HEAP_PROBE_SAMPLE("after_precip_top_draw", &redraw_probe);
+
+    // Draw absolute precipitation intensity bars above the probability area and outline.
+    if (render_spec.draw_precip_amount_bars && num_entries > 0)
+    {
+        const int amount_plot_h = graph_plot_rect.size.h;
+        graphics_context_set_fill_color(ctx, PRECIP_AMOUNT_FILL_COLOR);
+        graphics_context_set_stroke_color(ctx, PRECIP_AMOUNT_STROKE_COLOR);
+        graphics_context_set_stroke_width(ctx, 1);
+        const int bar_slot_w = graph_w / num_entries;
+        // emery: use the slimmer bars only on the wider display; smaller screens need the extra pixel.
+#ifdef PBL_PLATFORM_EMERY
+        const int bar_w = bar_slot_w > 3 ? bar_slot_w - 3 : 1;
+#else
+        const int bar_w = bar_slot_w > 2 ? bar_slot_w - 2 : 1;
+#endif
+        for (int i = 0; i < num_entries; ++i)
+        {
+            const int bar_h = (precip_amounts[i] * amount_plot_h) / 10;
+            if (bar_h > 0)
+            {
+                const int reading_x = graph_bounds.origin.x + i * graph_w / span;
+                int bar_x = reading_x - bar_w / 2;
+                if (bar_x < graph_bounds.origin.x)
+                    bar_x = graph_bounds.origin.x;
+                if (bar_x + bar_w > graph_bounds.origin.x + graph_w)
+                {
+                    bar_x = graph_bounds.origin.x + graph_w - bar_w;
+                }
+                const GRect bar = GRect(bar_x, graph_plot_rect.origin.y + amount_plot_h - bar_h,
+                                        bar_w, bar_h);
+                graphics_fill_rect(ctx, bar, 0, GCornerNone);
+                graphics_draw_line(ctx, GPoint(bar.origin.x, bar.origin.y),
+                                   GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y));
+                graphics_draw_line(ctx, GPoint(bar.origin.x, bar.origin.y),
+                                   GPoint(bar.origin.x, bar.origin.y + bar.size.h - 1));
+                graphics_draw_line(ctx, GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y),
+                                   GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y + bar.size.h - 1));
+            }
+        }
+    }
 
     // Draw the temperature line
     s_path_temp.num_points = num_entries;

@@ -180,6 +180,13 @@ module.exports = [
                 "description": "Show hatch shading between sunset and sunrise to distinguish day and night on the forecast graph."
             },
             {
+                "type": "toggle",
+                "label": "Precipitation amount",
+                "messageKey": "precipAmountBars",
+                "defaultValue": true,
+                "description": "Show bars for the hourly precipitation amount. Shorter bars indicate lighter rain. Full-height bars indicate heavy rain above 0.75 in (19 mm) per hour."
+            },
+            {
                 "type": "radiogroup",
                 "label": "Provider",
                 "messageKey": "provider",

@@ -371,16 +371,14 @@ static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, t
             continue;
         }
 
-        if (is_color)
+        // Replace the base night hatch before drawing the precipitation-specific hatch.
+        graphics_context_set_fill_color(ctx, NIGHT_PRECIP_FILL_COLOR);
+        for (int16_t x = x0; x < x1; ++x)
         {
-            graphics_context_set_stroke_color(ctx, NIGHT_PRECIP_FILL_COLOR);
-            for (int16_t x = x0; x < x1; ++x)
+            const int16_t precip_y = clamped_precip_top_y_for_x(graph_plot_rect, points_precip, num_entries, x);
+            if (precip_y <= y_bottom_inclusive)
             {
-                const int16_t precip_y = clamped_precip_top_y_for_x(graph_plot_rect, points_precip, num_entries, x);
-                if (precip_y <= y_bottom_inclusive)
-                {
-                    graphics_draw_line(ctx, GPoint(x, precip_y), GPoint(x, y_bottom_inclusive));
-                }
+                graphics_fill_rect(ctx, GRect(x, precip_y, 1, y_bottom_inclusive - precip_y + 1), 0, GCornerNone);
             }
         }
 
@@ -392,6 +390,12 @@ static void draw_night_hatch_over_precip(GContext *ctx, GRect graph_plot_rect, t
             for (int16_t y = hatch_y; y < y_bottom_exclusive; y += hatch_spacing)
             {
                 graphics_draw_pixel(ctx, GPoint(x, y));
+                if (!is_color && y + 1 < y_bottom_exclusive)
+                {
+                    // B&W gray is dithered, so a 1px diagonal can disappear.
+                    // Add pixel below to ensure at least one is visible.
+                    graphics_draw_pixel(ctx, GPoint(x, y + 1));
+                }
             }
         }
     }
@@ -430,8 +434,8 @@ static void draw_night_boundaries(GContext *ctx, GRect graph_plot_rect, time_t g
 }
 
 static void draw_night_boundaries_over_precip(GContext *ctx, GRect graph_plot_rect, time_t graph_start, time_t graph_end,
-                                               const NightSegments *night_segments,
-                                               const GPoint *points_precip, int num_entries)
+                                              const NightSegments *night_segments,
+                                              const GPoint *points_precip, int num_entries)
 {
     if (!night_segments || night_segments->count == 0)
     {
@@ -650,7 +654,8 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
             {
                 const int reading_x = graph_bounds.origin.x + i * graph_w / span;
                 int bar_x = reading_x - bar_w / 2;
-                if (bar_x < graph_bounds.origin.x) bar_x = graph_bounds.origin.x;
+                if (bar_x < graph_bounds.origin.x)
+                    bar_x = graph_bounds.origin.x;
                 if (bar_x + bar_w > graph_bounds.origin.x + graph_w)
                 {
                     bar_x = graph_bounds.origin.x + graph_w - bar_w;

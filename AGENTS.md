@@ -17,6 +17,14 @@ If you need runtime logs, `mise install-emulator --logs` runs it in an emulator 
 - If a UI element only exists to paint pixels, keep it as light as possible instead of modeling it as a full layer.
 - Avoid floating-point math and 64-bit division in watch-side C, prefer integer multiply-before-divide so linked software math helper code doesn't consume heap. See #163.
 
+## Persistence
+
+- Keep Pebble persistence keys stable. Append new keys only, initialize missing data, and check `persist_read_data()` byte counts.
+
+## Versioning
+
+- Pebble releases use `major.minor.0`, patch versioning is not supported.
+
 ## Code Conventions
 
 - For new JavaScript functions, add brief JSDoc (`@param`/`@returns`) annotations since this project does not use TypeScript.

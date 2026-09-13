@@ -27,7 +27,14 @@
     "axisTimeFormat": "12h",
     "colorSaturday": "GColorFolly",
     "colorSunday": "GColorFolly",
-    "colorUSFederal": "GColorFolly"
+    "colorUSFederal": "GColorFolly",
+    "topBand": "stats",
+    "statSlot1": "distance",
+    "statSlot2": "heartRate",
+    "statSlot3": "steps",
+    "statSlot4": "calories",
+    "statSlot5": "active",
+    "statSlot6": "uvIndex"
   },
   "weather": {
     "city": "Chicago",

@@ -4,6 +4,8 @@
 
 void calendar_layer_create(Layer* parent_layer, GRect frame);
 
+void calendar_layer_set_hidden(bool hidden);
+
 void calendar_layer_refresh();
 
 void calendar_layer_destroy();

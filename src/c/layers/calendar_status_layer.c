@@ -88,6 +88,10 @@ void status_icons_refresh() {
     layer_mark_dirty(s_calendar_status_layer);
 }
 
+void calendar_status_layer_set_hidden(bool hidden) {
+    layer_set_hidden(s_calendar_status_layer, hidden);
+}
+
 void calendar_status_layer_refresh() {
     struct tm tm_now = watch_services_localtime();
     strftime(s_calendar_month_text, sizeof(s_calendar_month_text), "%b %Y", &tm_now);

@@ -1,4 +1,5 @@
 var meta = require('../../../package.json');
+var statsSlots = require('./stats-slots.js');
 var versionLabel = "v" + meta.version + (meta.buildProfile === "dev" ? " (dev)" : "");
 
 module.exports = [
@@ -75,10 +76,84 @@ module.exports = [
         ]
     },
     {
+        // Gated on NOT_PLATFORM_APLITE rather than HEALTH: Clay's bundled
+        // capability table predates flint, so a HEALTH gate would wrongly hide
+        // this whole section on a Pebble 2 Duo.
+        "type": "section",
+        "capabilities": ["NOT_PLATFORM_APLITE"],
+        "items": [
+            {
+                "type": "heading",
+                "defaultValue": "Top band: calendar or health stats"
+            },
+            {
+                "type": "select",
+                "label": "Show in top band",
+                "messageKey": "topBand",
+                "defaultValue": "calendar",
+                "description": "Choose \"Health stats grid\" to replace the 3 week calendar with steps, distance, heart rate and so on. The grid also takes over the month/battery row above the calendar. Pick the metrics per slot below.",
+                "options": [
+                    { "label": "3 week calendar", "value": "calendar" },
+                    { "label": "Health stats grid", "value": "stats" }
+                ]
+            },
+            {
+                "type": "text",
+                "id": "statsGridLayout",
+                // Replaced in inject.js with the connected watch's grid size.
+                "defaultValue": "2x2 grid"
+            },
+            {
+                "type": "select",
+                "label": "Slot 1",
+                "messageKey": "statSlot1",
+                "defaultValue": "distance",
+                "options": statsSlots.SLOT_OPTIONS
+            },
+            {
+                "type": "select",
+                "label": "Slot 2",
+                "messageKey": "statSlot2",
+                "defaultValue": "heartRate",
+                "options": statsSlots.SLOT_OPTIONS
+            },
+            {
+                "type": "select",
+                "label": "Slot 3",
+                "messageKey": "statSlot3",
+                "defaultValue": "steps",
+                "options": statsSlots.SLOT_OPTIONS
+            },
+            {
+                "type": "select",
+                "label": "Slot 4",
+                "messageKey": "statSlot4",
+                "defaultValue": "calories",
+                "options": statsSlots.SLOT_OPTIONS
+            },
+            {
+                "type": "select",
+                "label": "Slot 5",
+                "messageKey": "statSlot5",
+                "defaultValue": "active",
+                "options": statsSlots.SLOT_OPTIONS
+            },
+            {
+                "type": "select",
+                "label": "Slot 6",
+                "messageKey": "statSlot6",
+                "defaultValue": "uvIndex",
+                "options": statsSlots.SLOT_OPTIONS
+            }
+        ]
+    },
+    {
         "type": "section",
         "items": [
             {
                 "type": "heading",
+                // inject.js marks it inactive while the stats grid is selected.
+                "id": "calendarHeading",
                 "defaultValue": "Calendar",
             },
             {

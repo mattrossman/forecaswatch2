@@ -2,6 +2,8 @@
 
 #include <pebble.h>
 
+#include "stats_metrics.h"
+
 enum TimeFont {
     TIME_FONT_ROBOTO = 0,
     TIME_FONT_LECO = 1,
@@ -27,9 +29,20 @@ typedef struct {
     GColor color_time;
     bool day_night_shading;
     bool precip_amount_bars;
+    /* Append new fields at the END only. persist_read_data copies
+       min(stored, sizeof(Config)) bytes, but an older blob also carries its
+       trailing padding, which can overlap new fields. config_read_or_default
+       resets fields the stored blob did not fully cover; extend that check
+       when appending. */
+    bool top_band_stats;
+    uint8_t stat_slots[STATS_MAX_SLOTS];
 } Config;
 
 extern Config *g_config;
+
+/* Exported so persist_init can seed the same defaults instead of duplicating
+   them, which is how the two lists used to drift. */
+Config config_defaults(void);
 
 void config_load();
 

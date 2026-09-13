@@ -255,6 +255,8 @@ Fixtures currently support:
 - `watch.now`: local date/time fields used for C-rendered time/date UI.
 - `watch.battery.percent`: battery level used for C-rendered battery UI, 0-100.
 - `watch.battery.charging`: optional battery charging/plugged state, `true` or `false`.
+- `watch.health`: optional health readings for the stats grid, since the emulator has no health data. When present it must define `steps`, `distance_meters`, `active_kcalories`, `active_minutes`, `active_typical_minutes` and `heart_rate` (integers; `0` heart rate renders as `--`).
+- `watch.health.distance_units`: optional unit picked in the Pebble app's Health settings, `"metric"` or `"imperial"`. Omit it to fall back to the temperature unit.
 - `watchSettings.timeFormat`: watch-level time display preference, `"12h"` or `"24h"`.
 - `claySettings`: Clay-compatible settings keyed by `messageKey`, such as `"axisTimeFormat": "12h"`. Color settings use Pebble SDK color constants like `"GColorFolly"` from the Rebble color definitions: https://developer.rebble.io/docs/c/Graphics/Graphics_Types/Color_Definitions/
 - `weather.city`: weather status city label.
@@ -263,6 +265,7 @@ Fixtures currently support:
 - `weather.temps`: hourly Fahrenheit forecast values.
 - `weather.precipPct`: hourly precipitation percentages, 0-100.
 - `weather.sunEvents`: the next two sun events as local fields, e.g. `{ "type": "sunset", "dayOffset": 0, "hour": 20, "minute": 10 }`.
+- `weather.uvIndex`: current UV index shown by the stats grid's UV tile.
 
 Minimal `.env`:
 

@@ -162,6 +162,7 @@ var WeatherProvider = function() {
     this.usedGpsCache = false;
     this.gpsErrorCode = null;
     this.locationMode = null;
+    this.uvIndex = null;
 };
 
 WeatherProvider.prototype.gpsEnable = function() {
@@ -608,12 +609,30 @@ WeatherProvider.prototype.getPayload = function() {
         FORECAST_START: this.startTime,
         NUM_ENTRIES: this.numEntries,
         CURRENT_TEMP: Math.round(this.currentTemp),
+        UV_INDEX: normalizeUv(this.uvIndex),
         CITY: this.cityName,
         // The first byte determines whether the list of events starts on a sunrise (0) or sunset (1)
         SUN_EVENTS: [this.sunEvents[0].type === 'sunrise' ? 0 : 1].concat(sunEventsByteArray)
     };
     return payload;
 };
+
+/**
+ * Normalize a provider UV index into the watch's 0-15 range.
+ *
+ * Deliberately not part of hasValidData(): providers and fixtures without a UV
+ * field must still be considered good, they just report unknown.
+ *
+ * @param {number|null|undefined} value Raw UV index from a provider.
+ * @returns {number} Clamped integer UV index, or -1 when unknown.
+ */
+function normalizeUv(value) {
+    if (typeof value !== 'number' || !isFinite(value)) {
+        return -1;
+    }
+
+    return Math.max(0, Math.min(15, Math.round(value)));
+}
 
 /**
  * Convert hourly precipitation amount in inches to a fixed ten-level intensity.

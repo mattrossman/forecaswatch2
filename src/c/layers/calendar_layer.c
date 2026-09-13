@@ -186,6 +186,10 @@ void calendar_layer_create(Layer* parent_layer, GRect frame) {
 }
 
 
+void calendar_layer_set_hidden(bool hidden) {
+    layer_set_hidden(s_calendar_layer, hidden);
+}
+
 void calendar_layer_refresh() {
     // Request redraw (of today's highlight)
     layer_mark_dirty(s_calendar_layer);

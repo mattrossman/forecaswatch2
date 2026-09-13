@@ -1,0 +1,62 @@
+{
+  "watch": {
+    "now": {
+      "year": 2026,
+      "month": 5,
+      "day": 14,
+      "hour": 12,
+      "minute": 34,
+      "second": 0
+    },
+    "battery": {
+      "percent": 100
+    },
+    "health": {
+      "steps": 5253,
+      "distance_meters": 4800,
+      "active_kcalories": 291,
+      "active_minutes": 24,
+      "heart_rate": 72,
+      "active_typical_minutes": 30
+    }
+  },
+  "watchSettings": {
+    "timeFormat": "12h"
+  },
+  "claySettings": {
+    "axisTimeFormat": "12h",
+    "colorSaturday": "GColorFolly",
+    "colorSunday": "GColorFolly",
+    "colorUSFederal": "GColorFolly",
+    "topBand": "stats",
+    "statSlot1": "distance",
+    "statSlot2": "heartRate",
+    "statSlot3": "steps",
+    "statSlot4": "calories",
+    "statSlot5": "active",
+    "statSlot6": "uvIndex"
+  },
+  "weather": {
+    "city": "Chicago",
+    "currentTemp": 52,
+    "startHour": 12,
+    "temps": [52, 53, 54, 56, 57, 57, 56, 54, 52, 50, 48, 47, 46, 45, 45, 46, 47, 48, 49, 50, 50, 51, 51, 52],
+    "precipPct": [6, 6, 6, 6, 7, 8, 12, 18, 28, 40, 52, 62, 66, 60, 48, 34, 14, 18, 22, 18, 12, 8, 6, 5],
+    "precipAmount": [0, 0, 0.01, 0.01, 0.02, 0.03, 0.05, 0.08, 0.12, 0.1, 0.07, 0.04, 0.02, 0.01, 0, 0, 0.01, 0.02, 0.03, 0.02, 0.01, 0, 0, 0],
+    "sunEvents": [
+      {
+        "type": "sunset",
+        "dayOffset": 0,
+        "hour": 20,
+        "minute": 10
+      },
+      {
+        "type": "sunrise",
+        "dayOffset": 1,
+        "hour": 5,
+        "minute": 28
+      }
+    ],
+    "uvIndex": 6
+  }
+}

@@ -14,7 +14,7 @@ static GBitmap *s_battery_power_bitmap;
 static GColor s_battery_palette[2];
 
 #ifdef PBL_COLOR
-static GColor get_battery_color(int level) {
+GColor battery_indicator_level_color(int level) {
     if (level >= 50)
         return GColorGreen;
     else if (level >= 30)
@@ -57,6 +57,14 @@ static bool battery_shows_power_icon(BatteryChargeState state) {
     return state.is_charging || state.is_plugged;
 }
 
+int battery_indicator_occupied_width(int frame_w) {
+    if (battery_shows_power_icon(watch_services_battery_state())) {
+        return frame_w;
+    }
+
+    return frame_w - (BATTERY_POWER_ICON_W + ICON_SPACING);
+}
+
 void battery_indicator_draw(GContext *ctx, GRect frame) {
     const int w = frame.size.w;
     const int h = frame.size.h;
@@ -79,7 +87,7 @@ void battery_indicator_draw(GContext *ctx, GRect frame) {
         color_bounds.origin.x, color_bounds.origin.y,
         color_bounds.size.w * (battery_level + 10) / 110, color_bounds.size.h);
 #ifdef PBL_COLOR
-    graphics_context_set_fill_color(ctx, get_battery_color(battery_level));
+    graphics_context_set_fill_color(ctx, battery_indicator_level_color(battery_level));
 #else
     graphics_context_set_fill_color(ctx, GColorWhite);
 #endif

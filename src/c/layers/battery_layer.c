@@ -2,6 +2,7 @@
 #include "c/appendix/persist.h"
 #include "c/appendix/memory_log.h"
 #include "c/appendix/battery_indicator.h"
+#include "stats_layer.h"
 #include "c/services/watch_services.h"
 
 static Layer *s_battery_layer;
@@ -9,6 +10,9 @@ static bool s_battery_subscribed;
 
 static void battery_state_handler(BatteryChargeState charge) {
     battery_layer_refresh();
+    /* This layer is hidden in stats mode, so its redraw alone would leave the
+       grid's gauge and battery tile stale until the next minute tick. */
+    stats_layer_refresh();
 }
 
 static void battery_update_proc(Layer *layer, GContext *ctx) {

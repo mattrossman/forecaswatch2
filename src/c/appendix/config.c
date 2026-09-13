@@ -3,6 +3,8 @@
 #include "math.h"
 #include "memory_log.h"
 #include "c/services/watch_services.h"
+#include <stddef.h>
+#include <string.h>
 
 Config *g_config;
 
@@ -10,7 +12,7 @@ Config *g_config;
 // GColorBlack expand to "compound literals" — C's syntax for inline struct values.
 // The C standard doesn't allow these in static variable initializers, so we use a
 // function instead. See: https://gcc.gnu.org/onlinedocs/gcc/Compound-Literals.html
-static Config config_defaults(void) {
+Config config_defaults(void) {
     return (Config) {
         .celsius = false,
         .time_lead_zero = false,
@@ -29,13 +31,37 @@ static Config config_defaults(void) {
         .color_us_federal = GColorFolly,
         .color_time = GColorWhite,
         .day_night_shading = true,
-        .precip_amount_bars = true
+        .precip_amount_bars = true,
+        .top_band_stats = false,
+        /* Slot order matches the settings page: top row then bottom row.
+           Heart rate is slot 2, so on watches without the sensor it renders
+           "--" until the user picks something else. */
+        .stat_slots = {
+            STAT_METRIC_DISTANCE,
+            STAT_METRIC_HEART_RATE,
+            STAT_METRIC_STEPS,
+            STAT_METRIC_CALORIES,
+            STAT_METRIC_ACTIVE,
+            STAT_METRIC_UV_INDEX
+        }
     };
 }
 
 static void config_read_or_default(Config *config) {
-    *config = config_defaults();
-    persist_get_config(config);
+    const Config defaults = config_defaults();
+    *config = defaults;
+    const int read = persist_get_config(config);
+
+    /* Blobs from before the stats view are 20 bytes: 19 bytes of fields plus a
+       padding byte that now holds top_band_stats. That byte was never
+       initialised, so a short blob must not decide the new fields. */
+    if (read < (int) (offsetof(Config, stat_slots) + sizeof(config->stat_slots))) {
+        config->top_band_stats = defaults.top_band_stats;
+        memcpy(config->stat_slots, defaults.stat_slots, sizeof(config->stat_slots));
+    }
+    /* Read the raw byte: testing a bool that holds neither 0 nor 1 is undefined. */
+    const uint8_t raw_top_band_stats = ((const uint8_t *) config)[offsetof(Config, top_band_stats)];
+    config->top_band_stats = (raw_top_band_stats != 0);
 }
 
 void config_load() {

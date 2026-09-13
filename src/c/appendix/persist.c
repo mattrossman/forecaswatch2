@@ -4,7 +4,7 @@
 enum key {
     // Keep existing values stable: Pebble persistent storage is keyed by these numbers.
     TEMP_LO, TEMP_HI, TEMP_TREND, PRECIP_TREND, FORECAST_START, CITY, SUN_EVENT_START_TYPE, SUN_EVENT_TIMES, NUM_ENTRIES,
-    CURRENT_TEMP, BATTERY_LEVEL, CONFIG, PRECIP_AMOUNT_TREND
+    CURRENT_TEMP, BATTERY_LEVEL, CONFIG, PRECIP_AMOUNT_TREND, UV_INDEX
 }; // Deprecated: BATTERY_LEVEL
 
 void persist_init() {
@@ -45,28 +45,12 @@ void persist_init() {
         uint32_t data[] = {0, 0};
         persist_write_data(SUN_EVENT_TIMES, (void*) data, 2*sizeof(uint32_t));
     }
+    if (!persist_exists(UV_INDEX)) {
+        persist_write_int(UV_INDEX, -1);  // -1 = unknown
+    }
     if (!persist_exists(CONFIG)) {
-        Config config = (Config) {
-            .celsius = false,
-            .time_lead_zero = false,
-            .axis_12h = false,
-            .start_mon = false,
-            .prev_week = true,
-            .time_font = TIME_FONT_ROBOTO,
-            .color_today = GColorBlack,
-            .show_qt = true,
-            .show_bt = true,
-            .show_bt_disconnect = true,
-            .vibe = false,
-            .show_am_pm = false,
-            .color_saturday = GColorFolly,
-            .color_sunday = GColorFolly,
-            .color_us_federal = GColorFolly,
-            .color_time = GColorWhite,
-            .day_night_shading = true,
-            .precip_amount_bars = true
-        };
-        persist_set_config(config);
+        /* Single source of defaults; this used to be a second copy that drifted. */
+        persist_set_config(config_defaults());
     }
 }
 
@@ -112,6 +96,10 @@ int persist_get_sun_event_start_type() {
 
 int persist_get_sun_event_times(time_t *buffer, const size_t buffer_size) {
     return persist_read_data(SUN_EVENT_TIMES, (void*) buffer, buffer_size * sizeof(time_t));
+}
+
+int persist_get_uv_index() {
+    return persist_read_int(UV_INDEX);
 }
 
 int persist_get_config(Config *config) {
@@ -160,6 +148,10 @@ void persist_set_sun_event_start_type(int val) {
 
 void persist_set_sun_event_times(time_t *data, const size_t size) {
     persist_write_data(SUN_EVENT_TIMES, (void*) data, size * sizeof(time_t));
+}
+
+void persist_set_uv_index(int val) {
+    persist_write_int(UV_INDEX, val);
 }
 
 void persist_set_config(Config config) {

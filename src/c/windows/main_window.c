@@ -8,6 +8,7 @@
 #include "c/appendix/app_message.h"
 #include "c/appendix/persist.h"
 #include "c/appendix/memory_log.h"
+#include "c/appendix/config.h"
 
 #define FORECAST_HEIGHT 51
 #define WEATHER_STATUS_HEIGHT 14
@@ -36,6 +37,16 @@ static void compute_content_layout(int content_h, int *calendar_h, int *time_h, 
     *forecast_h = content_h - *calendar_h - *time_h;
 }
 #endif
+
+/* The connection service lives here rather than in a layer, so the disconnect
+   vibration does not depend on which top-band layer is showing. */
+static void bluetooth_callback(bool connected) {
+    status_icons_refresh();
+
+    if (!connected && g_config->vibe) {
+        vibes_double_pulse();
+    }
+}
 
 static void main_window_load(Window *window) {
     // Get information about the Window
@@ -83,6 +94,10 @@ static void main_window_load(Window *window) {
     loading_layer_create(window_layer,
             GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, w, FORECAST_HEIGHT + WEATHER_STATUS_HEIGHT));
 #endif
+    connection_service_subscribe((ConnectionHandlers) {
+        .pebble_app_connection_handler = bluetooth_callback
+    });
+
     loading_layer_refresh();
     app_message_send_startup_state(loading_layer_has_valid_data());
     MEMORY_LOG_HEAP("after_window_load");
@@ -90,6 +105,7 @@ static void main_window_load(Window *window) {
 
 static void main_window_unload(Window *window) {
     MEMORY_LOG_HEAP("before_window_unload");
+    connection_service_unsubscribe();
     time_layer_destroy();
     weather_status_layer_destroy();
     forecast_layer_destroy();

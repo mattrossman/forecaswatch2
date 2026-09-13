@@ -8,6 +8,8 @@
 #include "c/appendix/stats_metrics.h"
 #include "c/appendix/status_icons.h"
 #include "c/appendix/battery_indicator.h"
+#include "c/services/watch_services.h"
+#include <string.h>
 
 #define CELL_PAD_X 3
 #define CELL_PAD_Y 0
@@ -40,7 +42,27 @@
 #endif
 #define LABEL_FONT_KEY FONT_KEY_GOTHIC_09
 
+// emery: the heart rate tile draws the last hour as a line behind its value.
+#ifdef PBL_PLATFORM_EMERY
+#define HR_GRAPH_POINTS 30
+/* Resting heart rate is only logged every few minutes, so a fresher read shows
+   nothing new; the history read is a firmware call worth rationing. */
+#define HR_GRAPH_REFRESH_S (5 * 60)
+/* A steady resting pulse varies by a few BPM; without a floor on the range the
+   line would magnify that noise into full-height spikes. */
+#define HR_GRAPH_MIN_SPAN 20
+#define HR_GRAPH_INSET_Y 2
+#define HR_GRAPH_COLOR GColorDarkCandyAppleRed
+#endif
+
 static Layer *s_stats_layer;
+
+#ifdef PBL_PLATFORM_EMERY
+static uint8_t s_hr_points[HR_GRAPH_POINTS];
+static int s_hr_valid;
+static time_t s_hr_fetched_at;
+static bool s_hr_fetched;
+#endif
 
 /* Derive both edges from the bounds so the odd pixel of a 45px band lands in the
    bottom row instead of being dropped. */
@@ -188,6 +210,64 @@ static void draw_label(GContext *ctx, const char *label, GRect cell, int y, int 
                        GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
 }
 
+#ifdef PBL_PLATFORM_EMERY
+/* Read lazily from the update proc, so a hidden grid or a layout without the
+   heart rate tile never touches the health history. */
+static void hr_graph_refresh_cache(void) {
+    const time_t now = watch_services_now();
+    if (s_hr_fetched && now >= s_hr_fetched_at && now - s_hr_fetched_at < HR_GRAPH_REFRESH_S) {
+        return;
+    }
+
+    s_hr_fetched = true;
+    s_hr_fetched_at = now;
+    s_hr_valid = watch_services_health_heart_rate_history(s_hr_points, HR_GRAPH_POINTS);
+}
+
+static void draw_hr_graph(GContext *ctx, GRect area) {
+    hr_graph_refresh_cache();
+    if (s_hr_valid < 2 || area.size.w < 2 || area.size.h < 2) {
+        return;
+    }
+
+    int lo = 255;
+    int hi = 0;
+    for (int i = 0; i < HR_GRAPH_POINTS; ++i) {
+        if (s_hr_points[i]) {
+            lo = s_hr_points[i] < lo ? s_hr_points[i] : lo;
+            hi = s_hr_points[i] > hi ? s_hr_points[i] : hi;
+        }
+    }
+    if (hi - lo < HR_GRAPH_MIN_SPAN) {
+        lo = (lo + hi - HR_GRAPH_MIN_SPAN) / 2;
+        hi = lo + HR_GRAPH_MIN_SPAN;
+    }
+    const int span = hi - lo;
+
+    graphics_context_set_stroke_color(ctx, HR_GRAPH_COLOR);
+    graphics_context_set_stroke_width(ctx, 1);
+
+    /* Gaps between readings are bridged; the line starts and ends at the first
+       and last real reading instead of dropping to zero. */
+    bool have_prev = false;
+    GPoint prev = GPointZero;
+    for (int i = 0; i < HR_GRAPH_POINTS; ++i) {
+        if (!s_hr_points[i]) {
+            continue;
+        }
+
+        const GPoint point = GPoint(
+            area.origin.x + (i * (area.size.w - 1)) / (HR_GRAPH_POINTS - 1),
+            area.origin.y + area.size.h - 1 - ((s_hr_points[i] - lo) * (area.size.h - 1)) / span);
+        if (have_prev) {
+            graphics_draw_line(ctx, prev, point);
+        }
+        prev = point;
+        have_prev = true;
+    }
+}
+#endif
+
 static void draw_tile(GContext *ctx, GRect cell, StatMetricId id, const TileLayout *layout,
                       int label_min_x, int label_max_x) {
     if (id == STAT_METRIC_NONE) {
@@ -200,6 +280,14 @@ static void draw_tile(GContext *ctx, GRect cell, StatMetricId id, const TileLayo
     }
 
     const StatSample sample = stats_metric_sample(id);
+
+    // emery: the heart rate history goes down first so title and value stay on top.
+#ifdef PBL_PLATFORM_EMERY
+    if (id == STAT_METRIC_HEART_RATE && strcmp(sample.text, "--") != 0) {
+        draw_hr_graph(ctx, GRect(inner.origin.x, cell.origin.y + HR_GRAPH_INSET_Y,
+                                 inner.size.w, cell.size.h - HR_GRAPH_INSET_Y * 2));
+    }
+#endif
 
     int y = tile_text_top(cell, layout);
 

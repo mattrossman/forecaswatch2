@@ -1,4 +1,5 @@
 #include "watch_services.h"
+#include <stdlib.h>
 
 #ifdef FCW2_FIXTURE_NOW_YEAR
 static bool is_leap_year(int year) {
@@ -207,3 +208,92 @@ int32_t watch_services_health_heart_rate(void) {
     return WATCH_HEALTH_UNAVAILABLE;
 #endif
 }
+
+// emery: only the heart rate graph on the 3-column grid reads the history.
+#ifdef PBL_PLATFORM_EMERY
+
+#if defined(FCW2_HEALTH_IS_FIXTURE) || defined(PBL_HEALTH)
+typedef struct {
+    uint16_t sum[WATCH_HR_HISTORY_MINUTES];
+    uint8_t n[WATCH_HR_HISTORY_MINUTES];
+} HeartRateBuckets;
+
+/* `minute` counts from the start of the hour-long window; readings outside it
+   and minutes without a reading are ignored. */
+static void hr_buckets_add(HeartRateBuckets *buckets, int count, int minute, int bpm) {
+    if (minute < 0 || minute >= WATCH_HR_HISTORY_MINUTES || bpm <= 0) {
+        return;
+    }
+
+    const int index = (minute * count) / WATCH_HR_HISTORY_MINUTES;
+    buckets->sum[index] += (uint16_t) bpm;
+    buckets->n[index] += 1;
+}
+
+static int hr_buckets_finish(const HeartRateBuckets *buckets, uint8_t *points, int count) {
+    int valid = 0;
+    for (int i = 0; i < count; ++i) {
+        points[i] = buckets->n[i] ? (uint8_t) (buckets->sum[i] / buckets->n[i]) : 0;
+        if (points[i]) {
+            ++valid;
+        }
+    }
+
+    return valid;
+}
+#endif
+
+int watch_services_health_heart_rate_history(uint8_t *points, int count) {
+    if (count <= 0 || count > WATCH_HR_HISTORY_MINUTES) {
+        return WATCH_HEALTH_UNAVAILABLE;
+    }
+
+#if defined(FCW2_HEALTH_IS_FIXTURE)
+#ifdef FCW2_FIXTURE_HEALTH_HR_HISTORY
+    /* Fixture minutes end at "now", so a short list fills the newest minutes. */
+    static const uint8_t fixture_minutes[] = FCW2_FIXTURE_HEALTH_HR_HISTORY;
+    const int len = (int) ARRAY_LENGTH(fixture_minutes);
+    HeartRateBuckets buckets = {0};
+    for (int i = 0; i < len; ++i) {
+        hr_buckets_add(&buckets, count, WATCH_HR_HISTORY_MINUTES - len + i, fixture_minutes[i]);
+    }
+    return hr_buckets_finish(&buckets, points, count);
+#else
+    (void) points;
+    return WATCH_HEALTH_UNAVAILABLE;
+#endif
+#elif defined(PBL_HEALTH)
+    const time_t window_start = watch_services_now() - WATCH_HR_HISTORY_MINUTES * 60;
+    time_t start = window_start;
+    time_t end = window_start + WATCH_HR_HISTORY_MINUTES * 60;
+    if (!(health_service_metric_accessible(HealthMetricHeartRateBPM, start, end)
+          & HealthServiceAccessibilityMaskAvailable)) {
+        return WATCH_HEALTH_UNAVAILABLE;
+    }
+
+    /* Heap, not stack: 60 records are about a kilobyte and only live for this call. */
+    HealthMinuteData *minutes = malloc(sizeof(HealthMinuteData) * WATCH_HR_HISTORY_MINUTES);
+    if (!minutes) {
+        return WATCH_HEALTH_UNAVAILABLE;
+    }
+
+    const uint32_t returned = health_service_get_minute_history(minutes, WATCH_HR_HISTORY_MINUTES,
+                                                                &start, &end);
+    HeartRateBuckets buckets = {0};
+    /* The firmware may hand back a shifted range, so place each record by the
+       start time it reports rather than by where it was asked to begin. */
+    const int first_minute = (int) (start - window_start) / 60;
+    for (uint32_t i = 0; i < returned; ++i) {
+        if (!minutes[i].is_invalid) {
+            hr_buckets_add(&buckets, count, first_minute + (int) i, minutes[i].heart_rate_bpm);
+        }
+    }
+    free(minutes);
+    return hr_buckets_finish(&buckets, points, count);
+#else
+    (void) points;
+    return WATCH_HEALTH_UNAVAILABLE;
+#endif
+}
+
+#endif /* PBL_PLATFORM_EMERY */

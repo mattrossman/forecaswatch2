@@ -28,7 +28,7 @@ Open source revival of the beloved ForecasWatch watchface. This includes support
 * Vibrate on disconnect
 * Quiet time indicator
 * Night shading
-* Multiple weather providers (Weather Underground*, OpenWeatherMap)
+* Multiple weather providers (Weather Underground*, OpenWeatherMap, Open-Meteo)
 * Current temperature
 * Temperature forecast (red line)
 * Precipitation probability forecast (blue area)
@@ -41,6 +41,8 @@ Open source revival of the beloved ForecasWatch watchface. This includes support
 * Offline configuration page
 
 *\* Using a hacky workaround*
+
+Open-Meteo weather data by [Open-Meteo.com](https://open-meteo.com/), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
 ## Platforms
 

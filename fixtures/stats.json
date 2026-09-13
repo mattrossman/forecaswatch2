@@ -17,7 +17,8 @@
       "active_kcalories": 291,
       "active_minutes": 24,
       "heart_rate": 72,
-      "active_typical_minutes": 30
+      "active_typical_minutes": 30,
+      "heart_rate_history": [66, 65, 67, 66, 0, 0, 68, 67, 69, 70, 72, 75, 79, 84, 88, 92, 95, 94, 93, 90, 86, 0, 0, 0, 80, 76, 73, 71, 70, 68, 67, 66, 65, 66, 64, 63, 64, 65, 0, 0, 66, 67, 69, 70, 71, 73, 75, 74, 72, 71, 70, 69, 70, 72, 73, 72, 71, 72, 73, 72]
     }
   },
   "watchSettings": {

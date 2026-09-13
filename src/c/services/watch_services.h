@@ -27,3 +27,13 @@ int32_t watch_services_health_active_minutes(void);
 int32_t watch_services_health_active_typical_minutes(void);
 int32_t watch_services_health_heart_rate(void);
 
+/* The last hour of heart rate, oldest first, folded into `count` equal buckets
+   holding the average BPM of that bucket's readings (0 where there were none).
+   Reads only what the firmware already logged; it never asks the sensor for
+   more samples. Returns how many buckets hold a reading, or
+   WATCH_HEALTH_UNAVAILABLE. Costs a firmware call, so callers should cache.
+   emery: only built there, as the heart rate graph is its sole caller. */
+#ifdef PBL_PLATFORM_EMERY
+#define WATCH_HR_HISTORY_MINUTES 60
+int watch_services_health_heart_rate_history(uint8_t *points, int count);
+#endif

@@ -118,6 +118,15 @@ def build(ctx):
                 if not (0 <= value <= limit):
                     ctx.fatal('Fixture watch.health.{} must be 0-{}'.format(field, limit))
                 fixture_health[field] = value
+            # Optional per-minute heart rate, oldest first, ending at watch.now.
+            hr_history = health_fixture.get('heart_rate_history')
+            if hr_history is not None:
+                if not isinstance(hr_history, list) or not (1 <= len(hr_history) <= 60):
+                    ctx.fatal('Fixture watch.health.heart_rate_history must be a list of 1-60 integers')
+                for value in hr_history:
+                    if not isinstance(value, int) or not (0 <= value <= 250):
+                        ctx.fatal('Fixture watch.health.heart_rate_history values must be integers 0-250')
+                fixture_health['heart_rate_history'] = hr_history
             # Optional Health settings distance unit; absent means "not picked".
             distance_units = health_fixture.get('distance_units')
             if distance_units is not None:
@@ -157,6 +166,9 @@ def build(ctx):
                 '-DFCW2_FIXTURE_HEALTH_{}={}'.format(field.upper(), fixture_health[field])
                 for field, _ in FIXTURE_HEALTH_FIELDS
             ]
+            if 'heart_rate_history' in fixture_health:
+                ctx.env.CFLAGS += ['-DFCW2_FIXTURE_HEALTH_HR_HISTORY={{{}}}'.format(
+                    ','.join(str(value) for value in fixture_health['heart_rate_history']))]
             if 'distance_units' in fixture_health:
                 ctx.env.CFLAGS += ['-DFCW2_FIXTURE_HEALTH_DISTANCE_UNITS={}'.format(
                     'MeasurementSystemMetric' if fixture_health['distance_units'] == 'metric'

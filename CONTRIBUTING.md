@@ -257,6 +257,7 @@ Fixtures currently support:
 - `watch.battery.charging`: optional battery charging/plugged state, `true` or `false`.
 - `watch.health`: optional health readings for the stats grid, since the emulator has no health data. When present it must define `steps`, `distance_meters`, `active_kcalories`, `active_minutes`, `active_typical_minutes` and `heart_rate` (integers; `0` heart rate renders as `--`).
 - `watch.health.distance_units`: optional unit picked in the Pebble app's Health settings, `"metric"` or `"imperial"`. Omit it to fall back to the temperature unit.
+- `watch.health.heart_rate_history`: optional per-minute BPM for the last hour, oldest first, up to 60 integers 0-250; `0` means no reading. Drives the emery heart rate graph.
 - `watchSettings.timeFormat`: watch-level time display preference, `"12h"` or `"24h"`.
 - `claySettings`: Clay-compatible settings keyed by `messageKey`, such as `"axisTimeFormat": "12h"`. Color settings use Pebble SDK color constants like `"GColorFolly"` from the Rebble color definitions: https://developer.rebble.io/docs/c/Graphics/Graphics_Types/Color_Definitions/
 - `weather.city`: weather status city label.

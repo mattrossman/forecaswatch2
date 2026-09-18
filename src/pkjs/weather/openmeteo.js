@@ -6,9 +6,6 @@ var request = WeatherProvider.request;
 
 var FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 
-// Extra hourly entries requested beyond the numEntries the watch displays.
-var FORECAST_HOURS_SLACK = 2;
-
 // Variables requested from the forecast endpoint. To expose a new data point,
 // append it here and map it in withProviderData().
 var CURRENT_VARS = ['temperature_2m', 'uv_index'];
@@ -103,9 +100,7 @@ function hasRequestedFields(weatherData) {
  * @returns {void}
  */
 OpenMeteoProvider.prototype.withOpenMeteoResponse = function(lat, lon, callback, onFailure) {
-    // Request a couple of hours more than hasValidData() requires: a response
-    // truncated by the model horizon would otherwise fail the whole refresh.
-    var url = buildForecastUrl(lat, lon, this.numEntries + FORECAST_HOURS_SLACK);
+    var url = buildForecastUrl(lat, lon, this.numEntries);
 
     console.log('Requesting ' + url);
 

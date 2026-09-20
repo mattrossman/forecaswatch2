@@ -129,7 +129,6 @@ OpenMeteoProvider.prototype.withOpenMeteoResponse = function(lat, lon, callback,
 };
 
 // ============== IMPORTANT OVERRIDE ================
-// Sun events come from the base SunCalc implementation.
 
 OpenMeteoProvider.prototype.withProviderData = function(lat, lon, force, onSuccess, onFailure) {
     // onSuccess expects that this.hasValidData() will be true

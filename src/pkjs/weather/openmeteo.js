@@ -2,7 +2,7 @@ var WeatherProvider = require('./provider.js');
 var request = WeatherProvider.request;
 
 // API docs: https://open-meteo.com/en/docs
-// Data license: CC BY 4.0, attribution required (see config page and README).
+// Data license: CC BY 4.0, attribution required (see config page).
 
 var FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 

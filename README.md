@@ -42,8 +42,6 @@ Open source revival of the beloved ForecasWatch watchface. This includes support
 
 *\* Using a hacky workaround*
 
-Open-Meteo weather data by [Open-Meteo.com](https://open-meteo.com/), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-
 ## Platforms
 
 All rectangular watches are supported (Classic, Steel, Time, Time Steel, Pebble 2).

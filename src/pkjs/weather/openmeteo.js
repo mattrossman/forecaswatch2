@@ -8,7 +8,7 @@ var FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 
 // Variables requested from the forecast endpoint. To expose a new data point,
 // append it here and map it in withProviderData().
-var CURRENT_VARS = ['temperature_2m', 'uv_index'];
+var CURRENT_VARS = ['temperature_2m'];
 var HOURLY_VARS = ['temperature_2m', 'precipitation_probability', 'precipitation'];
 
 var OpenMeteoProvider = function() {
@@ -66,8 +66,6 @@ function numbersOrZero(values) {
 /**
  * Check that the response carries every variable the watchface needs.
  *
- * uv_index is requested but not checked: models and regions that omit it must
- * still yield a usable forecast, they just report an unknown UV reading.
  * current.temperature_2m is validated by the finite check in withProviderData().
  *
  * @param {Object} weatherData Parsed Open-Meteo response.
@@ -153,8 +151,6 @@ OpenMeteoProvider.prototype.withProviderData = function(lat, lon, force, onSucce
         this.precipAmountTrend = numbersOrZero(hourly.precipitation);
         this.startTime = hourly.time[0];
         this.currentTemp = current.temperature_2m;
-        // Unknown rather than zero: 0 is a real UV reading.
-        this.uvIndex = isFiniteNumber(current.uv_index) ? current.uv_index : null;
         onSuccess();
     }).bind(this), onFailure);
 };

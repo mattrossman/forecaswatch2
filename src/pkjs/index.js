@@ -1,6 +1,7 @@
 
 var WundergroundProvider = require('./weather/wunderground.js');
 var OpenWeatherMapProvider = require('./weather/openweathermap.js')
+var OpenMeteoProvider = require('./weather/openmeteo.js');
 var WeatherProvider = require('./weather/provider.js');
 var createTelemetryClient = require('./telemetry.js');
 var Clay = require('./clay/_source.js');
@@ -526,6 +527,9 @@ function setProvider(providerId) {
     switch (providerId) {
         case 'openweathermap':
             app.provider = new OpenWeatherMapProvider(app.settings.owmApiKey);
+            break;
+        case 'openmeteo':
+            app.provider = new OpenMeteoProvider();
             break;
         case 'wunderground':
             app.provider = new WundergroundProvider();

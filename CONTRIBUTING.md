@@ -67,6 +67,16 @@ mise install-emulator --logs
 
 To verify inserts locally, open Supabase Studio at `http://127.0.0.1:54323` and inspect `public.telemetry_weather_fetch`.
 
+### Schema changes and migrations
+
+Edit the declarative schema in `supabase/schemas/`, then generate a migration:
+
+```bash
+supabase db diff -f <migration_name>
+```
+
+Do not edit migrations directly.
+
 ### Hosted deployment (Supabase cloud)
 
 Authenticate and link the repo to your Supabase project:

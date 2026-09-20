@@ -191,6 +191,7 @@ module.exports = [
                 "label": "Provider",
                 "messageKey": "provider",
                 "defaultValue": "wunderground",
+                "description": "Weather data by <a href='https://open-meteo.com/'>Open-Meteo.com</a>, licensed under <a href='https://creativecommons.org/licenses/by/4.0/'>CC BY 4.0</a>.",
                 "options": [
                     {
                         "label": "Weather Underground",
@@ -199,6 +200,10 @@ module.exports = [
                     {
                         "label": "OpenWeatherMap",
                         "value": "openweathermap"
+                    },
+                    {
+                        "label": "Open-Meteo",
+                        "value": "openmeteo"
                     }
                 ]
             },

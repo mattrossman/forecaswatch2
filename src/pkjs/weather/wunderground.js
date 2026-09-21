@@ -71,7 +71,12 @@ WundergroundProvider.prototype.withWundergroundCurrent = function(lat, lon, apiK
                 return;
             }
 
-            callback(weatherData.temperature);
+            // uvIndex is read defensively (not validated): if the field name turns out to be
+            // wrong, UV just reads as 0 instead of failing the whole current-conditions fetch.
+            callback({
+                temp: weatherData.temperature,
+                uv: typeof weatherData.uvIndex === 'number' ? weatherData.uvIndex : 0
+            });
         }).bind(this),
         function(error) {
             onFailure({ stage: 'provider_data', code: 'wu_current_' + error.code });
@@ -132,7 +137,7 @@ WundergroundProvider.prototype.withProviderData = function(lat, lon, force, onSu
     }
 
     this.withApiKey((function(apiKey) {
-        this.withWundergroundCurrent(lat, lon, apiKey, (function(currentTemp) {
+        this.withWundergroundCurrent(lat, lon, apiKey, (function(current) {
             this.withWundergroundForecast(lat, lon, apiKey, (function(forecast) {
                 this.tempTrend = forecast.map(function(entry) {
                     return entry.temp;
@@ -143,8 +148,12 @@ WundergroundProvider.prototype.withProviderData = function(lat, lon, force, onSu
                 this.precipAmountTrend = forecast.map(function(entry) {
                     return entry.qpf || 0;
                 });
+                this.uvTrend = forecast.map(function(entry) {
+                    return typeof entry.uv_index === 'number' ? entry.uv_index : 0;
+                });
                 this.startTime = forecast[0].fcst_valid;
-                this.currentTemp = currentTemp;
+                this.currentTemp = current.temp;
+                this.currentUv = current.uv;
                 onSuccess();
             }).bind(this), onFailure);
         }).bind(this), onFailure);

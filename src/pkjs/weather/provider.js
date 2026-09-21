@@ -595,6 +595,11 @@ WeatherProvider.prototype.getPayload = function() {
         return Math.round(probability * 100);
     });
     var precipAmounts = this.precipAmountTrend.slice(0, this.numEntries).map(precipAmountLevel);
+    // Providers that don't supply UV data yet (all but Weather Underground) leave uvTrend/currentUv
+    // unset; default to zero here rather than in hasValidData() so their payloads keep validating.
+    var uvTrendSource = Array.isArray(this.uvTrend) ? this.uvTrend : this.tempTrend.map(function() { return 0; });
+    var uvValues = uvTrendSource.slice(0, this.numEntries).map(clampUv);
+    var currentUvValue = clampUv(typeof this.currentUv === 'number' ? this.currentUv : 0);
     var tempsIntView = new Int16Array(temps);
     var tempsByteArray = Array.prototype.slice.call(new Uint8Array(tempsIntView.buffer));
     var sunEventsIntView = new Int32Array(this.sunEvents.map(function(sunEvent) {
@@ -605,9 +610,11 @@ WeatherProvider.prototype.getPayload = function() {
         TEMP_TREND_INT16: tempsByteArray,
         PRECIP_TREND_UINT8: precips, // Holds values within [0,100]
         PRECIP_AMOUNT_TREND_UINT8: precipAmounts, // Absolute precipitation intensity levels within [0,10]
+        UV_TREND_UINT8: uvValues,
         FORECAST_START: this.startTime,
         NUM_ENTRIES: this.numEntries,
         CURRENT_TEMP: Math.round(this.currentTemp),
+        CURRENT_UV: currentUvValue,
         CITY: this.cityName,
         // The first byte determines whether the list of events starts on a sunrise (0) or sunset (1)
         SUN_EVENTS: [this.sunEvents[0].type === 'sunrise' ? 0 : 1].concat(sunEventsByteArray)
@@ -653,6 +660,24 @@ function precipAmountLevel(amount) {
         return 9;
     }
     return 10;
+}
+
+/**
+ * Round and clamp a UV index reading to a byte-safe range, guarding against
+ * providers' "no data" sentinel values (e.g. Weather Underground's -1/-2).
+ *
+ * @param {number} uv Raw UV index reading.
+ * @returns {number} Rounded value within [0,255].
+ */
+function clampUv(uv) {
+    var rounded = Math.round(uv || 0);
+    if (rounded < 0) {
+        return 0;
+    }
+    if (rounded > 255) {
+        return 255;
+    }
+    return rounded;
 }
 
 WeatherProvider.request = request;

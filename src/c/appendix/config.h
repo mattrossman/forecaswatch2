@@ -17,6 +17,7 @@ typedef struct {
     bool show_qt;
     bool show_bt;
     bool show_bt_disconnect;
+    int8_t chime;
     bool vibe;
     bool show_am_pm;
     int16_t time_font;

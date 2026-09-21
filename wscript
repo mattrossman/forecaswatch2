@@ -7,6 +7,17 @@ import os.path
 import json
 import re
 
+# watch.health fixture fields and their inclusive upper bounds. The emulator
+# provides no health data, so fixtures stand in for it.
+FIXTURE_HEALTH_FIELDS = (
+    ('steps', 200000),
+    ('distance_meters', 1000000),
+    ('active_kcalories', 20000),
+    ('active_minutes', 1440),
+    ('active_typical_minutes', 1440),
+    ('heart_rate', 250),
+)
+
 top = '.'
 out = 'build'
 
@@ -36,6 +47,7 @@ def build(ctx):
     fixture_now = None
     fixture_clock_24h = None
     fixture_battery = None
+    fixture_health = None
     if fixture_name:
         if not re.match(r'^[a-z0-9][a-z0-9-]*$', fixture_name):
             ctx.fatal('FIXTURE must be a fixture slug like "readme" or "rainy-night"')
@@ -90,6 +102,38 @@ def build(ctx):
             else:
                 ctx.fatal('Fixture watch.battery.charging must be true or false')
 
+        health_fixture = watch_fixture.get('health')
+        if health_fixture is not None:
+            if not isinstance(health_fixture, dict):
+                ctx.fatal('Fixture watch.health must be an object')
+            fixture_health = {}
+            # The emulator has no health service data, so these stand in for it.
+            for field, limit in FIXTURE_HEALTH_FIELDS:
+                if field not in health_fixture:
+                    ctx.fatal('Fixture watch.health.{} is required when watch.health is defined'.format(field))
+                try:
+                    value = int(health_fixture[field])
+                except (TypeError, ValueError):
+                    ctx.fatal('Fixture watch.health.{} must be an integer'.format(field))
+                if not (0 <= value <= limit):
+                    ctx.fatal('Fixture watch.health.{} must be 0-{}'.format(field, limit))
+                fixture_health[field] = value
+            # Optional per-minute heart rate, oldest first, ending at watch.now.
+            hr_history = health_fixture.get('heart_rate_history')
+            if hr_history is not None:
+                if not isinstance(hr_history, list) or not (1 <= len(hr_history) <= 60):
+                    ctx.fatal('Fixture watch.health.heart_rate_history must be a list of 1-60 integers')
+                for value in hr_history:
+                    if not isinstance(value, int) or not (0 <= value <= 250):
+                        ctx.fatal('Fixture watch.health.heart_rate_history values must be integers 0-250')
+                fixture_health['heart_rate_history'] = hr_history
+            # Optional Health settings distance unit; absent means "not picked".
+            distance_units = health_fixture.get('distance_units')
+            if distance_units is not None:
+                if distance_units not in ('metric', 'imperial'):
+                    ctx.fatal('Fixture watch.health.distance_units must be "metric" or "imperial"')
+                fixture_health['distance_units'] = distance_units
+
     build_worker = os.path.exists('worker_src')
     binaries = []
 
@@ -117,6 +161,18 @@ def build(ctx):
                 '-DFCW2_FIXTURE_BATTERY_PERCENT={}'.format(fixture_battery['percent']),
                 '-DFCW2_FIXTURE_BATTERY_CHARGING={}'.format(fixture_battery['charging']),
             ]
+        if fixture_health is not None:
+            ctx.env.CFLAGS += [
+                '-DFCW2_FIXTURE_HEALTH_{}={}'.format(field.upper(), fixture_health[field])
+                for field, _ in FIXTURE_HEALTH_FIELDS
+            ]
+            if 'heart_rate_history' in fixture_health:
+                ctx.env.CFLAGS += ['-DFCW2_FIXTURE_HEALTH_HR_HISTORY={{{}}}'.format(
+                    ','.join(str(value) for value in fixture_health['heart_rate_history']))]
+            if 'distance_units' in fixture_health:
+                ctx.env.CFLAGS += ['-DFCW2_FIXTURE_HEALTH_DISTANCE_UNITS={}'.format(
+                    'MeasurementSystemMetric' if fixture_health['distance_units'] == 'metric'
+                    else 'MeasurementSystemImperial')]
         ctx.set_group(ctx.env.PLATFORM_NAME)
         app_elf = '{}/pebble-app.elf'.format(ctx.env.BUILD_DIR)
         ctx.pbl_build(source=ctx.path.ant_glob('src/c/**/*.c'), target=app_elf, bin_type='app')

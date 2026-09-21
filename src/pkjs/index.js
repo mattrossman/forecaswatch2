@@ -11,6 +11,8 @@ var storageKeys = require('./storage-keys.js');
 var pkg = require('../../package.json');
 var activeFixture = require('./active-fixture.generated.js');
 var pebbleColors = require('./pebble-colors.js');
+var statsMetrics = require('./stats-metrics.js');
+var statsSlots = require('./clay/stats-slots.js');
 
 /**
  * Full release-notification manifest (dev: force-show by version). Omitted from bundle if missing.
@@ -46,6 +48,7 @@ var KEY_LAST_FETCH_SUCCESS = storageKeys.LAST_FETCH_SUCCESS_KEY;
 var KEY_LAST_FETCH_ATTEMPT = storageKeys.LAST_FETCH_ATTEMPT_KEY;
 var KEY_GEOCODE_CACHE = storageKeys.GEOCODE_CACHE_KEY;
 var KEY_GEOCODE_BACKOFF = storageKeys.GEOCODE_BACKOFF_KEY;
+var KEY_STATS_CAPS = storageKeys.STATS_CAPS_KEY;
 var KEY_V1_34_0_WEEKEND_HOLIDAY_COLOR_MIGRATION = 'v1.34.0_weekend_holiday_color_migration';
 var DEFAULT_COLOR_WHITE = pebbleColors.GColorWhite;
 var DEFAULT_COLOR_FOLLY = pebbleColors.GColorFolly;
@@ -53,10 +56,44 @@ var DEFAULT_COLOR_FOLLY = pebbleColors.GColorFolly;
 app.fetchInProgress = false;
 app.pendingStartupFetch = false;
 
+/**
+ * Remember which metrics the connected watch can supply, so the settings page
+ * can offer only those. The platform is stored alongside so caps from a
+ * different watch are not reused after switching devices.
+ *
+ * @param {Object} payload AppMessage payload from the watch.
+ * @returns {void}
+ */
+function cacheStatsCaps(payload) {
+    var record = {
+        caps: payload.WATCH_STATS_CAPS,
+        slots: payload.WATCH_STATS_SLOT_COUNT,
+        platform: app.watchInfo ? app.watchInfo.platform : null
+    };
+
+    try {
+        localStorage.setItem(KEY_STATS_CAPS, JSON.stringify(record));
+    }
+    catch (ex) {
+        console.log('Unable to cache stats caps: ' + ex.message);
+        return;
+    }
+
+    console.log('[stats] caps=' + record.caps + ' slots=' + record.slots + ' platform=' + record.platform);
+}
+
 Pebble.addEventListener('appmessage', function(e) {
     var payload = e && e.payload;
 
-    if (!payload || !Object.prototype.hasOwnProperty.call(payload, 'WATCH_HAS_FORECAST_DATA')) {
+    if (!payload) {
+        return;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(payload, 'WATCH_STATS_CAPS')) {
+        cacheStatsCaps(payload);
+    }
+
+    if (!Object.prototype.hasOwnProperty.call(payload, 'WATCH_HAS_FORECAST_DATA')) {
         return;
     }
 
@@ -81,6 +118,11 @@ Pebble.addEventListener('showConfiguration', function(e) {
     // Set the userData here rather than in the Clay() constructor so it's actually up to date
     clay.meta.userData.lastFetchSuccess = localStorage.getItem(KEY_LAST_FETCH_SUCCESS);
     clay.meta.userData.lastFetchAttempt = localStorage.getItem(KEY_LAST_FETCH_ATTEMPT);
+    clay.meta.userData.statsCaps = localStorage.getItem(KEY_STATS_CAPS);
+    // Prune here, not in the page: Clay bakes select options into the HTML at
+    // generateUrl() time and offers no way to change them afterwards. Mutating
+    // clay.config works because the constructor already deep-copied it.
+    statsSlots.filterSlotOptions(clay.config, clay.meta.userData.statsCaps, app.watchInfo, getClaySettings());
     Pebble.openURL(clay.generateUrl());
     console.log('Showing clay: ' + JSON.stringify(getClaySettings()));
 });
@@ -497,6 +539,8 @@ function sendClaySettings(onSuccess, onFailure) {
         "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : DEFAULT_COLOR_WHITE,
         "CLAY_DAY_NIGHT_SHADING": app.settings.hasOwnProperty('dayNightShading') ? app.settings.dayNightShading : true,
         "CLAY_PRECIP_AMOUNT_BARS": app.settings.hasOwnProperty('precipAmountBars') ? app.settings.precipAmountBars : true,
+        // One packed array: the watch inbox has no room for a tuple per slot.
+        "CLAY_STATS_SLOTS": statsMetrics.encodeSlots(app.settings),
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));
@@ -605,7 +649,14 @@ function getDefaultClaySettings() {
         showQt: true,
         vibe: false,
         btIcons: 'both',
-        telemetryEnabled: true
+        telemetryEnabled: true,
+        topBand: 'calendar',
+        statSlot1: statsMetrics.DEFAULT_SLOTS[0],
+        statSlot2: statsMetrics.DEFAULT_SLOTS[1],
+        statSlot3: statsMetrics.DEFAULT_SLOTS[2],
+        statSlot4: statsMetrics.DEFAULT_SLOTS[3],
+        statSlot5: statsMetrics.DEFAULT_SLOTS[4],
+        statSlot6: statsMetrics.DEFAULT_SLOTS[5]
     };
 }
 
@@ -829,6 +880,7 @@ function getFixtureWeatherPayload(fixture) {
     provider.numEntries = Array.isArray(weather.temps) ? weather.temps.length : 0;
     provider.cityName = weather.city || 'Fixture City';
     provider.currentTemp = weather.currentTemp;
+    provider.uvIndex = weather.uvIndex;
     provider.startTime = weather.startEpoch;
     provider.tempTrend = Array.isArray(weather.temps) ? weather.temps.slice(0) : [];
     provider.precipTrend = Array.isArray(weather.precipPct) ? weather.precipPct.map(function(probabilityPercent) {

@@ -3,5 +3,6 @@ module.exports = {
     LAST_FETCH_SUCCESS_KEY: 'lastFetchSuccess',
     LAST_FETCH_ATTEMPT_KEY: 'lastFetchAttempt',
     GEOCODE_CACHE_KEY: 'geocodeCache',
-    GEOCODE_BACKOFF_KEY: 'geocodeBackoff'
+    GEOCODE_BACKOFF_KEY: 'geocodeBackoff',
+    STATS_CAPS_KEY: 'statsCaps'
 };

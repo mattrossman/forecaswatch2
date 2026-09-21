@@ -4,10 +4,12 @@
 #include "c/layers/weather_status_layer.h"
 #include "c/layers/calendar_layer.h"
 #include "c/layers/calendar_status_layer.h"
+#include "c/layers/stats_layer.h"
 #include "c/layers/loading_layer.h"
 #include "c/appendix/app_message.h"
 #include "c/appendix/persist.h"
 #include "c/appendix/memory_log.h"
+#include "c/appendix/config.h"
 
 #define FORECAST_HEIGHT 51
 #define WEATHER_STATUS_HEIGHT 14
@@ -36,6 +38,30 @@ static void compute_content_layout(int content_h, int *calendar_h, int *time_h, 
     *forecast_h = content_h - *calendar_h - *time_h;
 }
 #endif
+
+/* Calendar and stats are mutually exclusive views of the same top band. Both are
+   created up front and toggled, rather than destroyed and rebuilt, so refreshes
+   can never touch a dangling layer. */
+static void main_window_apply_top_band(void) {
+    const bool show_stats = stats_layer_enabled() && g_config->top_band_stats;
+
+    stats_layer_set_hidden(!show_stats);
+    calendar_layer_set_hidden(show_stats);
+    calendar_status_layer_set_hidden(show_stats);
+}
+
+/* The connection service lives here rather than in calendar_status_layer: the
+   disconnect vibration has to keep firing in stats mode, where that layer is
+   hidden. Marking both top-band layers dirty is harmless and avoids tracking
+   which one is currently visible. */
+static void bluetooth_callback(bool connected) {
+    status_icons_refresh();
+    stats_layer_refresh();
+
+    if (!connected && g_config->vibe) {
+        vibes_double_pulse();
+    }
+}
 
 static void main_window_load(Window *window) {
     // Get information about the Window
@@ -67,6 +93,9 @@ static void main_window_load(Window *window) {
     time_layer_create(window_layer, GRect(content_x, time_y, content_w, time_h));
     calendar_layer_create(window_layer, GRect(content_x, calendar_y, content_w, calendar_h));
     calendar_status_layer_create(window_layer, GRect(content_x, content_y, content_w, CALENDAR_STATUS_HEIGHT + 1)); // +1 to stop text clipping
+    // The stats grid replaces the calendar *and* the status row above it.
+    stats_layer_create(window_layer,
+            GRect(content_x, content_y, content_w, CALENDAR_STATUS_HEIGHT + calendar_h));
     loading_layer_create(window_layer, GRect(content_x, weather_status_y, content_w, h - EMERY_WINDOW_PAD_BOTTOM - weather_status_y));
 #else
     forecast_layer_create(window_layer,
@@ -80,9 +109,17 @@ static void main_window_load(Window *window) {
             GRect(0, CALENDAR_STATUS_HEIGHT, bounds.size.w, CALENDAR_HEIGHT));
     calendar_status_layer_create(window_layer,
             GRect(0, 0, bounds.size.w, CALENDAR_STATUS_HEIGHT + 1));  // +1 to stop text clipping
+    // The stats grid replaces the calendar *and* the status row above it.
+    stats_layer_create(window_layer,
+            GRect(0, 0, bounds.size.w, CALENDAR_STATUS_HEIGHT + CALENDAR_HEIGHT));
     loading_layer_create(window_layer,
             GRect(0, h - FORECAST_HEIGHT - WEATHER_STATUS_HEIGHT, w, FORECAST_HEIGHT + WEATHER_STATUS_HEIGHT));
 #endif
+    connection_service_subscribe((ConnectionHandlers) {
+        .pebble_app_connection_handler = bluetooth_callback
+    });
+
+    main_window_apply_top_band();
     loading_layer_refresh();
     app_message_send_startup_state(loading_layer_has_valid_data());
     MEMORY_LOG_HEAP("after_window_load");
@@ -90,11 +127,13 @@ static void main_window_load(Window *window) {
 
 static void main_window_unload(Window *window) {
     MEMORY_LOG_HEAP("before_window_unload");
+    connection_service_unsubscribe();
     time_layer_destroy();
     weather_status_layer_destroy();
     forecast_layer_destroy();
     calendar_layer_destroy();
     calendar_status_layer_destroy();
+    stats_layer_destroy();
     loading_layer_destroy();
     MEMORY_LOG_HEAP("after_window_unload");
 }
@@ -107,6 +146,7 @@ static void minute_handler(struct tm *tick_time, TimeUnits units_changed) {
         calendar_status_layer_refresh();
     }
     status_icons_refresh();
+    stats_layer_refresh();
     loading_layer_refresh();
 }
 
@@ -138,6 +178,8 @@ void main_window_refresh() {
     forecast_layer_refresh();
     calendar_layer_refresh();
     calendar_status_layer_refresh();
+    main_window_apply_top_band();
+    stats_layer_refresh();
 }
 
 void main_window_destroy() {

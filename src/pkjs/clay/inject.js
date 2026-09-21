@@ -97,6 +97,7 @@ module.exports = function (minified) {
         var clayStatsLayout;
         var clayOwmApiKey;
         var clayProvider;
+        var clayProviderDescription;
         var clayLocation;
         var initProvider;
         var initOwmApiKey;
@@ -155,6 +156,7 @@ module.exports = function (minified) {
         // Save initial states to detect changes to provider
         clayOwmApiKey = clayConfig.getItemByMessageKey('owmApiKey');
         clayProvider = clayConfig.getItemByMessageKey('provider');
+        clayProviderDescription = clayProvider.$element.select('.description');
         clayLocation = clayConfig.getItemByMessageKey('location');
         initProvider = clayProvider.get();
         initOwmApiKey = clayOwmApiKey.get();
@@ -164,6 +166,9 @@ module.exports = function (minified) {
         if (initProvider !== 'openweathermap') {
             clayOwmApiKey.hide()
         }
+        if (initProvider !== 'openmeteo') {
+            clayProviderDescription.set('$display', 'none');
+        }
 
         // Configure logic for updating the provider section layout
         clayProvider.on('change', function() {
@@ -172,6 +177,12 @@ module.exports = function (minified) {
             }
             else {
                 clayOwmApiKey.hide();
+            }
+            if (this.get() === 'openmeteo') {
+                clayProviderDescription.set('$display', '');
+            }
+            else {
+                clayProviderDescription.set('$display', 'none');
             }
             console.log('Provider set to ' + this.get());
         })

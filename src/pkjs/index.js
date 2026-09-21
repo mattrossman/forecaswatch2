@@ -477,6 +477,22 @@ function startTick() {
     setTimeout(startTick, 60 * 1000); // 60 * 1000 milsec = 1 minute
 }
 
+/**
+ * Read the UV protection threshold setting. It is a Clay select, so it is normally a numeric
+ * string such as "3".
+ *
+ * @param {*} value Stored setting value.
+ * @returns {number} Threshold within [1,11], or 3 when missing or malformed.
+ */
+function parseUvThreshold(value) {
+    var parsed = parseInt(value, 10);
+
+    if (isNaN(parsed)) {
+        return 3;
+    }
+    return Math.min(11, Math.max(1, parsed));
+}
+
 function sendClaySettings(onSuccess, onFailure) {
     var payload = {
         "CLAY_CELSIUS": app.settings.temperatureUnits === 'c',
@@ -497,6 +513,8 @@ function sendClaySettings(onSuccess, onFailure) {
         "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : DEFAULT_COLOR_WHITE,
         "CLAY_DAY_NIGHT_SHADING": app.settings.hasOwnProperty('dayNightShading') ? app.settings.dayNightShading : true,
         "CLAY_PRECIP_AMOUNT_BARS": app.settings.hasOwnProperty('precipAmountBars') ? app.settings.precipAmountBars : true,
+        "CLAY_SHOW_UV": app.settings.hasOwnProperty('showUv') ? app.settings.showUv : true,
+        "CLAY_UV_THRESHOLD": parseUvThreshold(app.settings.uvThreshold),
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));
@@ -591,6 +609,8 @@ function getDefaultClaySettings() {
         temperatureUnits: 'f',
         dayNightShading: true,
         precipAmountBars: true,
+        showUv: true,
+        uvThreshold: '3',
         timeLeadingZero: false,
         timeShowAmPm: false,
         axisTimeFormat: '24h',

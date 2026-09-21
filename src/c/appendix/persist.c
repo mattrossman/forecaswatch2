@@ -71,7 +71,9 @@ void persist_init() {
             .color_us_federal = GColorFolly,
             .color_time = GColorWhite,
             .day_night_shading = true,
-            .precip_amount_bars = true
+            .precip_amount_bars = true,
+            .show_uv = true,
+            .uv_threshold = 3
         };
         persist_set_config(config);
     }

@@ -8,6 +8,20 @@
 #define CITY_INIT_WIDTH 100
 #define MARGIN 2
 
+// Current temp/UV icons: small enough to leave the city label its room. Sized/positioned to
+// sit alongside the (small) temp/UV digits rather than a full text row.
+#define THERMOMETER_W 5
+#define THERMOMETER_H 9
+#define UV_SUN_W 7
+#define UV_SUN_H 7
+#define ICON_TEXT_GAP 2   // between an icon and the number that follows it
+#define ICON_GROUP_GAP 4  // between the temp group and the UV group
+#define TEMP_ROW_ICON_Y 2 // vertical offset that lines icons up with the digit glyphs' ink
+// The sun icon is shorter than the thermometer; nudge it down to stay centered on the same band.
+#define UV_SUN_ICON_Y (TEMP_ROW_ICON_Y + (THERMOMETER_H - UV_SUN_H) / 2)
+#define TEMP_ROW_TEXT_H 25
+#define TEMP_ROW_MEASURE_BOX_W 100
+
 // emery: use larger text and arrow geometry
 #ifdef PBL_PLATFORM_EMERY
 #define CITY_FONT_KEY FONT_KEY_GOTHIC_18
@@ -25,13 +39,32 @@
 #define ARROW_W 6
 #endif
 
+// Current temp/UV digits now match the sun-event time's size/font exactly (same key, same Y
+// offset convention) instead of the larger GOTHIC_18 used elsewhere.
+#define TEMP_ROW_FONT_KEY SUN_EVENT_FONT_KEY
+#ifdef PBL_PLATFORM_EMERY
+#define TEMP_ROW_TEXT_Y (-FONT_18_OFFSET)
+#else
+#define TEMP_ROW_TEXT_Y (-FONT_14_OFFSET)
+#endif
+
 static GRect frame_curr_temp;
 static GRect frame_sun_event;
 
 static Layer *s_weather_status_layer;
 static TextLayer *s_city_layer;
-static TextLayer *s_current_temp_layer;
 static TextLayer *s_next_sun_event_layer;
+
+// Current temp/UV is drawn directly in the update proc (icon + number, twice) rather than as
+// TextLayers: a TextLayer can't embed a bitmap inline.
+static GBitmap *s_thermometer_bitmap;
+static GBitmap *s_uv_sun_bitmap;
+static GColor s_thermometer_palette[2];
+static GColor s_uv_sun_palette[2];
+static char s_temp_num_buffer[16];
+static char s_uv_num_buffer[8];
+static bool s_show_uv_number;
+static int s_therm_x, s_temp_text_x, s_sun_x, s_uv_text_x;
 
 static GPath *s_arrow_path = NULL;
 static const GPathInfo ARROW_PATH_INFO = {
@@ -75,16 +108,86 @@ static void city_layer_refresh() {
     text_layer_move_frame(s_city_layer, GRect(x, y, w, h));
 }
 
-static void current_temp_layer_refresh() {
-    static char s_temp_buffer[8];
-    snprintf(s_temp_buffer, sizeof(s_temp_buffer), "• %d", config_localize_temp(persist_get_current_temp()));
-    text_layer_set_text(s_current_temp_layer, s_temp_buffer);
+static int temp_row_text_width(const char *text) {
+    const GFont font = fonts_get_system_font(TEMP_ROW_FONT_KEY);
+    const GRect box = GRect(0, 0, TEMP_ROW_MEASURE_BOX_W, TEMP_ROW_TEXT_H);
+    return graphics_text_layout_get_content_size(text, font, box, GTextOverflowModeFill, GTextAlignmentLeft).w;
+}
 
-    // Dynamic resizing
-    text_layer_move_frame(s_current_temp_layer, GRect(0, 0, 100, 100));  // Make it big so content doesn't get clipped
-    GSize size = text_layer_get_content_size(s_current_temp_layer);
-    text_layer_move_frame(s_current_temp_layer, GRect(MARGIN, -FONT_18_OFFSET, size.w, size.h));
-    frame_curr_temp = GRect(0, -FONT_18_OFFSET, size.w + MARGIN, size.h);
+static void ensure_thermometer_bitmap_loaded(void) {
+    if (!s_thermometer_bitmap) {
+        s_thermometer_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_THERMOMETER);
+        s_thermometer_palette[0] = PBL_IF_COLOR_ELSE(GColorRed, GColorWhite);
+        s_thermometer_palette[1] = GColorClear;
+        gbitmap_set_palette(s_thermometer_bitmap, s_thermometer_palette, false);
+    }
+}
+
+static void ensure_uv_sun_bitmap_loaded(void) {
+    if (!s_uv_sun_bitmap) {
+        s_uv_sun_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_UV_SUN);
+        s_uv_sun_palette[0] = PBL_IF_COLOR_ELSE(GColorYellow, GColorWhite);
+        s_uv_sun_palette[1] = GColorClear;
+        gbitmap_set_palette(s_uv_sun_bitmap, s_uv_sun_palette, false);
+    }
+}
+
+// Computes text + icon layout for the current-temp/UV row and caches it; drawing itself happens
+// in weather_status_update_proc since a TextLayer can't hold an inline bitmap.
+static void current_temp_content_refresh() {
+    const int current_uv = persist_get_current_uv();
+    ensure_thermometer_bitmap_loaded();
+
+    snprintf(s_temp_num_buffer, sizeof(s_temp_num_buffer), "%d", config_localize_temp(persist_get_current_temp()));
+    // Unlike the graph bars, current UV always shows whenever the toggle is on - it's a single
+    // compact number, not a cluttered strip, so there's no "only show when dangerous" case for it.
+    s_show_uv_number = g_config->show_uv;
+
+    s_therm_x = MARGIN;
+    s_temp_text_x = s_therm_x + THERMOMETER_W + ICON_TEXT_GAP;
+    int right_edge = s_temp_text_x + temp_row_text_width(s_temp_num_buffer);
+
+    if (s_show_uv_number) {
+        ensure_uv_sun_bitmap_loaded();
+        snprintf(s_uv_num_buffer, sizeof(s_uv_num_buffer), "%d", current_uv);
+        s_sun_x = right_edge + ICON_GROUP_GAP;
+        s_uv_text_x = s_sun_x + UV_SUN_W + ICON_TEXT_GAP;
+        right_edge = s_uv_text_x + temp_row_text_width(s_uv_num_buffer);
+    } else if (s_uv_sun_bitmap) {
+        gbitmap_destroy(s_uv_sun_bitmap);
+        s_uv_sun_bitmap = NULL;
+    }
+
+    frame_curr_temp = GRect(0, TEMP_ROW_TEXT_Y, right_edge + MARGIN, TEMP_ROW_TEXT_H);
+}
+
+static void draw_current_temp_and_uv(GContext *ctx) {
+    if (!s_thermometer_bitmap) {
+        return;
+    }
+
+    const GFont font = fonts_get_system_font(TEMP_ROW_FONT_KEY);
+    graphics_context_set_compositing_mode(ctx, GCompOpSet);
+    graphics_draw_bitmap_in_rect(ctx, s_thermometer_bitmap,
+        GRect(s_therm_x, TEMP_ROW_ICON_Y, THERMOMETER_W, THERMOMETER_H));
+    graphics_context_set_compositing_mode(ctx, GCompOpAssign);
+
+    graphics_context_set_text_color(ctx, GColorWhite);
+    graphics_draw_text(ctx, s_temp_num_buffer, font,
+        GRect(s_temp_text_x, TEMP_ROW_TEXT_Y, TEMP_ROW_MEASURE_BOX_W, TEMP_ROW_TEXT_H),
+        GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+
+    if (s_show_uv_number) {
+        if (s_uv_sun_bitmap) {
+            graphics_context_set_compositing_mode(ctx, GCompOpSet);
+            graphics_draw_bitmap_in_rect(ctx, s_uv_sun_bitmap, GRect(s_sun_x, UV_SUN_ICON_Y, UV_SUN_W, UV_SUN_H));
+            graphics_context_set_compositing_mode(ctx, GCompOpAssign);
+        }
+
+        graphics_draw_text(ctx, s_uv_num_buffer, font,
+            GRect(s_uv_text_x, TEMP_ROW_TEXT_Y, TEMP_ROW_MEASURE_BOX_W, TEMP_ROW_TEXT_H),
+            GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+    }
 }
 
 static void sun_event_layer_refresh() {
@@ -120,13 +223,6 @@ static void weather_status_layer_init(GRect bounds) {
     // Set up the city text layer properties
     int w = bounds.size.w;
 
-    // Current temperature
-    s_current_temp_layer = text_layer_create(GRect(MARGIN, -FONT_18_OFFSET, 40, 25));
-    text_layer_set_background_color(s_current_temp_layer, GColorClear);
-    text_layer_set_text_alignment(s_current_temp_layer, GTextAlignmentLeft);
-    text_layer_set_text_color(s_current_temp_layer, GColorWhite);
-    text_layer_set_font(s_current_temp_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
-
     // City where weather was fetched
     s_city_layer = text_layer_create(GRect(w/2 - CITY_INIT_WIDTH/2, -FONT_14_OFFSET, CITY_INIT_WIDTH, 25));
     text_layer_set_background_color(s_city_layer, GColorClear);
@@ -141,7 +237,7 @@ static void weather_status_layer_init(GRect bounds) {
     text_layer_set_text_color(s_next_sun_event_layer, GColorWhite);
     text_layer_set_font(s_next_sun_event_layer, fonts_get_system_font(SUN_EVENT_FONT_KEY));
 
-    current_temp_layer_refresh();
+    current_temp_content_refresh();
     sun_event_layer_refresh();
     city_layer_refresh();
 }
@@ -170,6 +266,7 @@ static void weather_status_update_proc(Layer *layer, GContext *ctx) {
     gpath_draw_outline_open(ctx, s_arrow_path);
     graphics_context_set_fill_color(ctx, GColorWhite);
     gpath_draw_filled(ctx, s_arrow_path);
+    draw_current_temp_and_uv(ctx);
     MEMORY_LOG_HEAP("weather_status_update:exit");
 }
 
@@ -185,7 +282,6 @@ void weather_status_layer_create(Layer* parent_layer, GRect frame) {
     // Set up all the text layers
     weather_status_layer_init(bounds);
     layer_add_child(s_weather_status_layer, text_layer_get_layer(s_city_layer));
-    layer_add_child(s_weather_status_layer, text_layer_get_layer(s_current_temp_layer));
     layer_add_child(s_weather_status_layer, text_layer_get_layer(s_next_sun_event_layer));
     layer_set_update_proc(s_weather_status_layer, weather_status_update_proc);
 
@@ -196,7 +292,7 @@ void weather_status_layer_create(Layer* parent_layer, GRect frame) {
 
 void weather_status_layer_refresh() {
     layer_mark_dirty(s_weather_status_layer);
-    current_temp_layer_refresh();
+    current_temp_content_refresh();
     sun_event_layer_refresh();
     city_layer_refresh();
     MEMORY_LOG_HEAP("after_weather_refresh");
@@ -205,8 +301,15 @@ void weather_status_layer_refresh() {
 void weather_status_layer_destroy() {
     MEMORY_LOG_HEAP("weather_status_layer_destroy:before");
     text_layer_destroy(s_city_layer);
-    text_layer_destroy(s_current_temp_layer);
     text_layer_destroy(s_next_sun_event_layer);
+    if (s_thermometer_bitmap) {
+        gbitmap_destroy(s_thermometer_bitmap);
+        s_thermometer_bitmap = NULL;
+    }
+    if (s_uv_sun_bitmap) {
+        gbitmap_destroy(s_uv_sun_bitmap);
+        s_uv_sun_bitmap = NULL;
+    }
     if (s_arrow_path) {
         gpath_destroy(s_arrow_path);
         s_arrow_path = NULL;

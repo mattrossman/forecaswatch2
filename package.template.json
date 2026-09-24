@@ -56,6 +56,18 @@
           "name": "IMAGE_BATTERY_CHARGING",
           "file": "img/battery-charging.png",
           "memoryFormat": "1BitPalette"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_THERMOMETER",
+          "file": "img/thermometer.png",
+          "memoryFormat": "1BitPalette"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_UV_SUN",
+          "file": "img/uv-sun.png",
+          "memoryFormat": "1BitPalette"
         }
       ]
     },

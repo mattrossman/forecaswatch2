@@ -269,9 +269,11 @@ Fixtures currently support:
 - `claySettings`: Clay-compatible settings keyed by `messageKey`, such as `"axisTimeFormat": "12h"`. Color settings use Pebble SDK color constants like `"GColorFolly"` from the Rebble color definitions: https://developer.rebble.io/docs/c/Graphics/Graphics_Types/Color_Definitions/
 - `weather.city`: weather status city label.
 - `weather.currentTemp`: current temperature in Fahrenheit.
+- `weather.currentUv`: current UV index, 0-11+.
 - `weather.startHour`: local hour for the first forecast entry; fixture prep converts it to the runtime forecast timestamp.
 - `weather.temps`: hourly Fahrenheit forecast values.
 - `weather.precipPct`: hourly precipitation percentages, 0-100.
+- `weather.uvIndex`: hourly UV index values, 0-11+. Bars start at the UV protection threshold (default 3), so include values above it to see them.
 - `weather.sunEvents`: the next two sun events as local fields, e.g. `{ "type": "sunset", "dayOffset": 0, "hour": 20, "minute": 10 }`.
 
 Minimal `.env`:

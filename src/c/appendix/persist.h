@@ -16,11 +16,15 @@ int persist_get_precip_trend(uint8_t *buffer, const size_t buffer_size);
 
 int persist_get_precip_amount_trend(uint8_t *buffer, const size_t buffer_size);
 
+int persist_get_uv_trend(uint8_t *buffer, const size_t buffer_size);
+
 time_t persist_get_forecast_start();
 
 int persist_get_num_entries();
 
 int persist_get_current_temp();
+
+int persist_get_current_uv();
 
 int persist_get_city(char *buffer, const size_t buffer_size);
 
@@ -40,11 +44,15 @@ void persist_set_precip_trend(uint8_t *data, const size_t size);
 
 void persist_set_precip_amount_trend(uint8_t *data, const size_t size);
 
+void persist_set_uv_trend(uint8_t *data, const size_t size);
+
 void persist_set_forecast_start(time_t val);
 
 void persist_set_num_entries(int val);
 
 void persist_set_current_temp(int val);
+
+void persist_set_current_uv(int val);
 
 void persist_set_city(char *val);
 

@@ -27,6 +27,12 @@ typedef struct {
     GColor color_time;
     bool day_night_shading;
     bool precip_amount_bars;
+    // Config is persisted as a raw blob. The previous layout ended at byte 19 with one byte of tail
+    // padding (sizeof == 20), so a bool placed right after it would read that leftover byte on
+    // upgrade. Declaring the int16_t first pushes both new fields past the old end (offsets 20, 22),
+    // so upgraded installs get the defaults from config_defaults().
+    int16_t uv_threshold;
+    bool show_uv;
 } Config;
 
 extern Config *g_config;

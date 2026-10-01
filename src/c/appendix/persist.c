@@ -4,7 +4,7 @@
 enum key {
     // Keep existing values stable: Pebble persistent storage is keyed by these numbers.
     TEMP_LO, TEMP_HI, TEMP_TREND, PRECIP_TREND, FORECAST_START, CITY, SUN_EVENT_START_TYPE, SUN_EVENT_TIMES, NUM_ENTRIES,
-    CURRENT_TEMP, BATTERY_LEVEL, CONFIG, PRECIP_AMOUNT_TREND
+    CURRENT_TEMP, BATTERY_LEVEL, CONFIG, PRECIP_AMOUNT_TREND, UV_TREND, CURRENT_UV
 }; // Deprecated: BATTERY_LEVEL
 
 void persist_init() {
@@ -25,6 +25,13 @@ void persist_init() {
     if (!persist_exists(PRECIP_AMOUNT_TREND)) {
         uint8_t data[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         persist_write_data(PRECIP_AMOUNT_TREND, (void*) data, 12*sizeof(uint8_t));
+    }
+    if (!persist_exists(UV_TREND)) {
+        uint8_t data[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        persist_write_data(UV_TREND, (void*) data, 12*sizeof(uint8_t));
+    }
+    if (!persist_exists(CURRENT_UV)) {
+        persist_write_int(CURRENT_UV, 0);
     }
     if (!persist_exists(FORECAST_START)) {
         persist_write_int(FORECAST_START, 0);
@@ -64,7 +71,9 @@ void persist_init() {
             .color_us_federal = GColorFolly,
             .color_time = GColorWhite,
             .day_night_shading = true,
-            .precip_amount_bars = true
+            .precip_amount_bars = true,
+            .show_uv = true,
+            .uv_threshold = 3
         };
         persist_set_config(config);
     }
@@ -90,6 +99,10 @@ int persist_get_precip_amount_trend(uint8_t *buffer, const size_t buffer_size) {
     return persist_read_data(PRECIP_AMOUNT_TREND, (void*) buffer, buffer_size * sizeof(uint8_t));
 }
 
+int persist_get_uv_trend(uint8_t *buffer, const size_t buffer_size) {
+    return persist_read_data(UV_TREND, (void*) buffer, buffer_size * sizeof(uint8_t));
+}
+
 time_t persist_get_forecast_start() {
     return (time_t) persist_read_int(FORECAST_START);
 }
@@ -100,6 +113,10 @@ int persist_get_num_entries() {
 
 int persist_get_current_temp() {
     return persist_read_int(CURRENT_TEMP);
+}
+
+int persist_get_current_uv() {
+    return persist_read_int(CURRENT_UV);
 }
 
 int persist_get_city(char *buffer, const size_t buffer_size) {
@@ -138,6 +155,10 @@ void persist_set_precip_amount_trend(uint8_t *data, const size_t size) {
     persist_write_data(PRECIP_AMOUNT_TREND, (void*) data, size * sizeof(uint8_t));
 }
 
+void persist_set_uv_trend(uint8_t *data, const size_t size) {
+    persist_write_data(UV_TREND, (void*) data, size * sizeof(uint8_t));
+}
+
 void persist_set_forecast_start(time_t val) {
     persist_write_int(FORECAST_START, (int) val);
 }
@@ -148,6 +169,10 @@ void persist_set_num_entries(int val) {
 
 void persist_set_current_temp(int val) {
     persist_write_int(CURRENT_TEMP, val);
+}
+
+void persist_set_current_uv(int val) {
+    persist_write_int(CURRENT_UV, val);
 }
 
 void persist_set_city(char *val) {

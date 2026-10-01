@@ -56,6 +56,18 @@
           "name": "IMAGE_BATTERY_CHARGING",
           "file": "img/battery-charging.png",
           "memoryFormat": "1BitPalette"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_THERMOMETER",
+          "file": "img/thermometer.png",
+          "memoryFormat": "1BitPalette"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_UV_SUN",
+          "file": "img/uv-sun.png",
+          "memoryFormat": "1BitPalette"
         }
       ]
     },
@@ -67,9 +79,11 @@
       "TEMP_TREND_INT16",
       "PRECIP_TREND_UINT8",
       "PRECIP_AMOUNT_TREND_UINT8",
+      "UV_TREND_UINT8",
       "FORECAST_START",
       "NUM_ENTRIES",
       "CURRENT_TEMP",
+      "CURRENT_UV",
       "CITY",
       "SUN_EVENTS",
       "WATCH_HAS_FORECAST_DATA",
@@ -90,7 +104,9 @@
       "CLAY_COLOR_US_FEDERAL",
       "CLAY_COLOR_TIME",
       "CLAY_DAY_NIGHT_SHADING",
-      "CLAY_PRECIP_AMOUNT_BARS"
+      "CLAY_PRECIP_AMOUNT_BARS",
+      "CLAY_SHOW_UV",
+      "CLAY_UV_THRESHOLD"
     ]
   }
 }

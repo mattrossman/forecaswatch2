@@ -32,12 +32,43 @@
 #define PRECIP_AMOUNT_STROKE_COLOR PBL_IF_COLOR_ELSE(GColorMintGreen, GColorWhite)
 #define UV_FILL_COLOR PBL_IF_COLOR_ELSE(GColorYellow, GColorWhite)
 #define UV_STROKE_COLOR PBL_IF_COLOR_ELSE(GColorWindsorTan, GColorBlack)
+// PoC: on color displays, color each block by the EPA/WHO UV band its own value falls in
+// (the same bands the threshold dropdown already uses, plus a darker top tier so 14+ still
+// stands out from a merely-Extreme 11), instead of a flat yellow fill. Black and white displays
+// keep the flat block look; there is no dithered equivalent worth the clutter on a 1-bit display.
+#ifdef PBL_COLOR
+static GColor uv_band_color(int uv_value)
+{
+    if (uv_value >= 14)
+        return GColorImperialPurple; // off-the-chart extreme
+    if (uv_value >= 11)
+        return GColorPurple; // Extreme
+    if (uv_value >= 8)
+        return GColorRed; // Very High
+    if (uv_value >= 6)
+        return GColorOrange; // High
+    if (uv_value >= 3)
+        return GColorYellow; // Moderate
+    return GColorGreen; // Low
+}
+#endif
 // Fixed height of one UV block, independent of the threshold setting. Bars grow one block per UV
 // point until they fill the graph height, then stay full. emery: taller graph area, taller blocks.
+// Color displays use shorter blocks than black and white: the per-block divider line (drawn
+// further down) is skipped there since the color change between blocks already marks the
+// boundary, so the graph can fit UV readings well past 11+ without capping.
+#ifdef PBL_COLOR
+#ifdef PBL_PLATFORM_EMERY
+#define UV_BLOCK_H 3
+#else
+#define UV_BLOCK_H 2
+#endif
+#else
 #ifdef PBL_PLATFORM_EMERY
 #define UV_BLOCK_H 8
 #else
 #define UV_BLOCK_H 4
+#endif
 #endif
 #define NIGHT_PRECIP_FILL_COLOR PBL_IF_COLOR_ELSE(GColorDukeBlue, GColorLightGray)
 #define NIGHT_HATCH_COLOR_PRECIP PBL_IF_COLOR_ELSE(GColorBlue, GColorWhite)
@@ -739,21 +770,39 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
                     bar_x = graph_bounds.origin.x + graph_w - bar_w;
                 }
                 const GRect bar = GRect(bar_x, graph_plot_rect.origin.y, bar_w, bar_h);
+#ifdef PBL_COLOR
+                // Color each block by the absolute UV value it represents (threshold + its
+                // position from the top), not by position within the bar, so a bar started at a
+                // high threshold opens straight into orange or red instead of yellow.
+                for (int block = 0; block < blocks; ++block)
+                {
+                    graphics_context_set_fill_color(ctx, uv_band_color(uv_threshold + block));
+                    const GRect block_rect =
+                        GRect(bar.origin.x, bar.origin.y + block * UV_BLOCK_H, bar.size.w, UV_BLOCK_H);
+                    graphics_fill_rect(ctx, block_rect, 0, GCornerNone);
+                }
+                graphics_context_set_fill_color(ctx, UV_FILL_COLOR);
+#else
                 graphics_fill_rect(ctx, bar, 0, GCornerNone);
+#endif
                 graphics_draw_line(ctx, GPoint(bar.origin.x, bar.origin.y + bar.size.h - 1),
                                    GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y + bar.size.h - 1));
                 graphics_draw_line(ctx, GPoint(bar.origin.x, bar.origin.y),
                                    GPoint(bar.origin.x, bar.origin.y + bar.size.h - 1));
                 graphics_draw_line(ctx, GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y),
                                    GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y + bar.size.h - 1));
+#ifndef PBL_COLOR
                 // One divider between each block, so the UV level is countable at a glance
-                // instead of being read off a subtle height difference.
+                // instead of being read off a subtle height difference. On color displays the
+                // band color change already marks each step, and at the shorter block height
+                // used there a divider on every block would be mostly divider.
                 for (int block = 1; block < blocks; ++block)
                 {
                     const int line_y = bar.origin.y + block * UV_BLOCK_H;
                     graphics_draw_line(ctx, GPoint(bar.origin.x, line_y),
                                        GPoint(bar.origin.x + bar.size.w - 1, line_y));
                 }
+#endif
             }
         }
     }

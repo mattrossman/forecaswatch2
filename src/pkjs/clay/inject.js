@@ -85,8 +85,31 @@ module.exports = function (minified) {
         });
     }
 
+    /**
+     * Grey out the date-beside-time option while Leco is the time font: the
+     * large Leco digits leave no room for it. The value is kept.
+     *
+     * @param {Object|null} timeDateItem Clay item for timeDate.
+     * @param {string} timeFont Current timeFont value.
+     * @returns {void}
+     */
+    function applyTimeDateActive(timeDateItem, timeFont) {
+        if (!timeDateItem) {
+            return;
+        }
+
+        if (timeFont === 'leco') {
+            timeDateItem.disable();
+        }
+        else {
+            timeDateItem.enable();
+        }
+    }
+
     clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function() {
         var clayFetch;
+        var clayTimeFont;
+        var clayTimeDate;
         var clayTopBand;
         var calendarItems;
         var clayCalendarHeading;
@@ -115,6 +138,14 @@ module.exports = function (minified) {
 
         clayFetch = clayConfig.getItemByMessageKey('fetch');
         clayFetch.set(false);
+
+        // timeDate only exists on emery; it is capability-gated elsewhere.
+        clayTimeFont = clayConfig.getItemByMessageKey('timeFont');
+        clayTimeDate = clayConfig.getItemByMessageKey('timeDate');
+        applyTimeDateActive(clayTimeDate, clayTimeFont.get());
+        clayTimeFont.on('change', function() {
+            applyTimeDateActive(clayTimeDate, this.get());
+        });
 
         // Every lookup is null-guarded: on aplite the whole Top band section is
         // capability-gated away, so these items are never created.

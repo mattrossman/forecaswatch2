@@ -51,6 +51,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
        setting. All slots ride in one byte array because the 256-byte inbox has
        no room for seven more tuples. */
     Tuple *clay_stats_slots_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_STATS_SLOTS);
+    /* Optional for the same reason. */
+    Tuple *clay_time_date_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_TIME_DATE);
 
     if(temp_trend_tuple && precip_trend_tuple && precip_amount_trend_tuple && forecast_start_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
         // Weather data received
@@ -125,6 +127,12 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
             }
         }
 
+        uint8_t time_date_pos = g_config->time_date_pos;
+        if (clay_time_date_tuple) {
+            const int32_t pos = clay_time_date_tuple->value->int32;
+            time_date_pos = (pos >= TIME_DATE_OFF && pos <= TIME_DATE_RIGHT) ? (uint8_t) pos : TIME_DATE_OFF;
+        }
+
         Config config = (Config) {
             .celsius = clay_celsius,
             .time_lead_zero = time_lead_zero,
@@ -144,7 +152,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
             .color_time = color_time,
             .day_night_shading = day_night_shading,
             .precip_amount_bars = precip_amount_bars,
-            .top_band_stats = top_band_stats
+            .top_band_stats = top_band_stats,
+            .time_date_pos = time_date_pos
         };
         memcpy(config.stat_slots, stat_slots, sizeof(config.stat_slots));
         persist_set_config(config);

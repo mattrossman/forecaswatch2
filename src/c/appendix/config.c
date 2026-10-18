@@ -43,7 +43,8 @@ Config config_defaults(void) {
             STAT_METRIC_CALORIES,
             STAT_METRIC_ACTIVE,
             STAT_METRIC_UV_INDEX
-        }
+        },
+        .time_date_pos = TIME_DATE_OFF
     };
 }
 
@@ -58,6 +59,10 @@ static void config_read_or_default(Config *config) {
     if (read < (int) (offsetof(Config, stat_slots) + sizeof(config->stat_slots))) {
         config->top_band_stats = defaults.top_band_stats;
         memcpy(config->stat_slots, defaults.stat_slots, sizeof(config->stat_slots));
+    }
+    if (read < (int) (offsetof(Config, time_date_pos) + sizeof(config->time_date_pos))
+            || config->time_date_pos > TIME_DATE_RIGHT) {
+        config->time_date_pos = defaults.time_date_pos;
     }
     /* Read the raw byte: testing a bool that holds neither 0 nor 1 is undefined. */
     const uint8_t raw_top_band_stats = ((const uint8_t *) config)[offsetof(Config, top_band_stats)];

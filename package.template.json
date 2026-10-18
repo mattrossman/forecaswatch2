@@ -95,7 +95,8 @@
       "CLAY_STATS_SLOTS",
       "WATCH_STATS_CAPS",
       "WATCH_STATS_SLOT_COUNT",
-      "UV_INDEX"
+      "UV_INDEX",
+      "CLAY_TIME_DATE"
     ]
   }
 }

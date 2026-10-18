@@ -10,6 +10,13 @@ enum TimeFont {
     TIME_FONT_BITHAM = 2,
 };
 
+/* Wire contract with CLAY_TIME_DATE and persisted in Config: append only. */
+enum TimeDatePosition {
+    TIME_DATE_OFF = 0,
+    TIME_DATE_LEFT = 1,
+    TIME_DATE_RIGHT = 2,
+};
+
 typedef struct {
     bool celsius;
     bool time_lead_zero;
@@ -36,6 +43,7 @@ typedef struct {
        when appending. */
     bool top_band_stats;
     uint8_t stat_slots[STATS_MAX_SLOTS];
+    uint8_t time_date_pos;
 } Config;
 
 extern Config *g_config;

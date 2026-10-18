@@ -30,6 +30,21 @@ module.exports = [
             },
             {
                 "type": "select",
+                "label": "Date next to time",
+                "messageKey": "timeDate",
+                "defaultValue": "off",
+                // inject.js disables it while Leco is selected: no room beside it.
+                "description": "Shows weekday, day and month beside the main time. Handy with the health stats grid, which hides the calendar. Not available with the Leco font.",
+                // Only Pebble Time 2's wider screen has room beside the time.
+                "capabilities": ["PLATFORM_EMERY"],
+                "options": [
+                    { "label": "Off", "value": "off" },
+                    { "label": "Left of time", "value": "left" },
+                    { "label": "Right of time", "value": "right" }
+                ]
+            },
+            {
+                "type": "select",
                 "label": "Axis time format",
                 "messageKey": "axisTimeFormat",
                 "defaultValue": "24h",

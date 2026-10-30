@@ -29,6 +29,7 @@ static Config config_defaults(void) {
         .color_us_federal = GColorFolly,
         .color_time = GColorWhite,
         .day_night_shading = true,
+        .precip_amount_bars = true,
         .light_mode = false,
         .weather_status_condition = true
     };

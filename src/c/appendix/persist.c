@@ -2,8 +2,9 @@
 #include "config.h"
 
 enum key {
+    // Keep existing values stable: Pebble persistent storage is keyed by these numbers.
     TEMP_LO, TEMP_HI, TEMP_TREND, PRECIP_TREND, FORECAST_START, CITY, SUN_EVENT_START_TYPE, SUN_EVENT_TIMES, NUM_ENTRIES,
-    CURRENT_TEMP, BATTERY_LEVEL, CONFIG, CONDITION
+    CURRENT_TEMP, BATTERY_LEVEL, CONFIG, PRECIP_AMOUNT_TREND, CONDITION
 }; // Deprecated: BATTERY_LEVEL
 
 void persist_init() {
@@ -19,7 +20,11 @@ void persist_init() {
     }
     if (!persist_exists(PRECIP_TREND)) {
         uint8_t data[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        persist_write_data(TEMP_TREND, (void*) data, 12*sizeof(uint8_t));
+        persist_write_data(PRECIP_TREND, (void*) data, 12*sizeof(uint8_t));
+    }
+    if (!persist_exists(PRECIP_AMOUNT_TREND)) {
+        uint8_t data[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        persist_write_data(PRECIP_AMOUNT_TREND, (void*) data, 12*sizeof(uint8_t));
     }
     if (!persist_exists(FORECAST_START)) {
         persist_write_int(FORECAST_START, 0);
@@ -62,6 +67,7 @@ void persist_init() {
             .color_us_federal = GColorFolly,
             .color_time = GColorWhite,
             .day_night_shading = true,
+            .precip_amount_bars = true,
             .light_mode = false,
             .weather_status_condition = true
         };
@@ -83,6 +89,10 @@ int persist_get_temp_trend(int16_t *buffer, const size_t buffer_size) {
 
 int persist_get_precip_trend(uint8_t *buffer, const size_t buffer_size) {
     return persist_read_data(PRECIP_TREND, (void*) buffer, buffer_size * sizeof(uint8_t));
+}
+
+int persist_get_precip_amount_trend(uint8_t *buffer, const size_t buffer_size) {
+    return persist_read_data(PRECIP_AMOUNT_TREND, (void*) buffer, buffer_size * sizeof(uint8_t));
 }
 
 time_t persist_get_forecast_start() {
@@ -131,6 +141,10 @@ void persist_set_temp_trend(int16_t *data, const size_t size) {
 
 void persist_set_precip_trend(uint8_t *data, const size_t size) {
     persist_write_data(PRECIP_TREND, (void*) data, size * sizeof(uint8_t));
+}
+
+void persist_set_precip_amount_trend(uint8_t *data, const size_t size) {
+    persist_write_data(PRECIP_AMOUNT_TREND, (void*) data, size * sizeof(uint8_t));
 }
 
 void persist_set_forecast_start(time_t val) {

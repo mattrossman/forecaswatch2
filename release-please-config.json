@@ -6,6 +6,7 @@
       "release-type": "go",
       "versioning": "always-bump-minor",
       "skip-changelog": true,
+      "pull-request-footer": "After merging this PR, wait for the Release Please workflow to finish and upload `forecaswatch2.pbw` to the GitHub Release. Download that asset, upload it to both the [Rebble Developer Portal](https://dev-portal.rebble.io/) and [Pebble Developer Dashboard](https://developer.repebble.com/dashboard), then add release notes. Use the [existing RePebble changelog](https://apps.repebble.com/forecaswatch-2_5dcdca6ac393f50cf6dbc264/changelog) as the style reference.",
       "extra-files": [
         {
           "type": "json",

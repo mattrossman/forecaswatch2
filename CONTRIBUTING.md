@@ -67,6 +67,16 @@ mise install-emulator --logs
 
 To verify inserts locally, open Supabase Studio at `http://127.0.0.1:54323` and inspect `public.telemetry_weather_fetch`.
 
+### Schema changes and migrations
+
+Edit the declarative schema in `supabase/schemas/`, then generate a migration:
+
+```bash
+supabase db diff -f <migration_name>
+```
+
+Do not edit migrations directly.
+
 ### Hosted deployment (Supabase cloud)
 
 Authenticate and link the repo to your Supabase project:
@@ -239,21 +249,13 @@ Notes:
 
 ### Release notification preview (dev)
 
-Use this key in `src/pkjs/dev-config.js` to always show the notification for a **specific version key** from `release-notifications.json` on every app boot (ignores upgrade gating):
-
-- `forceShowReleaseNotificationOnBoot = '1.26.0'` (string must match a key in `release-notifications.json` exactly)
-
-Example:
+To preview a notification on every app boot, set its exact version key in `src/pkjs/dev-config.js`:
 
 ```javascript
-module.exports.forceShowReleaseNotificationOnBoot = '1.26.0';
+module.exports.forceShowReleaseNotificationOnBoot = '1.35.0';
 ```
 
-Notes:
-
-- Useful when `package.json` is still on an older version but you want to iterate on copy for the next release entry.
-- Remove the key (or comment it out) when testing normal upgrade behavior.
-- This is local-only dev behavior and is not written into Clay settings.
+Run `mise install-emulator` to rebuild and relaunch the emulator, then remove the line when finished. This bypasses normal upgrade gating.
 
 ### Fixtures (emulator/dev)
 

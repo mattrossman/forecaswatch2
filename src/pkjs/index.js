@@ -1,6 +1,7 @@
 
 var WundergroundProvider = require('./weather/wunderground.js');
 var OpenWeatherMapProvider = require('./weather/openweathermap.js')
+var OpenMeteoProvider = require('./weather/openmeteo.js');
 var WeatherProvider = require('./weather/provider.js');
 var createTelemetryClient = require('./telemetry.js');
 var Clay = require('./clay/_source.js');
@@ -495,6 +496,7 @@ function sendClaySettings(onSuccess, onFailure) {
         "CLAY_COLOR_US_FEDERAL": app.settings.hasOwnProperty('colorUSFederal') ? app.settings.colorUSFederal : DEFAULT_COLOR_FOLLY,
         "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : DEFAULT_COLOR_WHITE,
         "CLAY_DAY_NIGHT_SHADING": app.settings.hasOwnProperty('dayNightShading') ? app.settings.dayNightShading : true,
+        "CLAY_PRECIP_AMOUNT_BARS": app.settings.hasOwnProperty('precipAmountBars') ? app.settings.precipAmountBars : true,
         "CLAY_LIGHT_MODE": app.settings.appearance === 'light',
         "CLAY_WEATHER_STATUS_CONDITION": app.settings.weatherStatusText === 'condition',
     }
@@ -527,6 +529,9 @@ function setProvider(providerId) {
     switch (providerId) {
         case 'openweathermap':
             app.provider = new OpenWeatherMapProvider(app.settings.owmApiKey);
+            break;
+        case 'openmeteo':
+            app.provider = new OpenMeteoProvider();
             break;
         case 'wunderground':
             app.provider = new WundergroundProvider();
@@ -589,6 +594,7 @@ function getDefaultClaySettings() {
         appearance: 'dark',
         weatherStatusText: 'condition',
         dayNightShading: true,
+        precipAmountBars: true,
         timeLeadingZero: false,
         timeShowAmPm: false,
         axisTimeFormat: '24h',
@@ -833,6 +839,8 @@ function getFixtureWeatherPayload(fixture) {
     provider.precipTrend = Array.isArray(weather.precipPct) ? weather.precipPct.map(function(probabilityPercent) {
         return probabilityPercent / 100.0;
     }) : [];
+    provider.precipAmountTrend = Array.isArray(weather.precipAmount) ? weather.precipAmount.slice(0) :
+        provider.tempTrend.map(function() { return 0; });
     provider.sunEvents = sunEvents;
 
     if (provider.numEntries <= 0 || sunEvents.length < 2 || !provider.hasValidData()) {

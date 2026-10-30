@@ -121,6 +121,53 @@ function fromOpenWeather(weather) {
     }
 }
 
+var WMO_LABELS = {
+    0: 'Clear',
+    1: 'Few Clouds',
+    2: 'Partly Cloudy',
+    3: 'Overcast',
+    45: 'Fog',
+    48: 'Fog',
+    51: 'Drizzle',
+    53: 'Drizzle',
+    55: 'Drizzle',
+    56: 'Frz Drizzle',
+    57: 'Frz Drizzle',
+    61: 'Light Rain',
+    63: 'Rain',
+    65: 'Heavy Rain',
+    66: 'Frz Rain',
+    67: 'Frz Rain',
+    71: 'Light Snow',
+    73: 'Snow',
+    75: 'Heavy Snow',
+    77: 'Snow',
+    80: 'Showers',
+    81: 'Showers',
+    82: 'Showers',
+    85: 'Snow Showers',
+    86: 'Snow Showers',
+    95: 'T-storms',
+    96: 'T-storms',
+    99: 'T-storms'
+};
+
+/**
+ * Convert an Open-Meteo WMO weather code to a short watch label.
+ *
+ * @param {*} code WMO weather interpretation code.
+ * @returns {string} Short condition label.
+ */
+function fromOpenMeteo(code) {
+    var value = Number(code);
+
+    if (code !== null && isFinite(value) && Object.prototype.hasOwnProperty.call(WMO_LABELS, value)) {
+        return WMO_LABELS[value];
+    }
+
+    return 'Unknown';
+}
+
 /**
  * Convert a Weather Company current observation to a short watch label.
  *
@@ -195,5 +242,6 @@ function fromPhrase(phrase) {
 
 module.exports = {
     fromOpenWeather: fromOpenWeather,
+    fromOpenMeteo: fromOpenMeteo,
     fromWeatherCompany: fromWeatherCompany
 };

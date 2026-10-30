@@ -222,10 +222,18 @@ module.exports = [
                 "description": "Show hatch shading between sunset and sunrise to distinguish day and night on the forecast graph."
             },
             {
+                "type": "toggle",
+                "label": "Precipitation amount",
+                "messageKey": "precipAmountBars",
+                "defaultValue": true,
+                "description": "Show bars for the hourly precipitation amount. Shorter bars indicate lighter rain. Full-height bars indicate heavy rain above 0.75 in (19 mm) per hour."
+            },
+            {
                 "type": "radiogroup",
                 "label": "Provider",
                 "messageKey": "provider",
                 "defaultValue": "wunderground",
+                "description": "Weather data by <a href='https://open-meteo.com/'>Open-Meteo.com</a>, licensed under <a href='https://creativecommons.org/licenses/by/4.0/'>CC BY 4.0</a>.",
                 "options": [
                     {
                         "label": "Weather Underground",
@@ -234,6 +242,10 @@ module.exports = [
                     {
                         "label": "OpenWeatherMap",
                         "value": "openweathermap"
+                    },
+                    {
+                        "label": "Open-Meteo",
+                        "value": "openmeteo"
                     }
                 ]
             },

@@ -62,6 +62,25 @@ function formatBytes(value) {
 }
 
 /**
+ * Calculate the percentage of heap remaining from the RAM footprint and free heap.
+ *
+ * @param {string} ram RAM footprint in bytes.
+ * @param {string} free Free heap in bytes.
+ * @returns {string} Percentage of heap remaining with one decimal place.
+ */
+function formatFreeHeapPercent(ram, free) {
+  const ramBytes = Number(ram.replace(/,/g, ''));
+  const freeBytes = Number(free.replace(/,/g, ''));
+  const heapBytes = ramBytes + freeBytes;
+
+  if (!heapBytes) {
+    return '0.0%';
+  }
+
+  return `${((freeBytes / heapBytes) * 100).toFixed(1)}%`;
+}
+
+/**
  * Format parsed Pebble memory entries as a markdown table.
  *
  * @param {Array<{
@@ -88,7 +107,7 @@ function renderPebbleMemoryReport(entries) {
 
   for (const entry of entries) {
     lines.push(
-      `| ${humanizePlatform(entry.platform)} | ${formatBytes(entry.resources)} bytes / ${entry.resourcesCap} | ${formatBytes(entry.ram)} bytes / ${entry.ramCap} | ${formatBytes(entry.free)} bytes |`
+      `| ${humanizePlatform(entry.platform)} | ${formatBytes(entry.resources)} bytes / ${entry.resourcesCap} | ${formatBytes(entry.ram)} bytes / ${entry.ramCap} | ${formatBytes(entry.free)} bytes (${formatFreeHeapPercent(entry.ram, entry.free)} free) |`
     );
   }
 
@@ -112,5 +131,6 @@ if (require.main === module) {
 module.exports = {
   humanizePlatform,
   parsePebbleMemoryReport,
+  formatFreeHeapPercent,
   renderPebbleMemoryReport,
 };

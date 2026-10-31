@@ -232,7 +232,7 @@ module.exports = [
                 "type": "radiogroup",
                 "label": "Provider",
                 "messageKey": "provider",
-                "defaultValue": "wunderground",
+                "defaultValue": "openmeteo",
                 "description": "Weather data by <a href='https://open-meteo.com/'>Open-Meteo.com</a>, licensed under <a href='https://creativecommons.org/licenses/by/4.0/'>CC BY 4.0</a>.",
                 "options": [
                     {

@@ -537,9 +537,9 @@ function setProvider(providerId) {
             app.provider = new WundergroundProvider();
             break;
         default:
-            console.log('Unknown provider: "' + providerId + '", defaulting to wunderground');
-            clay.setSettings("provider", "wunderground");
-            app.provider = new WundergroundProvider();
+            console.log('Unknown provider: "' + providerId + '", defaulting to openmeteo');
+            clay.setSettings("provider", "openmeteo");
+            app.provider = new OpenMeteoProvider();
     }
     console.log('Set provider: ' + app.provider.name);
 }
@@ -586,7 +586,7 @@ function clayTryDefaults() {
  */
 function getDefaultClaySettings() {
     return {
-        provider: 'wunderground',
+        provider: 'openmeteo',
         owmApiKey: '',
         fetch: false,
         location: '',

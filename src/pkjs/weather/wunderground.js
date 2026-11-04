@@ -1,4 +1,5 @@
 var WeatherProvider = require('./provider.js');
+var conditionLabel = require('./condition-label.js');
 var request = WeatherProvider.request;
 
 // API docs: https://developer.weather.com/docs/api-aggregation
@@ -71,7 +72,7 @@ WundergroundProvider.prototype.withWundergroundCurrent = function(lat, lon, apiK
                 return;
             }
 
-            callback(weatherData.temperature);
+            callback(weatherData);
         }).bind(this),
         function(error) {
             onFailure({ stage: 'provider_data', code: 'wu_current_' + error.code });
@@ -132,7 +133,7 @@ WundergroundProvider.prototype.withProviderData = function(lat, lon, force, onSu
     }
 
     this.withApiKey((function(apiKey) {
-        this.withWundergroundCurrent(lat, lon, apiKey, (function(currentTemp) {
+        this.withWundergroundCurrent(lat, lon, apiKey, (function(current) {
             this.withWundergroundForecast(lat, lon, apiKey, (function(forecast) {
                 this.tempTrend = forecast.map(function(entry) {
                     return entry.temp;
@@ -144,7 +145,8 @@ WundergroundProvider.prototype.withProviderData = function(lat, lon, force, onSu
                     return entry.qpf || 0;
                 });
                 this.startTime = forecast[0].fcst_valid;
-                this.currentTemp = currentTemp;
+                this.currentTemp = current.temperature;
+                this.condition = conditionLabel.fromWeatherCompany(current);
                 onSuccess();
             }).bind(this), onFailure);
         }).bind(this), onFailure);

@@ -1,4 +1,5 @@
 var WeatherProvider = require('./provider.js');
+var conditionLabel = require('./condition-label.js');
 var request = WeatherProvider.request;
 
 // API docs: https://open-meteo.com/en/docs
@@ -7,7 +8,7 @@ var FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 
 // Variables requested from the forecast endpoint. To expose a new data point,
 // append it here and map it in withProviderData().
-var CURRENT_VARS = ['temperature_2m'];
+var CURRENT_VARS = ['temperature_2m', 'weather_code'];
 var HOURLY_VARS = ['temperature_2m', 'precipitation_probability', 'precipitation'];
 
 var OpenMeteoProvider = function() {
@@ -149,6 +150,7 @@ OpenMeteoProvider.prototype.withProviderData = function(lat, lon, force, onSucce
         this.precipAmountTrend = numbersOrZero(hourly.precipitation);
         this.startTime = hourly.time[0];
         this.currentTemp = current.temperature_2m;
+        this.condition = conditionLabel.fromOpenMeteo(current.weather_code);
         onSuccess();
     }).bind(this), onFailure);
 };

@@ -497,6 +497,8 @@ function sendClaySettings(onSuccess, onFailure) {
         "CLAY_COLOR_TIME": app.settings.hasOwnProperty('colorTime') ? app.settings.colorTime : DEFAULT_COLOR_WHITE,
         "CLAY_DAY_NIGHT_SHADING": app.settings.hasOwnProperty('dayNightShading') ? app.settings.dayNightShading : true,
         "CLAY_PRECIP_AMOUNT_BARS": app.settings.hasOwnProperty('precipAmountBars') ? app.settings.precipAmountBars : true,
+        "CLAY_LIGHT_MODE": app.settings.appearance === 'light',
+        "CLAY_WEATHER_STATUS_CONDITION": app.settings.weatherStatusText === 'condition',
     }
     Pebble.sendAppMessage(payload, function() {
         console.log('Message sent successfully: ' + JSON.stringify(payload));
@@ -535,9 +537,9 @@ function setProvider(providerId) {
             app.provider = new WundergroundProvider();
             break;
         default:
-            console.log('Unknown provider: "' + providerId + '", defaulting to wunderground');
-            clay.setSettings("provider", "wunderground");
-            app.provider = new WundergroundProvider();
+            console.log('Unknown provider: "' + providerId + '", defaulting to openmeteo');
+            clay.setSettings("provider", "openmeteo");
+            app.provider = new OpenMeteoProvider();
     }
     console.log('Set provider: ' + app.provider.name);
 }
@@ -584,11 +586,13 @@ function clayTryDefaults() {
  */
 function getDefaultClaySettings() {
     return {
-        provider: 'wunderground',
+        provider: 'openmeteo',
         owmApiKey: '',
         fetch: false,
         location: '',
         temperatureUnits: 'f',
+        appearance: 'dark',
+        weatherStatusText: 'condition',
         dayNightShading: true,
         precipAmountBars: true,
         timeLeadingZero: false,
@@ -828,6 +832,7 @@ function getFixtureWeatherPayload(fixture) {
     provider.id = 'fixture';
     provider.numEntries = Array.isArray(weather.temps) ? weather.temps.length : 0;
     provider.cityName = weather.city || 'Fixture City';
+    provider.condition = weather.condition || 'Unknown';
     provider.currentTemp = weather.currentTemp;
     provider.startTime = weather.startEpoch;
     provider.tempTrend = Array.isArray(weather.temps) ? weather.temps.slice(0) : [];

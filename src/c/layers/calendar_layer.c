@@ -122,13 +122,13 @@ static bool is_us_federal_holiday(struct tm *t)
 #ifdef PBL_COLOR
 static GColor date_color(struct tm *t) {
     // Get color for a date, considering weekends and holidays
-    if (is_us_federal_holiday(t))
+    if (is_us_federal_holiday(t) && config_highlight_holidays())
         return g_config->color_us_federal;
-    if (t->tm_wday == 0)
+    if (t->tm_wday == 0 && config_highlight_sundays())
         return g_config->color_sunday;
-    if (t->tm_wday == 6)
+    if (t->tm_wday == 6 && config_highlight_saturdays())
         return g_config->color_saturday;
-    return GColorWhite;
+    return config_foreground_color();
 }
 #endif
 
@@ -138,7 +138,7 @@ static GColor today_color() {
     struct tm t = relative_tm(0);
     return gcolor_equal(g_config->color_today, GColorBlack) ? date_color(&t) : g_config->color_today;
 #else
-    return GColorWhite;
+    return config_foreground_color();
 #endif
 }
 
@@ -164,7 +164,7 @@ static void calendar_update_proc(Layer *layer, GContext *ctx) {
         bool highlight_saturday = (config_highlight_saturdays() && t.tm_wday == 6);
         bool bold = (i == i_today) || highlight_holiday || highlight_sunday || highlight_saturday;
         GColor text_color = (i == i_today) ? gcolor_legible_over(today_color())
-                                           : PBL_IF_COLOR_ELSE(date_color(&t), GColorWhite);
+                                           : PBL_IF_COLOR_ELSE(date_color(&t), config_foreground_color());
         char buffer[4];
         GFont font = fonts_get_system_font(bold ? CALENDAR_FONT_KEY_BOLD : CALENDAR_FONT_KEY);
         GRect cell_rect = calendar_cell_rect(bounds, i);

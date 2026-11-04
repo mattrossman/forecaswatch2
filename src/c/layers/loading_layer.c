@@ -1,5 +1,6 @@
 #include "loading_layer.h"
 #include "c/appendix/persist.h"
+#include "c/appendix/config.h"
 #include "c/appendix/memory_log.h"
 #include "c/services/watch_services.h"
 
@@ -18,8 +19,8 @@ static void loading_update_proc(Layer *layer, GContext *ctx) {
     int w = bounds.size.w;
     int h = bounds.size.h;
 
-    // Black out the weather components
-    graphics_context_set_fill_color(ctx, GColorBlack);
+    // Cover the weather components with the current appearance background.
+    graphics_context_set_fill_color(ctx, config_background_color());
     graphics_fill_rect(ctx, GRect(0, 0, w, h), 0, GCornerNone);
 }
 
@@ -30,7 +31,7 @@ void loading_layer_create(Layer* parent_layer, GRect frame) {
     int w = bounds.size.w; int h = bounds.size.h;
     s_loading_text_layer = text_layer_create(GRect(0, h / 3, w, h));
     text_layer_set_background_color(s_loading_text_layer, GColorClear);
-    text_layer_set_text_color(s_loading_text_layer, GColorWhite);
+    text_layer_set_text_color(s_loading_text_layer, config_foreground_color());
     text_layer_set_font(s_loading_text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
     text_layer_set_text_alignment(s_loading_text_layer, GTextAlignmentCenter);
     text_layer_set_text(s_loading_text_layer, "No data :(");
@@ -42,6 +43,8 @@ void loading_layer_create(Layer* parent_layer, GRect frame) {
 }
 
 void loading_layer_refresh() {
+    text_layer_set_text_color(s_loading_text_layer, config_foreground_color());
+    layer_mark_dirty(s_loading_layer);
     if (loading_layer_has_valid_data())
         layer_set_hidden(s_loading_layer, true);
     else

@@ -1,4 +1,5 @@
 var WeatherProvider = require('./provider.js');
+var conditionLabel = require('./condition-label.js');
 var request = WeatherProvider.request;
 
 // API docs: https://docs.openweathermap.org/data/3.0/one-call-3
@@ -108,6 +109,8 @@ OpenWeatherMapProvider.prototype.withProviderData = function(lat, lon, force, on
         });
         this.startTime = weatherData.hourly[0].dt;
         this.currentTemp = weatherData.current.temp;
+        var currentWeather = Array.isArray(weatherData.current.weather) ? weatherData.current.weather[0] : null;
+        this.condition = conditionLabel.fromOpenWeather(currentWeather);
         onSuccess();
     }).bind(this), onFailure);
 };

@@ -43,7 +43,7 @@ static void main_window_load(Window *window) {
     GRect bounds = layer_get_bounds(window_layer);
     int w = bounds.size.w;
     int h = bounds.size.h;
-    window_set_background_color(window, GColorBlack);
+    window_set_background_color(window, config_background_color());
 
 #ifdef PBL_PLATFORM_EMERY
     // emery: pad to avoid content getting obscured by screen edge
@@ -133,11 +133,13 @@ void main_window_create() {
 }
 
 void main_window_refresh() {
+    window_set_background_color(s_main_window, config_background_color());
     time_layer_refresh();
     weather_status_layer_refresh();
     forecast_layer_refresh();
     calendar_layer_refresh();
     calendar_status_layer_refresh();
+    loading_layer_refresh();
 }
 
 void main_window_destroy() {

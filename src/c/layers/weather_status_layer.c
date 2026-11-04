@@ -5,19 +5,19 @@
 
 #define FONT_18_OFFSET 7
 #define FONT_14_OFFSET 3
-#define CITY_INIT_WIDTH 100
+#define CONDITION_INIT_WIDTH 100
 #define MARGIN 2
 
 // emery: use larger text and arrow geometry
 #ifdef PBL_PLATFORM_EMERY
-#define CITY_FONT_KEY FONT_KEY_GOTHIC_18
+#define CONDITION_FONT_KEY FONT_KEY_GOTHIC_18
 #define SUN_EVENT_FONT_KEY FONT_KEY_GOTHIC_18
 #define ARROW_H 10
 #define ARROW_HEAD_H 4
 #define ARROW_HEAD_W 3
 #define ARROW_W 8
 #else
-#define CITY_FONT_KEY FONT_KEY_GOTHIC_14
+#define CONDITION_FONT_KEY FONT_KEY_GOTHIC_14
 #define SUN_EVENT_FONT_KEY FONT_KEY_GOTHIC_14
 #define ARROW_H 8
 #define ARROW_HEAD_H 3
@@ -29,7 +29,7 @@ static GRect frame_curr_temp;
 static GRect frame_sun_event;
 
 static Layer *s_weather_status_layer;
-static TextLayer *s_city_layer;
+static TextLayer *s_condition_layer;
 static TextLayer *s_current_temp_layer;
 static TextLayer *s_next_sun_event_layer;
 
@@ -51,19 +51,24 @@ static void text_layer_move_frame(TextLayer *text_layer, GRect frame) {
     layer_set_frame(text_layer_get_layer(text_layer), frame);
 }
 
-static void city_layer_refresh() {
-    // Set the city text layer contents from storage
-    static char s_city_buffer[20];
-    persist_get_city(s_city_buffer, sizeof(s_city_buffer));
-    text_layer_set_text(s_city_layer, s_city_buffer);
+static void condition_layer_refresh() {
+    static char s_status_text_buffer[32];
+    if (g_config->weather_status_condition) {
+        persist_get_condition(s_status_text_buffer, sizeof(s_status_text_buffer));
+        text_layer_set_overflow_mode(s_condition_layer, GTextOverflowModeFill);
+    } else {
+        persist_get_city(s_status_text_buffer, sizeof(s_status_text_buffer));
+        text_layer_set_overflow_mode(s_condition_layer, GTextOverflowModeTrailingEllipsis);
+    }
+    text_layer_set_text(s_condition_layer, s_status_text_buffer);
 
     // Dynamic resizing
     GRect bounds = layer_get_bounds(s_weather_status_layer);
-    GSize size = text_layer_get_content_size(s_city_layer);
+    GSize size = text_layer_get_content_size(s_condition_layer);
     int x = frame_curr_temp.origin.x + frame_curr_temp.size.w + MARGIN * 2;
     int y;
     int h;
-    // emery: align city text baseline with 18px font metrics instead of 14px metrics.
+    // emery: align condition text baseline with 18px font metrics instead of 14px metrics.
 #ifdef PBL_PLATFORM_EMERY
     y = -FONT_18_OFFSET;
     h = size.h + FONT_18_OFFSET;
@@ -72,7 +77,7 @@ static void city_layer_refresh() {
     h = size.h + FONT_14_OFFSET;
 #endif
     int w = bounds.size.w - frame_curr_temp.size.w - frame_sun_event.size.w - MARGIN * 4;
-    text_layer_move_frame(s_city_layer, GRect(x, y, w, h));
+    text_layer_move_frame(s_condition_layer, GRect(x, y, w, h));
 }
 
 static void current_temp_layer_refresh() {
@@ -117,33 +122,34 @@ static void sun_event_layer_refresh() {
 }
 
 static void weather_status_layer_init(GRect bounds) {
-    // Set up the city text layer properties
+    // Set up the weather status text layers.
     int w = bounds.size.w;
 
     // Current temperature
     s_current_temp_layer = text_layer_create(GRect(MARGIN, -FONT_18_OFFSET, 40, 25));
     text_layer_set_background_color(s_current_temp_layer, GColorClear);
     text_layer_set_text_alignment(s_current_temp_layer, GTextAlignmentLeft);
-    text_layer_set_text_color(s_current_temp_layer, GColorWhite);
+    text_layer_set_text_color(s_current_temp_layer, config_foreground_color());
     text_layer_set_font(s_current_temp_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
 
-    // City where weather was fetched
-    s_city_layer = text_layer_create(GRect(w/2 - CITY_INIT_WIDTH/2, -FONT_14_OFFSET, CITY_INIT_WIDTH, 25));
-    text_layer_set_background_color(s_city_layer, GColorClear);
-    text_layer_set_text_alignment(s_city_layer, GTextAlignmentCenter);
-    text_layer_set_text_color(s_city_layer, GColorWhite);
-    text_layer_set_font(s_city_layer, fonts_get_system_font(CITY_FONT_KEY));
+    // Current weather condition
+    s_condition_layer = text_layer_create(GRect(w/2 - CONDITION_INIT_WIDTH/2, -FONT_14_OFFSET, CONDITION_INIT_WIDTH, 25));
+    text_layer_set_background_color(s_condition_layer, GColorClear);
+    text_layer_set_text_alignment(s_condition_layer, GTextAlignmentCenter);
+    text_layer_set_text_color(s_condition_layer, config_foreground_color());
+    text_layer_set_overflow_mode(s_condition_layer, GTextOverflowModeFill);
+    text_layer_set_font(s_condition_layer, fonts_get_system_font(CONDITION_FONT_KEY));
 
     // Time of next sun event (sunrise/sunset)
     s_next_sun_event_layer = text_layer_create(GRect(w - MARGIN - 6 - 40, 4 - FONT_18_OFFSET, 40, 25));
     text_layer_set_background_color(s_next_sun_event_layer, GColorClear);
     text_layer_set_text_alignment(s_next_sun_event_layer, GTextAlignmentLeft);
-    text_layer_set_text_color(s_next_sun_event_layer, GColorWhite);
+    text_layer_set_text_color(s_next_sun_event_layer, config_foreground_color());
     text_layer_set_font(s_next_sun_event_layer, fonts_get_system_font(SUN_EVENT_FONT_KEY));
 
     current_temp_layer_refresh();
     sun_event_layer_refresh();
-    city_layer_refresh();
+    condition_layer_refresh();
 }
 
 static void weather_status_update_proc(Layer *layer, GContext *ctx) {
@@ -166,9 +172,9 @@ static void weather_status_update_proc(Layer *layer, GContext *ctx) {
 #else
     gpath_move_to(s_arrow_path, GPoint(w - 4, 6));
 #endif
-    graphics_context_set_stroke_color(ctx, GColorWhite);
+    graphics_context_set_stroke_color(ctx, config_foreground_color());
     gpath_draw_outline_open(ctx, s_arrow_path);
-    graphics_context_set_fill_color(ctx, GColorWhite);
+    graphics_context_set_fill_color(ctx, config_foreground_color());
     gpath_draw_filled(ctx, s_arrow_path);
     MEMORY_LOG_HEAP("weather_status_update:exit");
 }
@@ -184,7 +190,7 @@ void weather_status_layer_create(Layer* parent_layer, GRect frame) {
 
     // Set up all the text layers
     weather_status_layer_init(bounds);
-    layer_add_child(s_weather_status_layer, text_layer_get_layer(s_city_layer));
+    layer_add_child(s_weather_status_layer, text_layer_get_layer(s_condition_layer));
     layer_add_child(s_weather_status_layer, text_layer_get_layer(s_current_temp_layer));
     layer_add_child(s_weather_status_layer, text_layer_get_layer(s_next_sun_event_layer));
     layer_set_update_proc(s_weather_status_layer, weather_status_update_proc);
@@ -196,15 +202,18 @@ void weather_status_layer_create(Layer* parent_layer, GRect frame) {
 
 void weather_status_layer_refresh() {
     layer_mark_dirty(s_weather_status_layer);
+    text_layer_set_text_color(s_current_temp_layer, config_foreground_color());
+    text_layer_set_text_color(s_condition_layer, config_foreground_color());
+    text_layer_set_text_color(s_next_sun_event_layer, config_foreground_color());
     current_temp_layer_refresh();
     sun_event_layer_refresh();
-    city_layer_refresh();
+    condition_layer_refresh();
     MEMORY_LOG_HEAP("after_weather_refresh");
 }
 
 void weather_status_layer_destroy() {
     MEMORY_LOG_HEAP("weather_status_layer_destroy:before");
-    text_layer_destroy(s_city_layer);
+    text_layer_destroy(s_condition_layer);
     text_layer_destroy(s_current_temp_layer);
     text_layer_destroy(s_next_sun_event_layer);
     if (s_arrow_path) {

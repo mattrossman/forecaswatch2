@@ -1,4 +1,8 @@
 {
+  "1.38.0": {
+    "title": "New in v1.38.0!",
+    "body": "Weather Underground stability is improved."
+  },
   "1.37.0": {
     "title": "New in v1.37.0!",
     "body": "Open-Meteo is now available as a weather provider. Select it in the Weather section of the watchface settings, no API key required."

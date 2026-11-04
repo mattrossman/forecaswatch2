@@ -101,7 +101,7 @@ checksum = "sha256:c6a5714108caa81bc71e3859c18f449a8f456e275946c0d429e2d7120b03d
 url = "https://nodejs.org/dist/v24.5.0/node-v24.5.0-win-x64.zip"
 
 [[tools."pipx:pebble-tool"]]
-version = "5.0.40"
+version = "5.1.2"
 backend = "pipx:pebble-tool"
 
 [[tools.resvg]]

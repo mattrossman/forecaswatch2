@@ -33,4 +33,4 @@ If you need runtime logs, `mise install-emulator --logs` runs it in an emulator 
 
 ## Supabase migrations
 
-Never write `migrations/` files manually. Edit declarative `schemas/` and generate migrations as-needed before commits with `supabase db diff -f <label>`
+Edit `supabase/schemas/` and follow the migration workflow in [CONTRIBUTING.md](CONTRIBUTING.md#schema-changes-and-migrations). Never write migration files manually.

@@ -20,6 +20,10 @@ mise build release
 
 This builds the project with the Pebble SDK version pinned in `pebble-sdk-version` and provisioned by the repo scripts. The `.pbw` output can be found in the `build` directory.
 
+## Tests
+
+Run `mise test` to discover JavaScript tests under `tests/` and Supabase function tests under `supabase/functions/`. The Weather Underground round-trip test contacts the live website and API, so it requires internet access.
+
 ## Supabase (telemetry)
 
 Telemetry uses Supabase Edge Functions + Postgres.
@@ -65,17 +69,30 @@ For emulator validation, run:
 mise install-emulator --logs
 ```
 
-To verify inserts locally, open Supabase Studio at `http://127.0.0.1:54323` and inspect `public.telemetry_weather_fetch`.
+To verify inserts locally, run `supabase status` to find the Studio URL and inspect `public.telemetry_weather_fetch`.
+
+### Looking up telemetry
+
+To look up a user's telemetry, send their PKJS account token to the anonymous
+`telemetry-account-hash` function, then search `telemetry_weather_fetch` for the
+returned `accountTokenHash`. Supply the token through standard input so it does
+not appear in shell history or command arguments:
+
+```sh
+read -rs ACCOUNT_TOKEN
+printf '%s' "$ACCOUNT_TOKEN" | node -e 'let s=""; process.stdin.on("data", c => s += c); process.stdin.on("end", () => process.stdout.write(JSON.stringify({accountToken: s})))' | curl -sS -X POST -H 'Content-Type: application/json' --data-binary @- 'https://<project-ref>.supabase.co/functions/v1/telemetry-account-hash'
+unset ACCOUNT_TOKEN
+```
 
 ### Schema changes and migrations
 
-Edit the declarative schema in `supabase/schemas/`, then generate a migration:
+Edit `supabase/schemas/`, then generate a migration:
 
 ```bash
-supabase db diff -f <migration_name>
+supabase db schema declarative sync -f <migration_name> --name <migration_name> --no-apply
 ```
 
-Do not edit migrations directly.
+Review the generated migration before applying it. CLI reference: https://supabase.com/docs/reference/cli/supabase-db-schema-declarative-sync
 
 ### Hosted deployment (Supabase cloud)
 
@@ -96,8 +113,8 @@ supabase secrets set \
 Apply database migrations:
 
 ```bash
-supabase db push --dry-run
-supabase db push
+supabase db push --remote --dry-run
+supabase db push --remote
 ```
 
 Deploy the telemetry function:
@@ -109,10 +126,6 @@ supabase functions deploy telemetry-ingest
 Wire release and preview builds to hosted telemetry by setting repository secret(s) used by CI workflows:
 
 - `TELEMETRY_ENDPOINT=https://<your-project-ref>.supabase.co/functions/v1/telemetry-ingest`
-
-### Optional: Supabase GitHub integration
-
-If you use Supabase GitHub sync/branching, Supabase can auto-apply migrations and deploy functions from the `supabase/` directory when branches/PRs update. Enable it in Supabase Dashboard > Project Settings > Integrations.
 
 `package.json` is generated from `package.template.json` and profile data in `profiles/`.
 

@@ -91,7 +91,6 @@ WundergroundProvider.prototype.clearApiKey = function() {
 
 WundergroundProvider.prototype.withApiKey = function(callback, onFailure) {
     // callback(apiKey)
-    // test with `await fetch('https://wunderground.com').then(x=>x.text()).then(x=>x.match(/observations\/current\?apiKey=([a-z0-9]*)/)[1])`
 
     var apiKey = localStorage.getItem('wundergroundApiKey');
     var url = 'https://www.wunderground.com/';
@@ -103,7 +102,8 @@ WundergroundProvider.prototype.withApiKey = function(callback, onFailure) {
             url,
             'GET',
             function(response) {
-                var match = response.match(/observations\/current\?apiKey=([a-z0-9]*)/);
+                var match = response.match(/"API_KEY"\s*:\s*"([a-z0-9]+)"/) ||
+                    response.match(/observations\/current\?apiKey=([a-z0-9]+)/);
                 if (!match || !match[1]) {
                     onFailure({ stage: 'provider_data', code: 'wu_api_key_not_found' });
                     return;
@@ -128,36 +128,47 @@ WundergroundProvider.prototype.withApiKey = function(callback, onFailure) {
 // ============== IMPORTANT OVERRIDE ================
 
 WundergroundProvider.prototype.withProviderData = function(lat, lon, force, onSuccess, onFailure) {
-    // onSuccess expects that this.hasValidData() will be true
+    var provider = this;
 
     if (force) {
-        // In case the API key becomes invalid
         console.log('Clearing Weather Underground API key for forced update');
         this.clearApiKey();
     }
 
-    this.withApiKey((function(apiKey) {
-        this.withWundergroundCurrent(lat, lon, apiKey, (function(current) {
-            this.withWundergroundForecast(lat, lon, apiKey, (function(forecast) {
-                this.tempTrend = forecast.map(function(entry) {
+    /**
+     * Clear a rejected key before reporting the failure.
+     * @param {Object} error Provider failure.
+     * @returns {void}
+     */
+    function handleFailure(error) {
+        if (error.code === 'wu_current_status_401' || error.code === 'wu_forecast_status_401') {
+            provider.clearApiKey();
+        }
+        onFailure(error);
+    }
+
+    this.withApiKey(function(apiKey) {
+        provider.withWundergroundCurrent(lat, lon, apiKey, function(current) {
+            provider.withWundergroundForecast(lat, lon, apiKey, function(forecast) {
+                provider.tempTrend = forecast.map(function(entry) {
                     return entry.temp;
                 });
-                this.precipTrend = forecast.map(function(entry) {
+                provider.precipTrend = forecast.map(function(entry) {
                     return entry.pop / 100.0;
                 });
-                this.precipAmountTrend = forecast.map(function(entry) {
+                provider.precipAmountTrend = forecast.map(function(entry) {
                     return entry.qpf || 0;
                 });
-                this.uvTrend = forecast.map(function(entry) {
+                provider.uvTrend = forecast.map(function(entry) {
                     return typeof entry.uv_index === 'number' ? entry.uv_index : 0;
                 });
-                this.startTime = forecast[0].fcst_valid;
-                this.currentTemp = current.temp;
-                this.currentUv = current.uv;
+                provider.startTime = forecast[0].fcst_valid;
+                provider.currentTemp = current.temp;
+                provider.currentUv = current.uv;
                 onSuccess();
-            }).bind(this), onFailure);
-        }).bind(this), onFailure);
-    }).bind(this), onFailure);
+            }, handleFailure);
+        }, handleFailure);
+    }, onFailure);
 };
 
 module.exports = WundergroundProvider;

@@ -3,6 +3,7 @@ experimental = true
 lockfile = true
 
 [tools]
+node = "24.5.0"
 # https://developer.rebble.io/sdk/
 # https://github.com/coredevices/pebble-tool
 # https://mise.jdx.dev/dev-tools/backends/pipx.html

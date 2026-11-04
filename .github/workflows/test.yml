@@ -11,12 +11,12 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-24.04
+    env:
+      MISE_AUTO_INSTALL: "false"
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
-        with:
-          node-version: 24
       - uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5
         with:
-          install_args: deno
+          install_args: node deno
+      - run: mise run prepare-package && npm ci
       - run: mise test

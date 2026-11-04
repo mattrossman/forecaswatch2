@@ -1,3 +1,4 @@
+import { accountTokenSchema } from "../_shared/account-token.ts";
 import { hmacSha256Hex } from "../_shared/hash.ts";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
@@ -46,9 +47,7 @@ const settingsSchema = z
 
 const telemetryPayloadSchema = z.object({
   eventType: z.literal("weather_fetch"),
-  accountToken: z.string().trim().min(1, {
-    message: "invalid_account_token",
-  }),
+  accountToken: accountTokenSchema,
   watchToken: z.string().nullable().optional(),
   provider: providerSchema,
   success: z.boolean(),

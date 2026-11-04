@@ -1,4 +1,8 @@
+import { z } from "npm:zod@4";
+import { accountTokenSchema } from "../_shared/account-token.ts";
 import { hmacSha256Hex } from "../_shared/hash.ts";
+
+const requestSchema = z.object({ accountToken: accountTokenSchema });
 
 export async function handleRequest(req: Request): Promise<Response> {
   if (req.method !== "POST") {
@@ -17,12 +21,8 @@ export async function handleRequest(req: Request): Promise<Response> {
     return Response.json({ error: "invalid_json" }, { status: 400 });
   }
 
-  if (
-    typeof payload !== "object" || payload === null ||
-    !("accountToken" in payload) ||
-    typeof payload.accountToken !== "string" ||
-    payload.accountToken.trim() === ""
-  ) {
+  const result = requestSchema.safeParse(payload);
+  if (!result.success) {
     return Response.json({ error: "invalid_account_token" }, { status: 400 });
   }
 
@@ -31,7 +31,7 @@ export async function handleRequest(req: Request): Promise<Response> {
 
   const accountTokenHash = await hmacSha256Hex(
     secret,
-    payload.accountToken.trim(),
+    result.data.accountToken,
   );
   return Response.json({ accountTokenHash });
 }

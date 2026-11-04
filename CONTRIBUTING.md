@@ -109,8 +109,8 @@ supabase secrets set \
 Apply database migrations:
 
 ```bash
-supabase db push --dry-run
-supabase db push
+supabase db push --remote --dry-run
+supabase db push --remote
 ```
 
 Deploy the telemetry function:

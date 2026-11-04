@@ -47,9 +47,6 @@ max_client_conn = 100
 [db.migrations]
 # If disabled, migrations will be skipped during a db push or reset.
 enabled = true
-# Specifies an ordered list of schema files that describe your database.
-# Supports glob patterns relative to supabase directory: "./schemas/*.sql"
-schema_paths = ["./schemas/*.sql"]
 
 [db.seed]
 # If enabled, seeds the database after migrations during a db reset.
@@ -190,8 +187,8 @@ web3 = 30
 # secret = ""
 
 [auth.email]
-# Allow/disallow new user signups via email to your project.
-enable_signup = true
+# Enable email authentication for your project.
+enabled = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
@@ -228,8 +225,8 @@ otp_expiry = 3600
 # content_path = "./templates/password_changed_notification.html"
 
 [auth.sms]
-# Allow/disallow new user signups via SMS to your project.
-enable_signup = false
+# Enable SMS authentication for your project.
+enabled = false
 # If enabled, users need to confirm their phone number before signing in.
 enable_confirmations = false
 # Template for sending OTP to users
@@ -372,6 +369,9 @@ s3_region = "env(S3_REGION)"
 s3_access_key = "env(S3_ACCESS_KEY)"
 # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
 s3_secret_key = "env(S3_SECRET_KEY)"
+
+[experimental.pgdelta]
+enabled = true
 
 [functions.telemetry-ingest]
 enabled = true

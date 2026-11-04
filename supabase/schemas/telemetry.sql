@@ -37,5 +37,8 @@ with check (false);
 create index telemetry_weather_fetch_account_hour_idx
   on public.telemetry_weather_fetch (account_token_hash, received_at);
 
+create index telemetry_weather_fetch_received_at_idx
+  on public.telemetry_weather_fetch (received_at desc);
+
 create index telemetry_weather_fetch_dau_idx
   on public.telemetry_weather_fetch ((((received_at at time zone 'UTC'::text))::date), account_token_hash);

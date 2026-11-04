@@ -86,13 +86,13 @@ unset ACCOUNT_TOKEN
 
 ### Schema changes and migrations
 
-Edit the declarative schema in `supabase/schemas/`, then generate a migration:
+Edit `supabase/schemas/`, then generate a migration:
 
 ```bash
-supabase db diff -f <migration_name>
+supabase db schema declarative sync -f <migration_name> --name <migration_name> --no-apply
 ```
 
-Do not edit migrations directly.
+Review the generated migration before applying it. CLI reference: https://supabase.com/docs/reference/cli/supabase-db-schema-declarative-sync
 
 ### Hosted deployment (Supabase cloud)
 
@@ -126,10 +126,6 @@ supabase functions deploy telemetry-ingest
 Wire release and preview builds to hosted telemetry by setting repository secret(s) used by CI workflows:
 
 - `TELEMETRY_ENDPOINT=https://<your-project-ref>.supabase.co/functions/v1/telemetry-ingest`
-
-### Optional: Supabase GitHub integration
-
-If you use Supabase GitHub sync/branching, Supabase can auto-apply migrations and deploy functions from the `supabase/` directory when branches/PRs update. Enable it in Supabase Dashboard > Project Settings > Integrations.
 
 `package.json` is generated from `package.template.json` and profile data in `profiles/`.
 

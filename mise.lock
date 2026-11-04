@@ -26,7 +26,7 @@ url = "https://github.com/supabase/cli/releases/download/v3.0.0/supabase_3.0.0_l
 
 [tools."aqua:supabase/cli"."platforms.macos-arm64"]
 checksum = "sha256:3b0bfc4602cd7d55ffc78a6b72443d3b8e5fdd856b777e75977978dceb3e44cc"
-url = "https://github.com/supabase/cli/releases/download/v3.0.0/supabase_3.0.0_darwin_arm64.tar.gz"
+url = "https://github.com/supabase/cli/releases/download/v3.0.0/supabase_darwin_arm64.tar.gz"
 
 [tools."aqua:supabase/cli"."platforms.macos-x64"]
 checksum = "sha256:d14cdb8536eb37b0f3b6d8c70fa5497b941f71005f0b2ac152b6e6c62864529c"

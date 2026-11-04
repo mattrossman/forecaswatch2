@@ -30,6 +30,13 @@ run = "scripts/prepare-package.sh"
 description = "Serve telemetry ingest function locally"
 run = "supabase functions serve telemetry-ingest --env-file .env"
 
+[tasks.test]
+description = "Run JavaScript and Supabase function tests"
+run = [
+  "node --test 'tests/**/*.test.js'",
+  "deno test --config supabase/functions/telemetry-ingest/deno.json --allow-env=TELEMETRY_HASH_SECRET supabase/functions",
+]
+
 [tasks.clean]
 description = "Clean build artifacts"
 run = "pebble clean"

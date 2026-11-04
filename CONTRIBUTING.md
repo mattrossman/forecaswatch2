@@ -20,6 +20,10 @@ mise build release
 
 This builds the project with the Pebble SDK version pinned in `pebble-sdk-version` and provisioned by the repo scripts. The `.pbw` output can be found in the `build` directory.
 
+## Tests
+
+Run `mise test` to discover JavaScript tests under `tests/` and Supabase function tests under `supabase/functions/`. The Weather Underground round-trip test contacts the live website and API, so it requires internet access.
+
 ## Supabase (telemetry)
 
 Telemetry uses Supabase Edge Functions + Postgres.

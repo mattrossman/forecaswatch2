@@ -35,6 +35,6 @@ jobs:
         with:
           install: true
           cache: true
-      - run: supabase link --project-ref "$SUPABASE_PROJECT_ID"
-      - run: supabase db push --yes
-      - run: supabase functions deploy
+      - run: supabase link "$SUPABASE_PROJECT_ID"
+      - run: supabase db push --remote --yes
+      - run: supabase functions deploy --yes

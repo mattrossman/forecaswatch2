@@ -65,7 +65,7 @@ For emulator validation, run:
 mise install-emulator --logs
 ```
 
-To verify inserts locally, open Supabase Studio at `http://127.0.0.1:54323` and inspect `public.telemetry_weather_fetch`.
+To verify inserts locally, run `supabase status` to find the Studio URL and inspect `public.telemetry_weather_fetch`.
 
 ### Schema changes and migrations
 

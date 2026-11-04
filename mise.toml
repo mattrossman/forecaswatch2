@@ -3,6 +3,7 @@ experimental = true
 lockfile = true
 
 [tools]
+node = "24.5.0"
 # https://developer.rebble.io/sdk/
 # https://github.com/coredevices/pebble-tool
 # https://mise.jdx.dev/dev-tools/backends/pipx.html
@@ -29,6 +30,13 @@ run = "scripts/prepare-package.sh"
 [tasks.telemetry-serve]
 description = "Serve telemetry ingest function locally"
 run = "supabase functions serve telemetry-ingest --env-file .env"
+
+[tasks.test]
+description = "Run JavaScript and Supabase function tests"
+run = [
+  "node --test 'tests/**/*.test.js'",
+  "deno test --config supabase/functions/telemetry-ingest/deno.json --allow-env=TELEMETRY_HASH_SECRET supabase/functions",
+]
 
 [tasks.clean]
 description = "Clean build artifacts"

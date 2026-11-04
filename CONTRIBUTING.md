@@ -67,6 +67,19 @@ mise install-emulator --logs
 
 To verify inserts locally, run `supabase status` to find the Studio URL and inspect `public.telemetry_weather_fetch`.
 
+### Looking up telemetry
+
+To look up a user's telemetry, send their PKJS account token to the anonymous
+`telemetry-account-hash` function, then search `telemetry_weather_fetch` for the
+returned `accountTokenHash`. Supply the token through standard input so it does
+not appear in shell history or command arguments:
+
+```sh
+read -rs ACCOUNT_TOKEN
+printf '%s' "$ACCOUNT_TOKEN" | node -e 'let s=""; process.stdin.on("data", c => s += c); process.stdin.on("end", () => process.stdout.write(JSON.stringify({accountToken: s})))' | curl -sS -X POST -H 'Content-Type: application/json' --data-binary @- 'https://<project-ref>.supabase.co/functions/v1/telemetry-account-hash'
+unset ACCOUNT_TOKEN
+```
+
 ### Schema changes and migrations
 
 Edit the declarative schema in `supabase/schemas/`, then generate a migration:

@@ -133,10 +133,10 @@ supabase db push --remote --dry-run
 supabase db push --remote
 ```
 
-Deploy the telemetry function:
+Deploy the Edge Functions:
 
 ```bash
-supabase functions deploy telemetry-ingest
+supabase functions deploy
 ```
 
 ### Weather failure alerts

@@ -15,33 +15,40 @@ const providerNames: Record<Event["provider"], string> = {
   mock: "Mock",
 };
 
-function counts(events: Event[], end: number): Map<string, Count> {
+function latestEventsByAccount(
+  events: Event[],
+  end: number,
+): Map<string, Event> {
   const latest = new Map<string, Event>();
   for (const event of events) {
     const time = Date.parse(event.received_at);
     if (time < end - HOUR || time >= end) continue;
     const previous = latest.get(event.account_token_hash);
+    const previousTime = previous ? Date.parse(previous.received_at) : 0;
     if (
-      !previous || time > Date.parse(previous.received_at) ||
-      (time === Date.parse(previous.received_at) && event.id > previous.id)
+      !previous || time > previousTime ||
+      (time === previousTime && event.id > previous.id)
     ) {
       latest.set(event.account_token_hash, event);
     }
   }
+  return latest;
+}
 
+function counts(events: Event[], end: number): Map<string, Count> {
   const result = new Map<string, Count>();
-  for (const event of latest.values()) {
-    const location = !event.success &&
+  for (const event of latestEventsByAccount(events, end).values()) {
+    const locationFailure = !event.success &&
       /^(coordinates|forward_geocode|reverse_geocode):/.test(event.error ?? "");
     const providerKey = providerNames[event.provider];
     const providerCount = result.get(providerKey) ?? { total: 0, failed: 0 };
     providerCount.total++;
-    if (!event.success && !location) providerCount.failed++;
+    if (!event.success && !locationFailure) providerCount.failed++;
     result.set(providerKey, providerCount);
 
     const locationCount = result.get("Location") ?? { total: 0, failed: 0 };
     locationCount.total++;
-    if (location) locationCount.failed++;
+    if (locationFailure) locationCount.failed++;
     result.set("Location", locationCount);
   }
   return result;
@@ -60,17 +67,18 @@ export function alertMessage(events: Event[], now: number): string | null {
   const dailyReminder = time.getUTCHours() === 12 && time.getUTCMinutes() < 15;
   const lines: string[] = [];
   for (const [name, count] of current) {
-    if (elevated(count) && (dailyReminder || !elevated(previous.get(name)))) {
-      const percentage = (count.failed * 100 / count.total).toFixed(1);
-      if (name === "Location") {
-        lines.push(
-          `In the last hour, ${count.failed} of ${count.total} accounts (${percentage}%) had their latest weather update fail due to a location error.`,
-        );
-      } else {
-        lines.push(
-          `In the last hour, ${count.failed} of ${count.total} accounts using ${name} (${percentage}%) had their latest weather update fail.`,
-        );
-      }
+    if (!elevated(count) || (!dailyReminder && elevated(previous.get(name)))) {
+      continue;
+    }
+    const percentage = (count.failed * 100 / count.total).toFixed(1);
+    if (name === "Location") {
+      lines.push(
+        `In the last hour, ${count.failed} of ${count.total} accounts (${percentage}%) had their latest weather update fail due to a location error.`,
+      );
+    } else {
+      lines.push(
+        `In the last hour, ${count.failed} of ${count.total} accounts using ${name} (${percentage}%) had their latest weather update fail.`,
+      );
     }
   }
   return lines.length ? lines.join("\n") : null;

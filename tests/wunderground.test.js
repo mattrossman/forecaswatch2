@@ -65,6 +65,20 @@ test('clears a key rejected by the forecast request', () => {
     assert.equal(localStorage.getItem('wundergroundApiKey'), null);
 });
 
+test('loads current and hourly UV alongside temperatures', () => {
+    resetStorage('valid');
+    responseForRequest = url => url.includes('/observations/current')
+        ? { body: JSON.stringify({ temperature: 72, uvIndex: 3 }) }
+        : { body: JSON.stringify({ forecasts: [{ temp: 75, pop: 0, qpf: 0, uv_index: 7, fcst_valid: 123 }] }) };
+    const provider = new WundergroundProvider();
+    let succeeded = false;
+    provider.withProviderData(40, -74, false, () => { succeeded = true; }, assert.fail);
+    assert.equal(succeeded, true);
+    assert.equal(provider.currentTemp, 72);
+    assert.equal(provider.currentUv, 3);
+    assert.deepEqual(provider.uvTrend, [7]);
+});
+
 test('homepage key works with current conditions and forecast', async () => {
     resetStorage(null);
     useLiveRequests = true;

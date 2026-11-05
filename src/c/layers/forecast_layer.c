@@ -30,45 +30,11 @@
 #define PRECIP_FILL_COLOR PBL_IF_COLOR_ELSE(GColorCobaltBlue, GColorLightGray)
 #define PRECIP_AMOUNT_FILL_COLOR PBL_IF_COLOR_ELSE(GColorIslamicGreen, GColorBlack)
 #define PRECIP_AMOUNT_STROKE_COLOR PBL_IF_COLOR_ELSE(GColorMintGreen, GColorWhite)
-#define UV_FILL_COLOR PBL_IF_COLOR_ELSE(GColorYellow, GColorWhite)
-#define UV_STROKE_COLOR PBL_IF_COLOR_ELSE(GColorWindsorTan, GColorBlack)
-// PoC: on color displays, color each block by the EPA/WHO UV band its own value falls in
-// (the same bands the threshold dropdown already uses, plus a darker top tier so 14+ still
-// stands out from a merely-Extreme 11), instead of a flat yellow fill. Black and white displays
-// keep the flat block look; there is no dithered equivalent worth the clutter on a 1-bit display.
-#ifdef PBL_COLOR
-static GColor uv_band_color(int uv_value)
-{
-    if (uv_value >= 14)
-        return GColorImperialPurple; // off-the-chart extreme
-    if (uv_value >= 11)
-        return GColorPurple; // Extreme
-    if (uv_value >= 8)
-        return GColorRed; // Very High
-    if (uv_value >= 6)
-        return GColorOrange; // High
-    if (uv_value >= 3)
-        return GColorYellow; // Moderate
-    return GColorGreen; // Low
-}
-#endif
-// Fixed height of one UV block, independent of the threshold setting. Bars grow one block per UV
-// point until they fill the graph height, then stay full. emery: taller graph area, taller blocks.
-// Color displays use shorter blocks than black and white: the per-block divider line (drawn
-// further down) is skipped there since the color change between blocks already marks the
-// boundary, so the graph can fit UV readings well past 11+ without capping.
-#ifdef PBL_COLOR
-#ifdef PBL_PLATFORM_EMERY
-#define UV_BLOCK_H 3
-#else
-#define UV_BLOCK_H 2
-#endif
-#else
+// One fixed-height block per UV point. emery: use taller blocks in the taller graph.
 #ifdef PBL_PLATFORM_EMERY
 #define UV_BLOCK_H 8
 #else
 #define UV_BLOCK_H 4
-#endif
 #endif
 #define NIGHT_PRECIP_FILL_COLOR PBL_IF_COLOR_ELSE(GColorDukeBlue, GColorLightGray)
 #define NIGHT_HATCH_COLOR_PRECIP PBL_IF_COLOR_ELSE(GColorBlue, GColorWhite)
@@ -730,79 +696,57 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
         }
     }
 
+    int peak_uv = 0;
+    int peak_start = 0;
+    int peak_end = 0;
+    int peak_bar_h = 0;
     if (render_spec.draw_uv_bars && num_entries > 0)
     {
         const int uv_threshold = g_config->uv_threshold < 1 ? 1 : g_config->uv_threshold;
-        // Blocks are a fixed height, so a bar stops growing once it fills the graph.
         const int max_blocks = graph_plot_rect.size.h / UV_BLOCK_H;
-        graphics_context_set_fill_color(ctx, UV_FILL_COLOR);
-        graphics_context_set_stroke_color(ctx, UV_STROKE_COLOR);
-        graphics_context_set_stroke_width(ctx, 1);
         const int bar_slot_w = graph_w / num_entries;
-        // emery: use the slimmer bars only on the wider display; smaller screens need the extra pixel.
+        // emery: retain the PR's slimmer bars on the wider display.
 #ifdef PBL_PLATFORM_EMERY
         const int bar_w = bar_slot_w > 3 ? bar_slot_w - 3 : 1;
 #else
         const int bar_w = bar_slot_w > 2 ? bar_slot_w - 2 : 1;
 #endif
+        graphics_context_set_fill_color(ctx, PBL_IF_COLOR_ELSE(GColorYellow, GColorWhite));
+        graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorWindsorTan, GColorBlack));
+        graphics_context_set_stroke_width(ctx, 1);
         for (int i = 0; i < num_entries; ++i)
         {
-            // Below the configured protection threshold, draw nothing at all: an empty graph
-            // means "no protection needed", so any bar visible is itself the warning.
             if (uv_index[i] < uv_threshold)
-            {
                 continue;
-            }
             int blocks = uv_index[i] - uv_threshold + 1;
             if (blocks > max_blocks)
-            {
                 blocks = max_blocks;
-            }
             const int bar_h = blocks * UV_BLOCK_H;
-            if (bar_h > 0)
+            if (bar_h <= 0)
+                continue;
+            const int reading_x = graph_bounds.origin.x + i * graph_w / span;
+            int bar_x = reading_x - bar_w / 2;
+            if (bar_x < graph_bounds.origin.x)
+                bar_x = graph_bounds.origin.x;
+            if (bar_x + bar_w > graph_bounds.origin.x + graph_w)
+                bar_x = graph_bounds.origin.x + graph_w - bar_w;
+            const GRect bar = GRect(bar_x, graph_plot_rect.origin.y, bar_w, bar_h);
+            graphics_fill_rect(ctx, bar, 0, GCornerNone);
+            graphics_draw_line(ctx, GPoint(bar.origin.x, bar.origin.y + bar.size.h - 1),
+                               GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y + bar.size.h - 1));
+            graphics_draw_line(ctx, GPoint(bar.origin.x, bar.origin.y),
+                               GPoint(bar.origin.x, bar.origin.y + bar.size.h - 1));
+            graphics_draw_line(ctx, GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y),
+                               GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y + bar.size.h - 1));
+            if (uv_index[i] > peak_uv)
             {
-                const int reading_x = graph_bounds.origin.x + i * graph_w / span;
-                int bar_x = reading_x - bar_w / 2;
-                if (bar_x < graph_bounds.origin.x)
-                    bar_x = graph_bounds.origin.x;
-                if (bar_x + bar_w > graph_bounds.origin.x + graph_w)
-                {
-                    bar_x = graph_bounds.origin.x + graph_w - bar_w;
-                }
-                const GRect bar = GRect(bar_x, graph_plot_rect.origin.y, bar_w, bar_h);
-#ifdef PBL_COLOR
-                // Color each block by the absolute UV value it represents (threshold + its
-                // position from the top), not by position within the bar, so a bar started at a
-                // high threshold opens straight into orange or red instead of yellow.
-                for (int block = 0; block < blocks; ++block)
-                {
-                    graphics_context_set_fill_color(ctx, uv_band_color(uv_threshold + block));
-                    const GRect block_rect =
-                        GRect(bar.origin.x, bar.origin.y + block * UV_BLOCK_H, bar.size.w, UV_BLOCK_H);
-                    graphics_fill_rect(ctx, block_rect, 0, GCornerNone);
-                }
-                graphics_context_set_fill_color(ctx, UV_FILL_COLOR);
-#else
-                graphics_fill_rect(ctx, bar, 0, GCornerNone);
-#endif
-                graphics_draw_line(ctx, GPoint(bar.origin.x, bar.origin.y + bar.size.h - 1),
-                                   GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y + bar.size.h - 1));
-                graphics_draw_line(ctx, GPoint(bar.origin.x, bar.origin.y),
-                                   GPoint(bar.origin.x, bar.origin.y + bar.size.h - 1));
-                graphics_draw_line(ctx, GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y),
-                                   GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y + bar.size.h - 1));
-#ifndef PBL_COLOR
-                // One divider between each block, so the UV level is countable at a glance
-                // instead of being read off a subtle height difference. On color displays the
-                // band color change already marks each step, and at the shorter block height
-                // used there a divider on every block would be mostly divider.
-                for (int block = 1; block < blocks; ++block)
-                {
-                    const int line_y = bar.origin.y + block * UV_BLOCK_H;
-                    graphics_draw_line(ctx, GPoint(bar.origin.x, line_y),
-                                       GPoint(bar.origin.x + bar.size.w - 1, line_y));
-                }
-#endif
+                peak_uv = uv_index[i];
+                peak_start = peak_end = i;
+                peak_bar_h = bar_h;
+            }
+            else if (uv_index[i] == peak_uv && i == peak_end + 1)
+            {
+                peak_end = i;
             }
         }
     }
@@ -815,6 +759,61 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     graphics_context_set_stroke_width(ctx, 3); // Only odd stroke width values supported
     gpath_draw_outline_open(ctx, &s_path_temp);
     MEMORY_HEAP_PROBE_SAMPLE("after_temp_path_draw", &redraw_probe);
+
+    if (peak_uv > 0)
+    {
+        char peak_label[4];
+        snprintf(peak_label, sizeof(peak_label), "%d", peak_uv);
+        const int peak_x = graph_bounds.origin.x + (peak_start + peak_end) * graph_w / (2 * span);
+        const int label_w = 20;
+        const int label_h = 16;
+        const int icon_w = 7;
+        int label_x = peak_x - label_w / 2;
+        if (label_x < graph_bounds.origin.x)
+            label_x = graph_bounds.origin.x;
+        if (label_x + label_w > graph_bounds.origin.x + graph_w)
+            label_x = graph_bounds.origin.x + graph_w - label_w;
+        int label_y = graph_plot_rect.origin.y + peak_bar_h;
+        if (label_y + label_h > graph_plot_rect.origin.y + graph_plot_rect.size.h)
+            label_y = graph_plot_rect.origin.y + graph_plot_rect.size.h - label_h;
+        const GRect label_rect = GRect(label_x, label_y, label_w, label_h);
+        const GFont font = fonts_get_system_font(FONT_KEY_GOTHIC_14);
+        const int text_w = graphics_text_layout_get_content_size(peak_label, font, label_rect,
+            GTextOverflowModeFill, GTextAlignmentCenter).w;
+        int icon_x = label_x + (label_w - text_w) / 2 - icon_w - 2;
+        if (icon_x < graph_bounds.origin.x)
+            icon_x = label_x + (label_w + text_w) / 2 + 2;
+        GBitmap *sun = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_UV_SUN);
+        if (sun)
+        {
+            GColor palette[] = {GColorBlack, GColorClear};
+            gbitmap_set_palette(sun, palette, false);
+            graphics_context_set_compositing_mode(ctx, GCompOpSet);
+            for (int dx = -1; dx <= 1; ++dx)
+            {
+                for (int dy = -1; dy <= 1; ++dy)
+                {
+                    graphics_draw_bitmap_in_rect(ctx, sun, GRect(icon_x + dx, label_y + 5 + dy, icon_w, 7));
+                }
+            }
+            palette[0] = PBL_IF_COLOR_ELSE(GColorYellow, GColorWhite);
+            graphics_draw_bitmap_in_rect(ctx, sun, GRect(icon_x, label_y + 5, icon_w, 7));
+            graphics_context_set_compositing_mode(ctx, GCompOpAssign);
+            gbitmap_destroy(sun);
+        }
+        graphics_context_set_text_color(ctx, PBL_IF_COLOR_ELSE(GColorBlack, GColorWhite));
+        for (int dx = -1; dx <= 1; ++dx)
+        {
+            for (int dy = -1; dy <= 1; ++dy)
+            {
+                graphics_draw_text(ctx, peak_label, font,
+                                   GRect(label_rect.origin.x + dx, label_rect.origin.y + dy, label_w, label_h),
+                                   GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+            }
+        }
+        graphics_context_set_text_color(ctx, PBL_IF_COLOR_ELSE(GColorWhite, GColorBlack));
+        graphics_draw_text(ctx, peak_label, font, label_rect, GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+    }
 
     // Draw a line for the bottom axis
     graphics_context_set_stroke_color(ctx, render_spec.axis_color);

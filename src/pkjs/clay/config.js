@@ -190,15 +190,14 @@ module.exports = [
                 "type": "toggle",
                 "label": "UV index",
                 "messageKey": "showUv",
-                "defaultValue": true,
-                "description": "Show the hourly UV index as yellow bars along the top of the forecast graph, and the current UV next to the current temperature. Only the Weather Underground provider supports UV so far; support for the other providers is a work in progress."
+                "defaultValue": true
             },
             {
                 "type": "select",
                 "label": "UV protection threshold",
                 "messageKey": "uvThreshold",
                 "defaultValue": "3",
-                "description": "The first UV bar is drawn at this UV index, so you can see when in the day to start protecting your skin. Each block above it is one more UV point, up to the top of the graph, and hours below it show no bar. The EPA and WHO recommend sun protection (shade, SPF 15+ sunscreen, hat, sunglasses) from UV 3 (Moderate), the default. Scale: 1-2 Low, 3-5 Moderate, 6-7 High, 8-10 Very High, 11+ Extreme. Choose 1 to show every hour with any UV. The current UV next to the temperature is not affected.",
+                "description": "Show forecast bars at or above this UV level.",
                 "options": [
                     {
                         "label": "1",

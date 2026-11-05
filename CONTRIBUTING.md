@@ -225,6 +225,12 @@ mise screenshot-phone <PHONE_IP>
 
 # Provide explicit output path / additional screenshot args
 mise screenshot-phone -- screenshot/my-capture.png
+
+# Take a screenshot via CloudPebble
+mise screenshot-cloud
+
+# Provide an explicit output path / additional screenshot args
+mise screenshot-cloud -- screenshot/my-capture.png --no-open
 ```
 
 ## Config

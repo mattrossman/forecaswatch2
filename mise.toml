@@ -74,6 +74,10 @@ run = "pebble kill"
 description = "Take a screenshot from phone"
 run = "scripts/screenshot-phone.sh"
 
+[tasks.screenshot-cloud]
+description = "Take a screenshot via CloudPebble"
+run = "scripts/screenshot-cloud.sh"
+
 [tasks.screenshot-emulator]
 description = "Take a screenshot from emulator (default: basalt)"
 alias = "screenshot"

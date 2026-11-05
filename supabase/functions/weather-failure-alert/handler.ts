@@ -34,7 +34,7 @@ export const handleRequest = withSupabase<Database>(
         `https://ntfy.sh/${encodeURIComponent(topic)}`,
         {
           method: "POST",
-          headers: { "Title": "Weather fetch failures" },
+          headers: { "Title": "FCW2: Weather updates are failing" },
           body: message,
         },
       );

@@ -8,6 +8,12 @@ export type Event = Pick<
 type Count = { total: number; failed: number };
 const HOUR = 60 * 60 * 1000;
 const INTERVAL = 15 * 60 * 1000;
+const providerNames: Record<Event["provider"], string> = {
+  wunderground: "Weather Underground",
+  openweathermap: "OpenWeatherMap",
+  openmeteo: "Open-Meteo",
+  mock: "Mock",
+};
 
 function counts(events: Event[], end: number): Map<string, Count> {
   const latest = new Map<string, Event>();
@@ -27,7 +33,7 @@ function counts(events: Event[], end: number): Map<string, Count> {
   for (const event of latest.values()) {
     const location = !event.success &&
       /^(coordinates|forward_geocode|reverse_geocode):/.test(event.error ?? "");
-    const providerKey = `Provider: ${event.provider}`;
+    const providerKey = providerNames[event.provider];
     const providerCount = result.get(providerKey) ?? { total: 0, failed: 0 };
     providerCount.total++;
     if (!event.success && !location) providerCount.failed++;
@@ -53,11 +59,16 @@ export function alertMessage(events: Event[], now: number): string | null {
   const lines: string[] = [];
   for (const [name, count] of current) {
     if (elevated(count) && !elevated(previous.get(name))) {
-      lines.push(
-        `${name}: ${count.failed}/${count.total} failed (${
-          (count.failed * 100 / count.total).toFixed(1)
-        }%)`,
-      );
+      const percentage = (count.failed * 100 / count.total).toFixed(1);
+      if (name === "Location") {
+        lines.push(
+          `In the last hour, ${count.failed} of ${count.total} accounts (${percentage}%) had their latest weather update fail due to a location error.`,
+        );
+      } else {
+        lines.push(
+          `In the last hour, ${count.failed} of ${count.total} accounts using ${name} (${percentage}%) had their latest weather update fail.`,
+        );
+      }
     }
   }
   return lines.length ? lines.join("\n") : null;

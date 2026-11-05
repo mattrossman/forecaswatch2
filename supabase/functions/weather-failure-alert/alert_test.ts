@@ -31,7 +31,7 @@ Deno.test("alerts when provider failures cross threshold", () => {
   );
   assertEquals(
     alertMessage(events, now),
-    "Provider: openmeteo: 2/10 failed (20.0%)",
+    "In the last hour, 2 of 10 accounts using Open-Meteo (20.0%) had their latest weather update fail.",
   );
   assertEquals(alertMessage(events.slice(0, 9), now), null);
 });
@@ -56,7 +56,10 @@ Deno.test("groups location failures across providers", () => {
         i % 2 ? "openmeteo" : "wunderground",
       ),
   );
-  assertEquals(alertMessage(events, now), "Location: 2/10 failed (20.0%)");
+  assertEquals(
+    alertMessage(events, now),
+    "In the last hour, 2 of 10 accounts (20.0%) had their latest weather update fail due to a location error.",
+  );
 });
 
 Deno.test("uses the latest event in each window", () => {
@@ -73,5 +76,8 @@ Deno.test("uses the latest event in each window", () => {
     account_token_hash: "account-2",
   });
   events.push(event(13, now - HOUR - INTERVAL - 1, "provider_data: timeout"));
-  assertEquals(alertMessage(events, now), "Location: 2/10 failed (20.0%)");
+  assertEquals(
+    alertMessage(events, now),
+    "In the last hour, 2 of 10 accounts (20.0%) had their latest weather update fail due to a location error.",
+  );
 });

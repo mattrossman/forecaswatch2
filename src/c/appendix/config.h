@@ -2,10 +2,19 @@
 
 #include <pebble.h>
 
+#include "stats_metrics.h"
+
 enum TimeFont {
     TIME_FONT_ROBOTO = 0,
     TIME_FONT_LECO = 1,
     TIME_FONT_BITHAM = 2,
+};
+
+/* Wire contract with CLAY_TIME_DATE and persisted in Config: append only. */
+enum TimeDatePosition {
+    TIME_DATE_OFF = 0,
+    TIME_DATE_LEFT = 1,
+    TIME_DATE_RIGHT = 2,
 };
 
 typedef struct {
@@ -27,9 +36,21 @@ typedef struct {
     GColor color_time;
     bool day_night_shading;
     bool precip_amount_bars;
+    /* Append new fields at the END only. persist_read_data copies
+       min(stored, sizeof(Config)) bytes, but an older blob also carries its
+       trailing padding, which can overlap new fields. config_read_or_default
+       resets fields the stored blob did not fully cover; extend that check
+       when appending. */
+    bool top_band_stats;
+    uint8_t stat_slots[STATS_MAX_SLOTS];
+    uint8_t time_date_pos;
 } Config;
 
 extern Config *g_config;
+
+/* Exported so persist_init can seed the same defaults instead of duplicating
+   them, which is how the two lists used to drift. */
+Config config_defaults(void);
 
 void config_load();
 

@@ -8,6 +8,8 @@
 
 static void init() {
     MEMORY_LOG_HEAP("boot");
+    // strftime day and month names follow the watch language instead of English
+    setlocale(LC_ALL, "");
     app_message_init();
     persist_init();
     config_load();

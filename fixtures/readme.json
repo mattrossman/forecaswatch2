@@ -10,6 +10,14 @@
     },
     "battery": {
       "percent": 100
+    },
+    "health": {
+      "steps": 5253,
+      "distance_meters": 4800,
+      "active_kcalories": 291,
+      "active_minutes": 24,
+      "heart_rate": 72,
+      "active_typical_minutes": 30
     }
   },
   "watchSettings": {
@@ -41,6 +49,7 @@
         "hour": 5,
         "minute": 28
       }
-    ]
+    ],
+    "uvIndex": 6
   }
 }

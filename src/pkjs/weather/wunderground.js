@@ -156,6 +156,8 @@ WundergroundProvider.prototype.withProviderData = function(lat, lon, force, onSu
                 });
                 provider.startTime = forecast[0].fcst_valid;
                 provider.currentTemp = currentTemp;
+                // Already in the 48hour forecast response; costs no extra request.
+                provider.uvIndex = forecast[0].uv_index;
                 onSuccess();
             }, handleFailure);
         }, handleFailure);

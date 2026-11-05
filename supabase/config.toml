@@ -376,7 +376,6 @@ enabled = true
 [functions.telemetry-ingest]
 enabled = true
 verify_jwt = false
-import_map = "./functions/telemetry-ingest/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
 entrypoint = "./functions/telemetry-ingest/index.ts"
@@ -385,4 +384,7 @@ entrypoint = "./functions/telemetry-ingest/index.ts"
 # static_files = [ "./functions/telemetry-ingest/*.html" ]
 
 [functions.telemetry-account-hash]
+verify_jwt = false
+
+[functions.weather-failure-alert]
 verify_jwt = false

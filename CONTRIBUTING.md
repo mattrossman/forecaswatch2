@@ -43,6 +43,15 @@ openssl rand -hex 32
 
 Use this value for `TELEMETRY_HASH_SECRET`.
 
+### Edge Functions
+
+- Give each function its own `deno.json` and lockfile. Pin dependency versions.
+  https://supabase.com/docs/guides/functions/dependencies
+- Prefer `@supabase/server` for function authentication.
+  https://supabase.com/docs/guides/functions/auth
+- Use generated `Database` types for Supabase queries. Regenerate them after schema changes.
+  https://supabase.com/docs/guides/api/rest/generating-types
+
 ### Local stack and emulator testing
 
 Start the local Supabase stack from the repo root:
@@ -94,6 +103,13 @@ supabase db schema declarative sync -f <migration_name> --name <migration_name> 
 
 Review the generated migration before applying it. CLI reference: https://supabase.com/docs/reference/cli/supabase-db-schema-declarative-sync
 
+After applying schema changes locally, regenerate the database types:
+
+```bash
+supabase gen types --schema public > supabase/functions/_shared/database.types.ts
+deno fmt supabase/functions/_shared/database.types.ts
+```
+
 ### Hosted deployment (Supabase cloud)
 
 Authenticate and link the repo to your Supabase project:
@@ -122,6 +138,23 @@ Deploy the telemetry function:
 ```bash
 supabase functions deploy telemetry-ingest
 ```
+
+### Weather failure alerts
+
+Generate an ntfy topic name:
+
+```bash
+printf 'forecaswatch-%s\n' "$(openssl rand -hex 16)"
+```
+
+Subscribe to that name at https://ntfy.sh/ or in the ntfy app. Keep it secret
+because anyone who knows it can read and publish messages.
+https://docs.ntfy.sh/publish/#picking-a-topic
+
+In Supabase, add `NTFY_TOPIC` under Edge Functions → Secrets. Under Integrations
+→ Vault → Secrets, add `weather_alert_project_url` with the project URL and
+`weather_alert_secret_key` with the default secret key from Project Settings →
+API Keys.
 
 Wire release and preview builds to hosted telemetry by setting repository secret(s) used by CI workflows:
 

@@ -1,0 +1,231 @@
+export type Json = string | number | boolean | null | {
+  [key: string]: Json | undefined;
+} | Json[];
+
+export type Database = {
+  "public": {
+    Tables: {
+      "telemetry_weather_fetch": {
+        Row: {
+          "account_token_hash": string;
+          "app_version": string;
+          "attempt": number | null;
+          "build_profile": string;
+          "country_code": string | null;
+          "duration_ms": number | null;
+          "error": string | null;
+          "gps_error_code": number | null;
+          "id": number;
+          "location_mode": string | null;
+          "provider": Database["public"]["Enums"]["weather_provider"];
+          "received_at": string;
+          "settings_json": NonNullable<Json>;
+          "success": boolean;
+          "used_gps_cache": boolean;
+          "watch_info": NonNullable<Json>;
+          "watch_token_hash": string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          "account_token_hash": string;
+          "app_version": string;
+          "attempt"?: number | null;
+          "build_profile": string;
+          "country_code"?: string | null;
+          "duration_ms"?: number | null;
+          "error"?: string | null;
+          "gps_error_code"?: number | null;
+          "id"?: number;
+          "location_mode"?: string | null;
+          "provider": Database["public"]["Enums"]["weather_provider"];
+          "received_at"?: string;
+          "settings_json"?: NonNullable<Json>;
+          "success": boolean;
+          "used_gps_cache"?: boolean;
+          "watch_info"?: NonNullable<Json>;
+          "watch_token_hash"?: string | null;
+        };
+        Update: {
+          "account_token_hash"?: string;
+          "app_version"?: string;
+          "attempt"?: number | null;
+          "build_profile"?: string;
+          "country_code"?: string | null;
+          "duration_ms"?: number | null;
+          "error"?: string | null;
+          "gps_error_code"?: number | null;
+          "id"?: number;
+          "location_mode"?: string | null;
+          "provider"?: Database["public"]["Enums"]["weather_provider"];
+          "received_at"?: string;
+          "settings_json"?: NonNullable<Json>;
+          "success"?: boolean;
+          "used_gps_cache"?: boolean;
+          "watch_info"?: NonNullable<Json>;
+          "watch_token_hash"?: string | null;
+        };
+        Relationships: [];
+      };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
+    Enums: {
+      "weather_provider":
+        | "wunderground"
+        | "openweathermap"
+        | "mock"
+        | "openmeteo";
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
+};
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
+
+type DefaultSchema =
+  DatabaseWithoutInternals[Extract<keyof Database, "public">];
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  } ? keyof (
+      & DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]][
+        "Tables"
+      ]
+      & DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]][
+        "Views"
+      ]
+    )
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends
+  { schema: keyof DatabaseWithoutInternals } ? (
+    & DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]][
+      "Tables"
+    ]
+    & DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]][
+      "Views"
+    ]
+  )[TableName] extends {
+    Row: infer R;
+  } ? R
+  : never
+  : DefaultSchemaTableNameOrOptions extends
+    keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] & DefaultSchema["Views"])[
+      DefaultSchemaTableNameOrOptions
+    ] extends {
+      Row: infer R;
+    } ? R
+    : never
+  : never;
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  } ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]][
+      "Tables"
+    ]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends
+  { schema: keyof DatabaseWithoutInternals }
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]][
+    "Tables"
+  ][TableName] extends {
+    Insert: infer I;
+  } ? I
+  : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+      Insert: infer I;
+    } ? I
+    : never
+  : never;
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  } ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]][
+      "Tables"
+    ]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends
+  { schema: keyof DatabaseWithoutInternals }
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]][
+    "Tables"
+  ][TableName] extends {
+    Update: infer U;
+  } ? U
+  : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+      Update: infer U;
+    } ? U
+    : never
+  : never;
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  } ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]][
+      "Enums"
+    ]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends
+  { schema: keyof DatabaseWithoutInternals }
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][
+    EnumName
+  ]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  : never;
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  } ? keyof DatabaseWithoutInternals[
+      PublicCompositeTypeNameOrOptions["schema"]
+    ]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends
+  { schema: keyof DatabaseWithoutInternals }
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]][
+    "CompositeTypes"
+  ][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends
+    keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : never;
+
+export const Constants = {
+  "public": {
+    Enums: {
+      "weather_provider": [
+        "wunderground",
+        "openweathermap",
+        "mock",
+        "openmeteo",
+      ],
+    },
+  },
+} as const;

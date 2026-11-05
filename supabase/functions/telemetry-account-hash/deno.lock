@@ -1,0 +1,11 @@
+{
+  "version": "4",
+  "specifiers": {
+    "npm:zod@4.3.6": "4.3.6"
+  },
+  "npm": {
+    "zod@4.3.6": {
+      "integrity": "sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg=="
+    }
+  }
+}

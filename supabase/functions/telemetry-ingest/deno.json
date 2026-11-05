@@ -1,7 +1,6 @@
 {
   "imports": {
-    "@supabase/functions-js": "jsr:@supabase/functions-js@^2",
-    "@supabase/supabase-js": "npm:@supabase/supabase-js@2",
-    "zod": "npm:zod@4"
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.99.1",
+    "zod": "npm:zod@4.3.6"
   }
 }

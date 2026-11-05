@@ -1,8 +1,8 @@
 {
   "version": "4",
   "specifiers": {
-    "npm:@supabase/supabase-js@2": "2.99.1",
-    "npm:zod@4": "4.3.6"
+    "npm:@supabase/supabase-js@2.99.1": "2.99.1",
+    "npm:zod@4.3.6": "4.3.6"
   },
   "npm": {
     "@supabase/auth-js@2.99.1": {
@@ -82,9 +82,8 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@supabase/functions-js@2",
-      "npm:@supabase/supabase-js@2",
-      "npm:zod@4"
+      "npm:@supabase/supabase-js@2.99.1",
+      "npm:zod@4.3.6"
     ]
   }
 }

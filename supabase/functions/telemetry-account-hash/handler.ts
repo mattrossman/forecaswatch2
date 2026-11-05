@@ -1,4 +1,4 @@
-import { z } from "npm:zod@4";
+import { z } from "npm:zod@4.3.6";
 import { accountTokenSchema } from "../_shared/account-token.ts";
 import { hmacSha256Hex } from "../_shared/hash.ts";
 

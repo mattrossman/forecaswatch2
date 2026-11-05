@@ -35,7 +35,8 @@ run = "supabase functions serve telemetry-ingest --env-file .env"
 description = "Run JavaScript and Supabase function tests"
 run = [
   "node --test 'tests/**/*.test.js'",
-  "deno test --config supabase/functions/telemetry-ingest/deno.json --allow-env=TELEMETRY_HASH_SECRET supabase/functions",
+  "deno test --config supabase/functions/telemetry-account-hash/deno.json --allow-env=TELEMETRY_HASH_SECRET supabase/functions/telemetry-account-hash",
+  "deno test --config supabase/functions/weather-failure-alert/deno.json --allow-env supabase/functions/weather-failure-alert",
 ]
 
 [tasks.clean]

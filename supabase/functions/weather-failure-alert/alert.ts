@@ -56,9 +56,11 @@ function elevated(count: Count | undefined): boolean {
 export function alertMessage(events: Event[], now: number): string | null {
   const current = counts(events, now);
   const previous = counts(events, now - INTERVAL);
+  const time = new Date(now);
+  const dailyReminder = time.getUTCHours() === 12 && time.getUTCMinutes() < 15;
   const lines: string[] = [];
   for (const [name, count] of current) {
-    if (elevated(count) && !elevated(previous.get(name))) {
+    if (elevated(count) && (dailyReminder || !elevated(previous.get(name)))) {
       const percentage = (count.failed * 100 / count.total).toFixed(1);
       if (name === "Location") {
         lines.push(

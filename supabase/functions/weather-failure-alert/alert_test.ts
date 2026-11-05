@@ -1,6 +1,6 @@
 import { alertMessage, type Event, HOUR, INTERVAL } from "./alert.ts";
 
-const now = Date.parse("2026-11-04T12:00:00Z");
+const now = Date.parse("2026-11-04T12:15:00Z");
 
 function event(
   id: number,
@@ -43,6 +43,25 @@ Deno.test("does not repeat an already elevated window", () => {
       event(i + 1, now - INTERVAL - 1, i < 2 ? "provider_data: timeout" : null),
   );
   assertEquals(alertMessage(events, now), null);
+});
+
+Deno.test("reminds daily while failures remain elevated", () => {
+  const reminderTime = now - INTERVAL;
+  const events = Array.from(
+    { length: 10 },
+    (_, i) =>
+      event(
+        i + 1,
+        reminderTime - INTERVAL - 1,
+        i < 2 ? "provider_data: timeout" : null,
+      ),
+  );
+  assertEquals(
+    alertMessage(events, reminderTime + 60_000),
+    "In the last hour, 2 of 10 accounts using Open-Meteo (20.0%) had their latest weather update fail.",
+  );
+  assertEquals(alertMessage(events, now), null);
+  assertEquals(alertMessage(events.slice(0, 9), reminderTime), null);
 });
 
 Deno.test("groups location failures across providers", () => {

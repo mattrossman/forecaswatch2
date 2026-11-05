@@ -141,6 +141,9 @@ supabase functions deploy
 
 ### Weather failure alerts
 
+Alerts are sent when failures cross the threshold, with a daily reminder around
+12:00 UTC while failures remain elevated.
+
 Generate an ntfy topic name:
 
 ```bash

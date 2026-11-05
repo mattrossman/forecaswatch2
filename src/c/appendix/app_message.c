@@ -15,9 +15,11 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *temp_trend_tuple = dict_find(iterator, MESSAGE_KEY_TEMP_TREND_INT16);
     Tuple *precip_trend_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_TREND_UINT8);
     Tuple *precip_amount_trend_tuple = dict_find(iterator, MESSAGE_KEY_PRECIP_AMOUNT_TREND_UINT8);
+    Tuple *uv_trend_tuple = dict_find(iterator, MESSAGE_KEY_UV_TREND_UINT8);
     Tuple *forecast_start_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_START);
     Tuple *num_entries_tuple = dict_find(iterator, MESSAGE_KEY_NUM_ENTRIES);
     Tuple *current_temp_tuple = dict_find(iterator, MESSAGE_KEY_CURRENT_TEMP);
+    Tuple *current_uv_tuple = dict_find(iterator, MESSAGE_KEY_CURRENT_UV);
     Tuple *city_tuple = dict_find(iterator, MESSAGE_KEY_CITY);
     Tuple *sun_events_tuple = dict_find(iterator, MESSAGE_KEY_SUN_EVENTS);
 
@@ -40,8 +42,10 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *clay_color_time_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_COLOR_TIME);
     Tuple *clay_day_night_shading_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_DAY_NIGHT_SHADING);
     Tuple *clay_precip_amount_bars_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_PRECIP_AMOUNT_BARS);
+    Tuple *clay_show_uv_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_SHOW_UV);
+    Tuple *clay_uv_threshold_tuple = dict_find(iterator, MESSAGE_KEY_CLAY_UV_THRESHOLD);
 
-    if(temp_trend_tuple && precip_trend_tuple && precip_amount_trend_tuple && forecast_start_tuple && num_entries_tuple && city_tuple && sun_events_tuple) {
+    if(temp_trend_tuple && precip_trend_tuple && precip_amount_trend_tuple && uv_trend_tuple && forecast_start_tuple && num_entries_tuple && current_temp_tuple && current_uv_tuple && city_tuple && sun_events_tuple) {
         // Weather data received
         APP_LOG(APP_LOG_LEVEL_INFO, "All tuples received!");
         persist_set_forecast_start((time_t)forecast_start_tuple->value->int32);
@@ -58,12 +62,14 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         uint8_t *precip_data = (uint8_t*) precip_trend_tuple->value->data;
         persist_set_precip_trend(precip_data, num_entries);
         persist_set_precip_amount_trend((uint8_t*) precip_amount_trend_tuple->value->data, num_entries);
+        persist_set_uv_trend((uint8_t*) uv_trend_tuple->value->data, num_entries);
         persist_set_city((char*)city_tuple->value->cstring);
         int lo, hi;
         min_max(temp_data, num_entries, &lo, &hi);
         persist_set_temp_lo(lo);
         persist_set_temp_hi(hi);
         persist_set_current_temp((int)current_temp_tuple->value->int32);
+        persist_set_current_uv((int)current_uv_tuple->value->int32);
         uint8_t sun_event_start_type = (uint8_t) sun_events_tuple->value->uint8;
         time_t *sun_event_times = (time_t*) (sun_events_tuple->value->data + 1);
         persist_set_sun_event_start_type(sun_event_start_type);
@@ -77,7 +83,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     else if (clay_celsius_tuple && clay_time_lead_zero_tuple && clay_axis_12h_tuple && clay_start_mon_tuple && clay_prev_week_tuple
         && clay_color_today_tuple && clay_time_font_tuple && clay_vibe_tuple && clay_show_qt_tuple && clay_show_bt_tuple
         && clay_show_bt_disconnect_tuple && clay_show_am_pm_tuple && clay_color_saturday_tuple && clay_color_sunday_tuple
-        && clay_color_us_federal_tuple && clay_color_time_tuple && clay_day_night_shading_tuple && clay_precip_amount_bars_tuple) {
+        && clay_color_us_federal_tuple && clay_color_time_tuple && clay_day_night_shading_tuple && clay_precip_amount_bars_tuple
+        && clay_show_uv_tuple && clay_uv_threshold_tuple) {
         // Clay config data received
         bool clay_celsius = (bool) (clay_celsius_tuple->value->int16);
         bool time_lead_zero = (bool) (clay_time_lead_zero_tuple->value->int16);
@@ -91,6 +98,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         bool show_am_pm = (bool) (clay_show_am_pm_tuple->value->int16);
         bool day_night_shading = (bool) (clay_day_night_shading_tuple->value->int16);
         bool precip_amount_bars = (bool) (clay_precip_amount_bars_tuple->value->int16);
+        bool show_uv = (bool) (clay_show_uv_tuple->value->int16);
+        int16_t uv_threshold = clay_uv_threshold_tuple->value->int16;
         int16_t time_font = clay_time_font_tuple->value->int16;
         GColor color_today = GColorFromHEX(clay_color_today_tuple->value->int32);
         GColor color_saturday = GColorFromHEX(clay_color_saturday_tuple->value->int32);
@@ -115,7 +124,9 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
             .color_us_federal = color_us_federal,
             .color_time = color_time,
             .day_night_shading = day_night_shading,
-            .precip_amount_bars = precip_amount_bars
+            .precip_amount_bars = precip_amount_bars,
+            .show_uv = show_uv,
+            .uv_threshold = uv_threshold
         };
         persist_set_config(config);
         main_window_refresh();
@@ -152,7 +163,7 @@ void app_message_init() {
     app_message_register_inbox_dropped(inbox_dropped_callback);
 
     // Open AppMessage
-    const int inbox_size = 256;
+    const int inbox_size = 320;
     const int outbox_size = dict_calc_buffer_size(1, sizeof(uint8_t));
     APP_LOG(APP_LOG_LEVEL_INFO, "AppMessage buffer sizes: inbox=%d outbox=%d", inbox_size, outbox_size);
     app_message_open(inbox_size, outbox_size);

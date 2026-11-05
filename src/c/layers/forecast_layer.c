@@ -30,6 +30,12 @@
 #define PRECIP_FILL_COLOR PBL_IF_COLOR_ELSE(GColorCobaltBlue, GColorLightGray)
 #define PRECIP_AMOUNT_FILL_COLOR PBL_IF_COLOR_ELSE(GColorIslamicGreen, GColorBlack)
 #define PRECIP_AMOUNT_STROKE_COLOR PBL_IF_COLOR_ELSE(GColorMintGreen, GColorWhite)
+// One fixed-height block per UV point. emery: use taller blocks in the taller graph.
+#ifdef PBL_PLATFORM_EMERY
+#define UV_BLOCK_H 8
+#else
+#define UV_BLOCK_H 4
+#endif
 #define NIGHT_PRECIP_FILL_COLOR PBL_IF_COLOR_ELSE(GColorDukeBlue, GColorLightGray)
 #define NIGHT_HATCH_COLOR_PRECIP PBL_IF_COLOR_ELSE(GColorBlue, GColorWhite)
 #define NIGHT_BOUNDARY_COLOR PBL_IF_COLOR_ELSE(GColorDarkGray, GColorLightGray)
@@ -60,6 +66,7 @@ typedef struct
 {
     bool draw_night_overlay;
     bool draw_precip_amount_bars;
+    bool draw_uv_bars;
     GColor axis_color;
 } RenderSpec;
 
@@ -87,6 +94,7 @@ static RenderSpec make_render_spec()
     RenderSpec spec = {
         .draw_night_overlay = g_config->day_night_shading,
         .draw_precip_amount_bars = g_config->precip_amount_bars,
+        .draw_uv_bars = g_config->show_uv,
         .axis_color = PBL_IF_COLOR_ELSE(GColorOrange, GColorWhite)};
 
     if (spec.draw_night_overlay)
@@ -500,7 +508,9 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     int16_t temps[num_entries];
     uint8_t precips[num_entries];
     uint8_t precip_amounts[num_entries];
+    uint8_t uv_index[num_entries];
     memset(precip_amounts, 0, sizeof(precip_amounts));
+    memset(uv_index, 0, sizeof(uv_index));
     persist_get_temp_trend(temps, num_entries);
     persist_get_precip_trend(precips, num_entries);
     const int precip_amount_bytes = persist_get_precip_amount_trend(precip_amounts, num_entries);
@@ -508,6 +518,12 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     {
         // Missing or truncated legacy data must render as no amount bars.
         memset(precip_amounts, 0, sizeof(precip_amounts));
+    }
+    const int uv_bytes = persist_get_uv_trend(uv_index, num_entries);
+    if (uv_bytes != num_entries)
+    {
+        // Missing or truncated legacy data must render as no UV bars.
+        memset(uv_index, 0, sizeof(uv_index));
     }
 
     // Allocate point arrays for plots
@@ -680,6 +696,61 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
         }
     }
 
+    int peak_uv = 0;
+    int peak_start = 0;
+    int peak_end = 0;
+    int peak_bar_h = 0;
+    if (render_spec.draw_uv_bars && num_entries > 0)
+    {
+        const int uv_threshold = g_config->uv_threshold < 1 ? 1 : g_config->uv_threshold;
+        const int max_blocks = graph_plot_rect.size.h / UV_BLOCK_H;
+        const int bar_slot_w = graph_w / num_entries;
+        // emery: retain the PR's slimmer bars on the wider display.
+#ifdef PBL_PLATFORM_EMERY
+        const int bar_w = bar_slot_w > 3 ? bar_slot_w - 3 : 1;
+#else
+        const int bar_w = bar_slot_w > 2 ? bar_slot_w - 2 : 1;
+#endif
+        graphics_context_set_fill_color(ctx, PBL_IF_COLOR_ELSE(GColorYellow, GColorWhite));
+        graphics_context_set_stroke_color(ctx, PBL_IF_COLOR_ELSE(GColorWindsorTan, GColorBlack));
+        graphics_context_set_stroke_width(ctx, 1);
+        for (int i = 0; i < num_entries; ++i)
+        {
+            if (uv_index[i] < uv_threshold)
+                continue;
+            int blocks = uv_index[i] - uv_threshold + 1;
+            if (blocks > max_blocks)
+                blocks = max_blocks;
+            const int bar_h = blocks * UV_BLOCK_H;
+            if (bar_h <= 0)
+                continue;
+            const int reading_x = graph_bounds.origin.x + i * graph_w / span;
+            int bar_x = reading_x - bar_w / 2;
+            if (bar_x < graph_bounds.origin.x)
+                bar_x = graph_bounds.origin.x;
+            if (bar_x + bar_w > graph_bounds.origin.x + graph_w)
+                bar_x = graph_bounds.origin.x + graph_w - bar_w;
+            const GRect bar = GRect(bar_x, graph_plot_rect.origin.y, bar_w, bar_h);
+            graphics_fill_rect(ctx, bar, 0, GCornerNone);
+            graphics_draw_line(ctx, GPoint(bar.origin.x, bar.origin.y + bar.size.h - 1),
+                               GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y + bar.size.h - 1));
+            graphics_draw_line(ctx, GPoint(bar.origin.x, bar.origin.y),
+                               GPoint(bar.origin.x, bar.origin.y + bar.size.h - 1));
+            graphics_draw_line(ctx, GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y),
+                               GPoint(bar.origin.x + bar.size.w - 1, bar.origin.y + bar.size.h - 1));
+            if (uv_index[i] > peak_uv)
+            {
+                peak_uv = uv_index[i];
+                peak_start = peak_end = i;
+                peak_bar_h = bar_h;
+            }
+            else if (uv_index[i] == peak_uv && i == peak_end + 1)
+            {
+                peak_end = i;
+            }
+        }
+    }
+
     // Draw the temperature line
     s_path_temp.num_points = num_entries;
     s_path_temp.points = s_points_temp;
@@ -688,6 +759,61 @@ static void forecast_update_proc(Layer *layer, GContext *ctx)
     graphics_context_set_stroke_width(ctx, 3); // Only odd stroke width values supported
     gpath_draw_outline_open(ctx, &s_path_temp);
     MEMORY_HEAP_PROBE_SAMPLE("after_temp_path_draw", &redraw_probe);
+
+    if (peak_uv > 0)
+    {
+        char peak_label[4];
+        snprintf(peak_label, sizeof(peak_label), "%d", peak_uv);
+        const int peak_x = graph_bounds.origin.x + (peak_start + peak_end) * graph_w / (2 * span);
+        const int label_w = 20;
+        const int label_h = 16;
+        const int icon_w = 7;
+        int label_x = peak_x - label_w / 2;
+        if (label_x < graph_bounds.origin.x)
+            label_x = graph_bounds.origin.x;
+        if (label_x + label_w > graph_bounds.origin.x + graph_w)
+            label_x = graph_bounds.origin.x + graph_w - label_w;
+        int label_y = graph_plot_rect.origin.y + peak_bar_h;
+        if (label_y + label_h > graph_plot_rect.origin.y + graph_plot_rect.size.h)
+            label_y = graph_plot_rect.origin.y + graph_plot_rect.size.h - label_h;
+        const GRect label_rect = GRect(label_x, label_y, label_w, label_h);
+        const GFont font = fonts_get_system_font(FONT_KEY_GOTHIC_14);
+        const int text_w = graphics_text_layout_get_content_size(peak_label, font, label_rect,
+            GTextOverflowModeFill, GTextAlignmentCenter).w;
+        int icon_x = label_x + (label_w - text_w) / 2 - icon_w - 2;
+        if (icon_x < graph_bounds.origin.x)
+            icon_x = label_x + (label_w + text_w) / 2 + 2;
+        GBitmap *sun = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_UV_SUN);
+        if (sun)
+        {
+            GColor palette[] = {GColorBlack, GColorClear};
+            gbitmap_set_palette(sun, palette, false);
+            graphics_context_set_compositing_mode(ctx, GCompOpSet);
+            for (int dx = -1; dx <= 1; ++dx)
+            {
+                for (int dy = -1; dy <= 1; ++dy)
+                {
+                    graphics_draw_bitmap_in_rect(ctx, sun, GRect(icon_x + dx, label_y + 5 + dy, icon_w, 7));
+                }
+            }
+            palette[0] = PBL_IF_COLOR_ELSE(GColorYellow, GColorWhite);
+            graphics_draw_bitmap_in_rect(ctx, sun, GRect(icon_x, label_y + 5, icon_w, 7));
+            graphics_context_set_compositing_mode(ctx, GCompOpAssign);
+            gbitmap_destroy(sun);
+        }
+        graphics_context_set_text_color(ctx, PBL_IF_COLOR_ELSE(GColorBlack, GColorWhite));
+        for (int dx = -1; dx <= 1; ++dx)
+        {
+            for (int dy = -1; dy <= 1; ++dy)
+            {
+                graphics_draw_text(ctx, peak_label, font,
+                                   GRect(label_rect.origin.x + dx, label_rect.origin.y + dy, label_w, label_h),
+                                   GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+            }
+        }
+        graphics_context_set_text_color(ctx, PBL_IF_COLOR_ELSE(GColorWhite, GColorBlack));
+        graphics_draw_text(ctx, peak_label, font, label_rect, GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+    }
 
     // Draw a line for the bottom axis
     graphics_context_set_stroke_color(ctx, render_spec.axis_color);

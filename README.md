@@ -32,6 +32,8 @@ Open source revival of the beloved ForecasWatch watchface. This includes support
 * Current temperature
 * Temperature forecast (red line)
 * Precipitation probability forecast (blue area)
+* Hourly UV index forecast (bars at or above a configurable threshold and a labeled peak, default UV 3)
+* Current UV index next to the current temperature (Weather Underground only for now)
 * City where forecast was fetched
 * Next sunrise or sunset time
 * GPS or manual location entry
